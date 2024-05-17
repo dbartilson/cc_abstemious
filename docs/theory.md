@@ -23,8 +23,8 @@ $$
 where $k=\omega / c$ is the wavenumber. Three classes of boundary condition may be used on the surface, and only one type may be used on any partition of the surface:
 
 1. **Velocity potential or pressure B.C.**: $\mathbf{\phi} = \bar{\mathbf{\phi}}$. This can represent a known non-zero surface pressure, or if set to zero, it represents a sound-soft (infinitely absorptive) boundary. ($\beta = 0, \gamma/\alpha = \bar{\mathbf{\phi}}$)
-2. **Surface normal velocity B.C.**: $\mathbf{v}_n = \bar{\mathbf{v}}_n$. This can represent a known non-zero surface motion, or if set to zero, it represents a sound-hard (reflective) boundary. ($\alpha = 0, \gamma/\beta = \bar{\mathbf{v}}_n$)
-3. **Impedance B.C.**: A known, linear relation between the surface normal velocity and the fluid pressure: $(i \omega \rho) \phi = p = Z v_n$ where $p$ is the pressure and $Z$ is the impedance. ($\gamma = 0, \alpha / \beta = -Z / (i \omega \rho)$)
+2. **Surface normal velocity B.C.**: $\mathbf{v}_n = \bar{\mathbf{v}}_n$. This can represent a known non-zero surface motion, or if set to zero, it represents a sound-hard (reflective) boundary. ( $\alpha = 0, \gamma/\beta = \bar{\mathbf{v}}_n$ )
+3. **Impedance B.C.**: A known, linear relation between the surface normal velocity and the fluid pressure: $(i \omega \rho) \phi = p = Z v_n$ where $p$ is the pressure and $Z$ is the impedance. ( $\gamma = 0, \alpha / \beta = -Z / (i \omega \rho)$ )
 
 These may be stated generally as variants of a Robin condition condition $\alpha \phi + \beta v_n = \gamma$, as shown above.
 
@@ -93,11 +93,11 @@ $$
 
 Examining the $\mathbf{H}\mathbf{\phi}$ term, each row $i$ of $\mathbf{H}$ corresponds to the contribution (influence) of the velocity potentials at all surface points to the velocity potential at node $i$, which can be split into an integral over the elements: 
 
-$$
+```math
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) d\mathbf{y} \approx
-\sum _e \int_{S_e} \phi (\mathbf{y_e}) h(\mathbf{x}, \mathbf{y_e}) d\mathbf{y}_e =
+\sum_e \int_{S_e} \phi (\mathbf{y_e}) h(\mathbf{x}, \mathbf{y_e}) d\mathbf{y}_e = 
 \left(\sum _e \int_{S_e} \sum _i N_i(\mathbf{\xi})h(\mathbf{x}, \mathbf{y}_e(\mathbf{\xi}))d\mathbf{y}_e \right)\mathbf{\phi}
-$$
+```
 
 Note that the nodal values of velocity potential are assembled into the vector $\mathbf{\phi}$ and the in-element integral can be calculated using quadrature rules.
 
