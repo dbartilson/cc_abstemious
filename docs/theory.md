@@ -30,7 +30,7 @@ These may be stated generally as variants of a Robin condition condition $`\alph
 
 The incident sound sources (incident acoustic fields) can be defined similarly:
 
-1. **Plane wave**: Has a defined strength (amplitude: $`A$) and propagates along a unit vector $`\mathbf{e}_d`$. The phase is assumed to be zero at the origin, i.e. $`\mathbf{x} \cdot \mathbf{e}_d = 0$: 
+1. **Plane wave**: Has a defined strength (amplitude: $`A`$) and propagates along a unit vector $`\mathbf{e}_d`$. The phase is assumed to be zero at the origin, i.e. $`\mathbf{x} \cdot \mathbf{e}_d = 0`$: 
 
 ```math
 \phi_I(\mathbf{x}) = A e^{ik(\mathbf{x} \cdot \mathbf{e}_d)}
