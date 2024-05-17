@@ -1,9 +1,13 @@
 pub mod text_reader;
 
 pub mod model_data {
-    use std::path::Path;
 
+    use std::path::Path;
+    use std::io::Write;
     use super::text_reader;
+    use na::Vector3;
+
+    pub type Coords = Vector3<f64>;
 
     pub enum ElementType {
         Null,
@@ -18,7 +22,6 @@ pub mod model_data {
         pub etype: ElementType,
         pub node_ids: Vec<usize>
     }
-    pub type Elements = Vec<Element>;
 
     pub enum BodyType {
         Null,
@@ -31,18 +34,16 @@ pub mod model_data {
         pub id: usize,
         pub element_ids: Vec<usize>
     }
-    pub type Bodies = Vec<Body>;
 
     pub struct Node {
         pub id: usize,
-        pub coords: [f64; 3]
+        pub coords: Coords,
     }
-    pub type Nodes = Vec<Node>;
 
     pub struct MeshData {
-        pub nodes: Nodes,
-        pub elements: Elements,
-        pub bodies: Bodies,
+        pub nodes: Vec<Node>,
+        pub elements: Vec<Element>,
+        pub bodies: Vec<Body>,
     }
     impl Default for MeshData {
         fn default() -> MeshData {
@@ -55,7 +56,8 @@ pub mod model_data {
     }
     impl MeshData {
         pub fn read_from_vtk(&mut self, path: &Path) -> std::io::Result<()> {
-            println!("Reading VTK file {} ...", path.display().to_string());
+            print!(" Reading VTK file '{}' ...", path.display().to_string());
+            std::io::stdout().flush().unwrap();
             let mut reader = text_reader::text_reader::BufReader::open(path)?;
             let mut buffer = String::new();
 
@@ -70,7 +72,7 @@ pub mod model_data {
                     for i in 1..npts+1 {
                         reader.read_line(&mut buffer);
                         sline = buffer.split_whitespace();
-                        let mut node_temp: Node = Node{id: i, coords:[0., 0., 0.]};
+                        let mut node_temp: Node = Node{id: i, coords:Coords::from_element(0.0)};
                         for j in 0..3 {
                             node_temp.coords[j] = sline.next().as_ref().unwrap().parse().unwrap();
                         }
@@ -116,7 +118,8 @@ pub mod model_data {
                 }
                 bodies[(body_id-1) as usize].element_ids.push(el.id);
             }
-            println!("Complete! ({} bodies, {} elements, {} nodes)", bodies.len(), elements.len(), nodes.len());
+            println!(" Done!");
+            println!(" Read {} bodies, {} elements, {} nodes", bodies.len(), elements.len(), nodes.len());
             Ok(())
         }
     }

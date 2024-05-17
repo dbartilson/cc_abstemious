@@ -1,9 +1,11 @@
 [package]
-name = "bem"
-version = "0.1.0"
+name = "cc-abstemious"
+version = "0.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 nalgebra = "*"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"

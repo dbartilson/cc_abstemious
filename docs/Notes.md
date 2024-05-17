@@ -1,77 +1,111 @@
-Starting with typical structural dynamics equation for an *n* DoF system:
+The linear wave equation is satisfied over a field, at a given location $\bm{x}$ and at a time $t$
 $$
-\mathbf{M} \ddot{\mathbf{u}}+\mathbf{C} \dot{\mathbf{u}}+\mathbf{K} \mathbf{u}=\mathbf{f}
+\nabla ^2 \psi(\bm{x},t) = \frac{1}{c^2} \frac{\partial^2}{\partial t^2} \psi(\bm{x},t)
 $$
-Let's make the harmonic, steady-state assumption:
-$$
-\mathbf{f}=\hat{\mathbf{f}}e^{i\omega t} \\
-\mathbf{u}=\hat{\mathbf{u}}e^{i\omega t}
-$$
-which gives
-$$
-[-\omega^2 \mathbf{M} + i\omega \mathbf{C} +\mathbf{K}] \hat{\mathbf{u}}=\hat{\mathbf{f}}
-$$
-Neglect the hats and introduce another forcing term from the effect of the fluid on the structural surface:
-$$
-\mathbf{Z}(\omega)\dot{\mathbf{u}}=\mathbf{f}-\mathbf{N}\mathbf{A}\mathbf{p}
-$$
-where $\mathbf{Z}(\omega)$ is the *n* by *n* structural impedance matrix ($\mathbf{Z}(\omega)=\frac{1}{i\omega}[-\omega^2 \mathbf{M} + i\omega \mathbf{C} +\mathbf{K}] $), $\mathbf{p}$ is the vector of *m* pressures on the boundary, $\mathbf{N}$ is the *n* by *m* matrix which selects the structural boundary DoF and orients in the outward normal direction, and $\mathbf{A}$ is the *m* by *m* boundary area matrix. A positive pressure leads to a negative force, since the convention uses an outward pointing normal vector.
+where $\psi(\bm{x},t)$ is the velocity potential field and $c$ is the propagation velocity. The vector velocity is given $\bm{v}(\bm{x},t) = \nabla \psi(\bm{x},t)$ and the acoustic pressure is $p = -\rho \frac{\partial}{\partial t} \psi(\bm{x},t)$ with $\rho$ as the fluid mass density.
 
-The structural solution can be separated between the 'dry' and 'wet' (or total) solution:
+Using a harmonic, steady-state assumption, the velocity potential field can be rewritten as 
 $$
-\dot{\mathbf{u}}=\dot{\mathbf{u}}_{dry}-\mathbf{Z}^{-1}\mathbf{N}\mathbf{A}\mathbf{p}
+\psi(\bm{x},t) = Re[\phi(\bm{x}) e^{-i\omega t}]
 $$
-where $\dot{\mathbf{u}}_{dry}=\mathbf{Z}^{-1} \mathbf{f}$ can be solved independently and prior to solving the fluid portion. Now the fluid portion will be expressed before forming the coupled equation.
+given that the angular drive frequency is $\omega = 2 \pi f$, where $f$ is the frequency in Hertz. 
 
-The harmonic form of the Helmholtz equation for the exterior fluid is
+The harmonic form of the Helmholtz equation for the fluid is then
 $$
-\nabla ^2 p+k^2 p=0
+\nabla ^2 \psi + k^2 \psi= \psi_{inc}
 $$
-where *p* is the pressure field and $k=\omega/ c$ is the wavenumber. The solution is
+where $k=\omega / c$ is the wavenumber. Three classes of boundary condition may be used on the surface, and only one type may be used on any partition of the surface:
+
+1. **Velocity potential or pressure B.C.**: $\bm{\phi} = \bar{\bm{\phi}}$. This can represent a known non-zero surface pressure, or if set to zero, it represents a sound-soft (infinitely absorptive) boundary. ($\beta = 0, \gamma/\alpha = \bar{\bm{\phi}}$)
+2. **Surface normal velocity B.C.**: $\bm{v}_n = \bar{\bm{v}}_n$. This can represent a known non-zero surface motion, or if set to zero, it represents a sound-hard (reflective) boundary. ($\alpha = 0, \gamma/\beta = \bar{\bm{v}}_n$)
+3. **Impedance B.C.**: A known, linear relation between the surface normal velocity and the fluid pressure: $(i \omega \rho) \phi = p = Z v_n$ where $p$ is the pressure and $Z$ is the impedance. ($\gamma = 0, \alpha / \beta = -Z / (i \omega \rho)$)
+
+These may be stated generally as variants of a Robin condition condition $\alpha \phi + \beta v_n = \gamma$, as shown above.
+
+The incident sound sources (incident acoustic fields) can be defined similarly:
+
+1. **Plane wave**: Has a defined strength (amplitude: $A$) and propagates along a unit vector $\bm{e}_d$. The phase is assumed to be zero at the origin, i.e. $\bm{x} \cdot \bm{e}_d = 0$: 
 $$
-\int_S p(\mathbf{x}) \frac{\partial g(r)}{\partial n} - \frac{\partial p(\mathbf{x})}{\partial n}g(r)dS =
+\phi_I(\bm{x}) = A e^{ik(\bm{x} \cdot \bm{e}_d)}
+$$
+2. **Point source**: Also known as a volume source or spherical source. Has a defined amplitude $A$ and position vector $\bm{x}_I$:
+$$
+\phi_I(\bm{x}) = \frac{A}{4 \pi r}e^{ikr}; \qquad r = \bm{x} - \bm{x}_I
+$$
+
+The directional derivative, along a specified normal direction, will also be important. This is expressed as
+$$
+v_n(\bm{x}) = \nabla \phi (\bm{x}) \cdot \bm{n}(\bm{x}) = \frac{\partial \phi(\bm{x})}{\partial n(\bm{x})}
+$$
+
+The integral solution to the Helmholtz equation is written as
+$$
+\int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\bm{y}) g(\mathbf{x}, \mathbf{y}) d\bm{y} =
 \left\lbrace 
 \begin{array}{l l}
-p(\mathbf{x}')/2-p_I & \mathbf{x}' \text{ on boundary} \\
-p(\mathbf{x}')-p_I & \mathbf{x}' \text{ outside boundary}\\
--p_I & \mathbf{x}' \text{ inside boundary}
+\phi(\mathbf{x})-\phi_I(\mathbf{x}) & \text{at field point, ${\bm{x}}$}\\
+\phi(\mathbf{x})/2-\phi_I(\mathbf{x}) & \text{on surface for exterior problem}  \\
+-\phi_I(\mathbf{x}) & \text{on surface for interior problem}
 \end{array}
 \right.
 $$
-where $p_I$ is the incident pressure on the surface and  $r=|\mathbf{x}' - \mathbf{x}|$ is the distance from a point on the surface $\mathbf{x}$ to a point of interest $\mathbf{x}'$. $g(r)$ is the Green's function
+where $\phi_I$ is the incident wave (free-field) velocity potential. $g$ and its normal derivative are given as:
 $$
-g(r)=e^{-ikr}/4\pi r \\
-\frac{\partial g(r)}{\partial n} = -(ik+1/r) g(r) \frac{\partial r}{\partial n}
+g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r} \\
+h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{y})} = \left(ik - \frac{1}{r}\right) g(\bm{x}, \bm{y}) (\bm{e}_r \cdot \bm{n}(\bm{y}))
 $$
-with $\frac{\partial r}{\partial n}$ as the cosine of the angle between the surface normal vector at $\mathbf{x}$ and the vector $\mathbf{r}=\mathbf{x}' - \mathbf{x}$. 
+with $\bm{r} = \bm{x} - \bm{y}$ as the vector pointing from $\bm{y}$ to $\bm{x}$ and $r = || \bm{r} ||$ as the magnitude (distance) and $\bm{e}_r = \bm{r}/r$ as the unit vector form.
 
-Momentum considerations give
+Within an element, the shape functions are used to represent the variation in value in the domain, such that
 $$
-\frac{\partial p(\mathbf{x})}{\partial n} = -i\omega \rho \dot{u}_n(\mathbf{x})
+\phi(\bm{\xi}) = \sum_i N_i^e(\bm{\xi}) \phi^e_i
 $$
-where $\dot{u}_n$ is the normal velocity on the boundary and $\rho$ is the fluid mass density. Thus, the pressure at every point on the surface can be related to the pressure and surface normal velocity on every other point on the surface. Thus, the integral on the surface can be written:
-$$
-p(\mathbf{x}')/2 +\int_S p(\mathbf{x}) (ik+1/r)\frac{e^{-ikr}}{4\pi r} \frac{\partial r}{\partial n} dS = i\omega \rho \int_S  \dot{u}_n(\mathbf{x})  \frac{e^{-ikr}}{4\pi r}dS + p_I
-$$
-These integrals can be discretized over the surface and precomputed
-$$
-\mathbf{\Gamma}\mathbf{p}=\mathbf{\Lambda}\dot{\mathbf{u}}_n+\mathbf{p}_I
-$$
-which is the typical discretized form of the BEM equations, with $\mathbf{\Gamma}$ and $\mathbf{\Lambda}$ as the dense, complex, unsymmetric BEM influence matrices.
+with $\bm{\xi}$ as the natural domain coordinate within the element, $\phi^e_i$ as the value at element node $i$, and $N_i^e(\bm{\xi})$ as the shape function corresponding to node $i$ evaluated at $\bm{\xi}$.
 
-Now, going back to the structural equations, the normal velocities on the surface can be related to the full set of structural velocity DoF:
+The integral form can be discretized over the surface this way as
 $$
-\dot{\mathbf{u}}_n = \mathbf{N}^T \dot{\mathbf{u}}
-$$
-Combining this with equations \ref{eq:BEM} and \ref{eq:partitioned_response}:
-$$
-[\mathbf{\Gamma} + \mathbf{N}^T \mathbf{Z}^{-1}\mathbf{N}\mathbf{A}]\mathbf{p}=\mathbf{\Lambda}\mathbf{N}^T\dot{\mathbf{u}}_{dry}+\mathbf{p}_I
-$$
-Which can be solved to find the submerged surface pressures from the precomputed structural impedance $\mathbf{Z}$, dry velocity responses $\dot{\mathbf{u}}_{dry}$, and the BEM influence matrices $\mathbf{\Gamma}$ and $\mathbf{\Lambda}$. Computationally, it is advantageous to compute $\mathbf{Z}^{-1}_n =\mathbf{N}^T \mathbf{Z}^{-1}\mathbf{N}$ and $\mathbf{N}^T\dot{\mathbf{u}}_{dry}$ directly by only saving the surface-normal portions, rather than computing the full responses and multiplying by $\mathbf{N}$.
+\bm{H} \bm{\phi} - \bm{G} \bm{v}_n = 
+\left\lbrace 
+\begin{array}{l l}
+\bm{\phi}/2-\bm{\phi}_I & \text{on surface for exterior problem}  \\
 
-The submerged surface velocities can be recovered either by modifying the dry responses (Eq. $\ref{eq:partitioned_response}$) or by re-solving the structural response with the known surface pressures (Eq. $\ref{eq:structure_with_fluid}$). Computationally, the second method is preferred since $\mathbf{Z}$ can be stored (in a factored state) on disk and this avoids needing to hold $\dot{\mathbf{u}}_{dry}$ after computing the submerged response.
+-\bm{\phi}_I & \text{on surface for interior problem}
+\end{array}
+\right.
+$$
 
-With the known surface pressures and submerged surface normal velocities, the pressure or velocity at any point in the field can be computed from Eq. $\ref{eq:Helmholtz_integral}$ with analogous intermediate steps to Eqs. $\ref{eq:BEM_integral}$  and $\ref{eq:BEM}$. Note that this stage doesn't require matrix factorization/solution, only multiplications.
+Examining the $\bm{H}\bm{\phi}$ term, each row $i$ of $\bm{H}$ corresponds to the contribution (influence) of the velocity potentials at all surface points to the velocity potential at node $i$, which can be split into an integral over the elements: 
+$$
+\int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) d\bm{y} \approx
+\sum _e \int_{S_e} \phi (\mathbf{y_e}) h(\mathbf{x}, \mathbf{y_e}) d\bm{y}_e =
+\left(\sum _e \int_{S_e} \sum _i N_i(\bm{\xi})h(\bm{x}, \bm{y}_e(\bm{\xi}))d\bm{y}_e \right)\bm{\phi}
+$$
+Note that the nodal values of velocity potential are assembled into the vector $\bm{\phi}$ and the in-element integral can be calculated using quadrature rules.
+
+The velocity potentials must first be solved on the surface, giving the matrix equation (in an exterior problem):
+$$
+\left[\bm{H} - \frac{1}{2} \bm{I} \right] \bm{\phi} = \bm{G} \bm{v}_n - \bm{\phi}_I
+$$
+For the three possible boundary conditions, this is solved as:
+$$
+\begin{array}{l l}
+\bm{G} \bm{v}_n = \bm{\phi}_I -\left[\bm{H} - \frac{1}{2} \bm{I} \right] \bar{\bm{\phi}}  & \text{pressure B.C.} \\
+\left[\bm{H} - \frac{1}{2} \bm{I} \right] \bm{\phi} = \bm{G} \bar{\bm{v}}_n - \bm{\phi}_I & \text{normal velocity B.C.} \\
+\left[\bm{H} - \frac{1}{2} \bm{I} - \frac{i \omega \rho}{Z} \bm{G}\right] \bm{\phi} = -\bm{\phi}_I  & \text{impedance B.C.}
+\end{array}
+$$
+
+Once the velocity potential and normal velocity fields are known on the surface, the velocity potential for an arbitrary point $\mathbf{x}$ in the interior or exterior field can be found from the general solution via: 
+
+$$
+\int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\bm{y}) g(\mathbf{x}, \mathbf{y}) d\bm{y} =
+\phi(\mathbf{x})-\phi_I(\mathbf{x}) \\
+\bm{\phi}_{fp} = -\bm{M} \bm{\phi} + \bm{L} \bm{v}_n + \bm{\phi}_I
+$$
+
+where $\bm{M}$ and $\bm{G}$ are analagously constructed to $\bm{H}$ and $\bm{G}$, but are (generally) rectangular matrices of dimension $n_{fp} \times n_s$ where $n_{fp}$ is the number of field points and $n_s$ is the number of surface points. $\bm{M}$ and $\bm{G}$ represent the influence of the surface fields on the velocity potential at each field point. Note that $\bm{\phi}_I$ contains the vector of $n_{fp}$ incident wave velocity potentials at each field point.
+
+<!---
 
  $$
  \left[ 
@@ -121,3 +155,5 @@ With the known surface pressures and submerged surface normal velocities, the pr
  $$
 
  $\bm{\beta} = [\bm{H}_{12} Z + \bm{G}_{12}] [\bm{G}_{22} + \bm{H}_{22} Z]^{-1}$
+
+ -->
