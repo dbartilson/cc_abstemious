@@ -27,12 +27,12 @@
 
 ## Limitations & Future Work
 
-[^1] Only linear, 3-noded triangles are supported
-[^2] Only 3D bodies and analysis is supported
-[^3] The user must specify the acoustic body index from the VTK mesh file
-[^4] Only one body and one frequency is supported per analysis 
-[^5] There is no explicit check of whether a field point is interior to the body for interior problems, and similar for exterior problems
-[^6] Only one surface boundary condition may be utilized, i.e., the pressure, normal velocity, or impedance B.C. must be applied to the whole surface
+[^1]: Only linear, 3-noded triangles are supported
+[^2]: Only 3D bodies and analysis is supported
+[^3]: The user must specify the acoustic body index from the VTK mesh file
+[^4]: Only one body and one frequency is supported per analysis 
+[^5]: There is no explicit check of whether a field point is interior to the body for interior problems, and similar for exterior problems
+[^6]: Only one surface boundary condition may be utilized, i.e., the pressure, normal velocity, or impedance B.C. must be applied to the whole surface
 
 
 
