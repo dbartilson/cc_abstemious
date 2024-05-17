@@ -23,7 +23,7 @@ The harmonic form of the Helmholtz equation for the fluid is then
 where $`k=\omega / c`$ is the wavenumber. Three classes of boundary condition may be used on the surface, and only one type may be used on any partition of the surface:
 
 1. **Velocity potential or pressure B.C.**: $`\mathbf{\phi} = \bar{\mathbf{\phi}}`$. This can represent a known non-zero surface pressure, or if set to zero, it represents a sound-soft (infinitely absorptive) boundary. ( $`\beta = 0, \gamma/\alpha = \bar{\mathbf{\phi}}`$ )
-2. **Surface normal velocity B.C.**: $`\mathbf{v}_n = \bar{\mathbf{v}}_n$. This can represent a known non-zero surface motion, or if set to zero, it represents a sound-hard (reflective) boundary. ( $`\alpha = 0, \gamma/\beta = \bar{\mathbf{v}}_n`$ )
+2. **Surface normal velocity B.C.**: $`\mathbf{v}_n = \bar{\mathbf{v}}_n`$. This can represent a known non-zero surface motion, or if set to zero, it represents a sound-hard (reflective) boundary. ( $`\alpha = 0, \gamma/\beta = \bar{\mathbf{v}}_n`$ )
 3. **Impedance B.C.**: A known, linear relation between the surface normal velocity and the fluid pressure: $`(i \omega \rho) \phi = p = Z v_n`$ where $`p`$ is the pressure and $`Z`$ is the impedance. ( $`\gamma = 0, \alpha / \beta = -Z / (i \omega \rho)`$ )
 
 These may be stated generally as variants of a Robin condition condition $`\alpha \phi + \beta v_n = \gamma`$, as shown above.
@@ -36,7 +36,7 @@ The incident sound sources (incident acoustic fields) can be defined similarly:
 \phi_I(\mathbf{x}) = A e^{ik(\mathbf{x} \cdot \mathbf{e}_d)}
 ```
 
-2. **Point source**: Also known as a volume source or spherical source. Has a defined amplitude $`A`$ and position vector $`\mathbf{x}_I$:
+2. **Point source**: Also known as a volume source or spherical source. Has a defined amplitude $`A`$ and position vector $`\mathbf{x}_I`$:
 
 ```math
 \phi_I(\mathbf{x}) = \frac{A}{4 \pi r}e^{ikr}; \qquad r = \mathbf{x} - \mathbf{x}_I
@@ -125,7 +125,7 @@ Once the velocity potential and normal velocity fields are known on the surface,
 \mathbf{\phi}_{fp} = -\mathbf{M} \mathbf{\phi} + \mathbf{L} \mathbf{v}_n + \mathbf{\phi}_I
 ```
 
-where $`\mathbf{M}`$ and $`\mathbf{G}`$ are analagously constructed to $`\mathbf{H}`$ and $`\mathbf{G}$, but are (generally) rectangular matrices of dimension $`n_{fp} \times n_s`$ where $`n_{fp}`$ is the number of field points and $`n_s`$ is the number of surface points. $`\mathbf{M}`$ and $`\mathbf{G}`$ represent the influence of the surface fields on the velocity potential at each field point. Note that $`\mathbf{\phi}_I`$ contains the vector of $`n_{fp}`$ incident wave velocity potentials at each field point.
+where $`\mathbf{M}`$ and $`\mathbf{G}`$ are analagously constructed to $`\mathbf{H}`$ and $`\mathbf{G}`$, but are (generally) rectangular matrices of dimension $`n_{fp} \times n_s`$ where $`n_{fp}`$ is the number of field points and $`n_s`$ is the number of surface points. $`\mathbf{M}`$ and $`\mathbf{G}`$ represent the influence of the surface fields on the velocity potential at each field point. Note that $`\mathbf{\phi}_I`$ contains the vector of $`n_{fp}`$ incident wave velocity potentials at each field point.
 
 <!---
 
