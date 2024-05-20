@@ -9,7 +9,7 @@ pub mod elements;
 
 use model_data::model_data::MeshData;
 use input_data::input_data::read_input_json;
-use crate::{elements::elements::Triangle, input_data::input_data::{BCType, ProblemType, WaveType}};
+use crate::{elements::elements::*, input_data::input_data::{BCType, ProblemType, WaveType}};
 use na::{Complex, DMatrix, DVector, Vector3};
 use std::f64::consts::PI;
 
