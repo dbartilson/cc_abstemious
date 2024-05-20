@@ -21,7 +21,9 @@ fn main() -> std::io::Result<()> {
     println!("Ver. 0.0");
     println!("");
 
-    let input_path_str = "D:/Repositories/cc-abstemious/docs/input_1.json";
+    println!("Current dir: {}", std::env::current_dir().unwrap().display());
+
+    let input_path_str = "./docs/input_1.json";
     let user_input = read_input_json(Path::new(input_path_str)).unwrap();
 
     let mut mesh: MeshData = Default::default();
