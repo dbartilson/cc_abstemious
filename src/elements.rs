@@ -20,12 +20,16 @@ pub mod elements {
     use crate::model_data::model_data::{Coords, MeshData};
     use crate::Cplx;
 
-    // Outputs from numerically-integrated elements
-    pub trait NumIntElement<const N: usize> {
-        fn shape_functions_at(gp: &Gp) -> [f64; N];
+    // Methods for numerically-integrated elements
+    pub trait NumIntElement {
+        fn shape_functions_at(gp: &Gp) -> Vec<f64>;
         fn coordinates_at(&self, gp: &Gp) -> Coords;
         fn normal_vector_at(&self) -> Vector3<f64>;
-        fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vector3::<Cplx>, Vector3::<Cplx>);
+        fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>);
+    }
+
+    pub fn get_influence_matrices_at<E: NumIntElement>(element: E, k: f64, origin: &Coords) {
+        element.influence_matrices_at(k, origin);
     }
 
     pub struct Triangle <'a> {
@@ -38,14 +42,14 @@ pub mod elements {
             Triangle{integration: &TRIGP3, mesh: &meshdata, element_id: element}
         }
     }
-    impl NumIntElement<3> for Triangle <'_> {
-        fn shape_functions_at(gp: &Gp) -> [f64;3] {
+    impl NumIntElement for Triangle <'_> {
+        fn shape_functions_at(gp: &Gp) -> Vec<f64> {
             let xi = gp.coords[0];
             let eta = gp.coords[1];
             let n = [1.0 - xi - eta,
                                xi,
                                eta];
-            return n;
+            return n.to_vec();
         }
         fn coordinates_at(&self, gp: &Gp) -> Coords {
             let n = Triangle::shape_functions_at(gp);
@@ -67,9 +71,9 @@ pub mod elements {
             let b = e2 - e0;
             b.cross(&a)
         }
-        fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vector3::<Cplx>, Vector3::<Cplx>) {
+        fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
 
-            let mut h = Vector3::<Cplx>::from_element(Cplx::new(0.,0.));
+            let mut h = vec![Cplx::new(0.0, 0.0); 3];
             let mut g = h.clone();
 
             let normal = self.normal_vector_at();
@@ -101,15 +105,15 @@ pub mod elements {
             Quad{integration: &QUADGP4, mesh: &meshdata, element_id: element}
         }
     }
-    impl NumIntElement<4> for Quad <'_> {
-        fn shape_functions_at(gp: &Gp) -> [f64;4] {
+    impl NumIntElement for Quad <'_> {
+        fn shape_functions_at(gp: &Gp) -> Vec<f64> {
             let xi = gp.coords[0];
             let eta = gp.coords[1];
             let n = [0.25*(1.-xi)*(1.-eta),
                                0.25*(1.+xi)*(1.-eta),
                                0.25*(1.+xi)*(1.+eta),
                                0.25*(1.-xi)*(1.+eta)];
-            return n;
+            return n.to_vec();
         }
         fn coordinates_at(&self, gp: &Gp) -> Coords {
             let n = Quad::shape_functions_at(gp);
@@ -131,9 +135,9 @@ pub mod elements {
             let b = e2 - e0;
             b.cross(&a)
         }
-        fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vector3::<Cplx>, Vector3::<Cplx>) {
+        fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
 
-            let mut h = Vector3::<Cplx>::from_element(Cplx::new(0.,0.));
+            let mut h = vec![Cplx::new(0.0, 0.0); 4];
             let mut g = h.clone();
 
             let normal = self.normal_vector_at();
@@ -154,5 +158,6 @@ pub mod elements {
             return (h, g);
         }
     }
+
     
 }

@@ -14,6 +14,7 @@ pub mod model_data {
         Point,
         Line,
         Tri,
+        Quad
     }
 
     pub struct Element {

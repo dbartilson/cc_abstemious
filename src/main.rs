@@ -9,7 +9,7 @@ pub mod elements;
 
 use model_data::model_data::MeshData;
 use input_data::input_data::read_input_json;
-use crate::{elements::elements::*, input_data::input_data::{BCType, ProblemType, WaveType}};
+use crate::{elements::elements::*, input_data::input_data::{BCType, ProblemType, WaveType}, model_data::model_data::*};
 use na::{Complex, DMatrix, DVector, Vector3};
 use std::f64::consts::PI;
 
@@ -56,7 +56,7 @@ fn main() -> std::io::Result<()> {
         let o = &mesh.nodes[*inode].coords;
         for e in 0..*nelem {
             let e_id = &mesh.bodies[body_id-1].element_ids[e];
-            let tri = Triangle::new(&mesh, *e_id);
+
             let enodes = &mesh.elements[*e_id-1].node_ids;
             let mut e_eqns = Vec::<usize>::new();
             for enode in enodes {
@@ -65,7 +65,22 @@ fn main() -> std::io::Result<()> {
                     None => println!("Eqn not found for element node {}", enode)
                 }
             }
-            let (he, ge) = tri.influence_matrices_at(k, o);
+            let mut he = Vec::new();
+            let mut ge = Vec::new();
+            match &mesh.elements[*e_id-1].etype {
+                ElementType::Tri => {
+                    let tri = Triangle::new(&mesh, *e_id);
+                    (he, ge) = tri.influence_matrices_at(k, o);
+                },
+                ElementType::Quad => {
+                    let quad = Quad::new(&mesh, *e_id);
+                    (he, ge) = quad.influence_matrices_at(k, o);
+                }
+                _ => {
+                    println!("Invalid element!");
+                }
+            }
+
             for j in 0..e_eqns.len() {
                 h[(*ieqn, e_eqns[j])] += he[j];
                 g[(*ieqn, e_eqns[j])] += ge[j];
