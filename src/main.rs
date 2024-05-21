@@ -176,7 +176,6 @@ fn main() -> std::io::Result<()> {
             let coord = Vector3::from_column_slice(fieldpt);
             for e in 0..*nelem {
                 let e_id = &mesh.bodies[body_id-1].element_ids[e];
-                let tri = Triangle::new(&mesh, *e_id);
                 let enodes = &mesh.elements[*e_id-1].node_ids;
                 let mut e_eqns = Vec::<usize>::new();
                 for enode in enodes {
@@ -185,7 +184,21 @@ fn main() -> std::io::Result<()> {
                         None => println!("Eqn not found for element node {}", enode)
                     }
                 }
-                let (me, le) = tri.influence_matrices_at(k, &coord);
+                let mut me = Vec::new();
+                let mut le = Vec::new();
+                match &mesh.elements[*e_id-1].etype {
+                    ElementType::Tri => {
+                        let tri = Triangle::new(&mesh, *e_id);
+                        (me, le) = tri.influence_matrices_at(k, &coord);
+                    },
+                    ElementType::Quad => {
+                        let quad = Quad::new(&mesh, *e_id);
+                        (me, le) = quad.influence_matrices_at(k, &coord);
+                    }
+                    _ => {
+                        println!("Invalid element!");
+                    }
+                }
                 for j in 0..e_eqns.len() {
                     m[(i, e_eqns[j])] += me[j];
                     l[(i, e_eqns[j])] += le[j];
