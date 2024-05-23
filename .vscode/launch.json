@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'bem'",
+            "name": "Debug executable 'cc-abstemious'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=bem",
-                    "--package=bem"
+                    "--bin=cc-abstemious",
+                    "--package=cc-abstemious"
                 ],
                 "filter": {
-                    "name": "bem",
+                    "name": "cc-abstemious",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'bem'",
+            "name": "Debug unit tests in executable 'cc-abstemious'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=bem",
-                    "--package=bem"
+                    "--bin=cc-abstemious",
+                    "--package=cc-abstemious"
                 ],
                 "filter": {
-                    "name": "bem",
+                    "name": "cc-abstemious",
                     "kind": "bin"
                 }
             },
