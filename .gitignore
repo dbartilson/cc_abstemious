@@ -15,6 +15,5 @@ Cargo.lock
 
 # Documents and model files
 *.pdf
-*.vtk
 *.vtu
 *.geo
