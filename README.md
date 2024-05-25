@@ -1,6 +1,6 @@
-# CC-ABSTEMIOUS <=> BEM-ACOUSTICS
+# cc_abstemious <=> BEM-ACOUSTICS
 
-`CC-ABSTEMIOUS` is a numerical acoustics simulation software based on the boundary element method. The main features are:
+`cc_abstemious` is a numerical acoustics simulation software based on the boundary element method. The main features are:
 
 * Direct boundary integral formulation
 * Formulated using velocity potential
@@ -14,7 +14,7 @@
 
 ## Usage
 
-`CC-ABSTEMIOUS` supports `.json` input files which specify the following analysis fields:
+`cc_abstemious` supports `.json` input files which specify the following analysis fields:
 
 * Mesh file in `.vtk` format [^1][^2][^3]
 * Body index in the mesh file [^3]

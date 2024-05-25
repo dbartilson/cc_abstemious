@@ -8,7 +8,7 @@
             "name": "Launch an application",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/target/debug/cc-abstemious.exe",
+            "program": "${workspaceRoot}/target/debug/cc_abstemious.exe",
             "args": [  ],
             "cwd": "${workspaceRoot}/src",
         },

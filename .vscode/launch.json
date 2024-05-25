@@ -7,34 +7,34 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'cc-abstemious'",
+            "name": "Debug executable 'cc_abstemious'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=cc-abstemious",
-                    "--package=cc-abstemious"
+                    "--bin=cc_abstemious",
+                    "--package=cc_abstemious"
                 ],
                 "filter": {
-                    "name": "cc-abstemious",
+                    "name": "cc_abstemious",
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": ["./docs/input_1.json"],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'cc-abstemious'",
+            "name": "Debug unit tests in executable 'cc_abstemious'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=cc-abstemious",
-                    "--package=cc-abstemious"
+                    "--bin=cc_abstemious",
+                    "--package=cc_abstemious"
                 ],
                 "filter": {
-                    "name": "cc-abstemious",
+                    "name": "cc_abstemious",
                     "kind": "bin"
                 }
             },

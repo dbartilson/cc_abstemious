@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::{io::Write, path::Path};
 
 pub fn preprocess() -> (input_data::UserInput, mesh_data::Mesh, HashMap<usize,usize>) {
-    println!("=== CC-ABSTEMIOUS <=> BEM-ACOUSTICS ===");
+    println!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
     println!("Ver. 0.0");
     println!("");
 

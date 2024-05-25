@@ -1,7 +1,19 @@
 [package]
-name = "cc-abstemious"
+name = "cc_abstemious"
 version = "0.0.0"
 edition = "2021"
+
+[lib]
+name = "cc_abstemious"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cc_abstemious"
+path = "src/main.rs"
+
+[[test]]
+name = "cc_abstemious_tests"
+path = "src/tests/test1.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
