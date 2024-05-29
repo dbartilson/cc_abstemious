@@ -4,15 +4,12 @@ pub mod mesh_data;
 use std::collections::HashMap;
 use std::{io::Write, path::Path};
 
-pub fn preprocess() -> (input_data::UserInput, mesh_data::Mesh, HashMap<usize,usize>) {
+pub fn preprocess(input_path_str: &String) -> (input_data::UserInput, mesh_data::Mesh, HashMap<usize,usize>) {
     println!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
     println!("Ver. 0.0");
     println!("");
 
     println!(" Current directory: {}", std::env::current_dir().unwrap().display());
-
-    let args: Vec<String> = std::env::args().collect();
-    let input_path_str = &args[1];
     println!(" Attempting to read input file: {}", input_path_str);
 
     // read input json
@@ -33,7 +30,7 @@ pub fn preprocess() -> (input_data::UserInput, mesh_data::Mesh, HashMap<usize,us
     return (user_input, mesh, eqn_map);
 }
 
-fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
+pub fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
     let mut eqn_map = HashMap::<usize, usize>::new();
 
     let nnode = meshdata.nodes.len();

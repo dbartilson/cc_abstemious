@@ -13,7 +13,7 @@ path = "src/main.rs"
 
 [[test]]
 name = "cc_abstemious_tests"
-path = "src/tests/test1.rs"
+path = "src/tests/preprocess.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

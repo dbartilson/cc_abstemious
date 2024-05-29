@@ -8,8 +8,8 @@ pub mod incident_wave;
 pub mod influence_matrix;
 pub mod solve;
 
-pub fn run() {
-    let (user_input, mesh, eqn_map) = preprocess::preprocess();
+pub fn run(input_path_str: &String) {
+    let (user_input, mesh, eqn_map) = preprocess::preprocess(input_path_str);
     
     print!(" Assembling surface BEM influence matrices...");
     std::io::stdout().flush().unwrap();
@@ -30,14 +30,4 @@ pub fn run() {
     println!(" Complete!");
 
     println!(" Exiting...");
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn it_works() {
-        //crate::run();
-        assert_eq!(4, 4);
-    }
 }

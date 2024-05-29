@@ -1,5 +1,3 @@
-
-
 #[test]
 fn json_reader() {
     use cc_abstemious::preprocess::input_data::*;
