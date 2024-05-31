@@ -11,7 +11,7 @@ fn vtk_reader() {
     use std::path::Path;
 
     let mut mesh: mesh_data::Mesh = Default::default();
-    let _result = mesh.read_from_vtk(Path::new("./src/tests/mesh_1.vtk"));
+    let _result = mesh.read_from_vtk(Path::new("./src/tests/sphere.vtk"));
 
     assert_eq!(mesh.elements.len(), 336);
 }

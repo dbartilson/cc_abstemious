@@ -12,8 +12,12 @@ name = "cc_abstemious"
 path = "src/main.rs"
 
 [[test]]
-name = "cc_abstemious_tests"
+name = "cc_abstemious_pre"
 path = "src/tests/preprocess.rs"
+
+[[test]]
+name = "cc_abstemious_verification"
+path = "src/tests/verification.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
