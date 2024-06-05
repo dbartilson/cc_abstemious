@@ -1,6 +1,9 @@
-use std::io::Write;
+use std::{io::Write, path::Path};
+
+use preprocess::input_data;
 
 extern crate nalgebra as na;
+type Cplx = na::Complex<f64>;
 
 pub mod preprocess;
 pub mod elements;
@@ -8,26 +11,81 @@ pub mod incident_wave;
 pub mod influence_matrix;
 pub mod solve;
 
-pub fn run(input_path_str: &String) {
-    let (user_input, mesh, eqn_map) = preprocess::preprocess(input_path_str);
+enum AnalysisState {
+    Input,
+    Solve,
+    Null
+}
+
+pub struct Analysis {
+    input: Option<preprocess::input_data::UserInput>,
+    analysis_state: AnalysisState,
+    phi_fp: Option<na::DVector<Cplx>>
+}
+
+impl Analysis {
+    pub fn new() -> Analysis {
+        println!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
+        println!("Ver. 0.0");
+        println!("");
     
-    print!(" Assembling surface BEM influence matrices...");
-    std::io::stdout().flush().unwrap();
-    let (h, g) = influence_matrix::get_surface_influence_matrices(&user_input, &mesh, &eqn_map);
-    println!(" Complete!");
+        println!(" Current directory: {}", std::env::current_dir().unwrap().display());
+        Analysis {
+            input: None,
+            analysis_state: AnalysisState::Null,
+            phi_fp: None
+        }
+    }
+    pub fn input_from_file(&mut self, input_path_str: &String) {
+        println!(" Attempting to read input file: {}", input_path_str);
+        self.input = Some(input_data::read_input_json(input_path_str).unwrap());
+        self.analysis_state = AnalysisState::Input;
+    }
+    pub fn run(&mut self) {
 
-    let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(&user_input, &mesh, &eqn_map);
+        if self.input.is_none() {
+            panic!("No input found");
+        }
+        let input = self.input.as_ref().unwrap();
+        // read mesh VTK
+        let mut mesh: preprocess::mesh_data::Mesh = Default::default();
+        let _result = mesh.read_from_vtk(Path::new(&input.mesh_file));
 
-    print!(" Solving system (direct LU)...");
-    std::io::stdout().flush().unwrap();
-    let (phi, vn) = solve::solve_lu(&user_input, &h, &g, &phi_inc, &eqn_map.len());
-    println!(" Complete!");
+        let body_id = &input.body_index;
 
-    print!(" Post-processing...");
-    std::io::stdout().flush().unwrap();
-    let (m, l) = influence_matrix::get_field_influence_matrices(&user_input, &mesh, &eqn_map);
-    let _phi_fp = solve::get_fp(&m, &l, &phi, &vn, &phi_inc_fp);
-    println!(" Complete!");
+        // preprocess to get node to eqn map
+        print!(" Preprocessing...");
+        std::io::stdout().flush().unwrap();
+        let eqn_map = preprocess::get_eqn_map(&mesh, *body_id);
+        println!(" Complete!");
 
-    println!(" Exiting...");
+        print!(" Assembling surface BEM influence matrices...");
+        std::io::stdout().flush().unwrap();
+        let (h, g) = influence_matrix::get_surface_influence_matrices(&input, &mesh, &eqn_map);
+        println!(" Complete!");
+    
+        let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(&input, &mesh, &eqn_map);
+    
+        print!(" Solving system (direct LU)...");
+        std::io::stdout().flush().unwrap();
+        let (phi, vn) = solve::solve_lu(&input, &h, &g, &phi_inc, &eqn_map.len());
+        println!(" Complete!");
+    
+        print!(" Post-processing...");
+        std::io::stdout().flush().unwrap();
+        let (m, l) = influence_matrix::get_field_influence_matrices(&input, &mesh, &eqn_map);
+        self.phi_fp = Some(solve::get_fp(&m, &l, &phi, &vn, &phi_inc_fp));
+        println!(" Complete!");
+
+        self.analysis_state = AnalysisState::Solve;
+    }
+    pub fn get_fp_result(&self) -> na::DVector<Cplx> {
+        match &self.phi_fp {
+            Some(result) => {
+                result.clone()
+            },
+            None => panic!("No FP")
+        }
+    }
+
 }
