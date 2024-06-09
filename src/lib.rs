@@ -41,6 +41,10 @@ impl Analysis {
         self.input = Some(input_data::read_input_json(input_path_str).unwrap());
         self.analysis_state = AnalysisState::Input;
     }
+    pub fn input_from_string(&mut self, input_str: &String) {
+        self.input = Some(input_data::read_input_string(input_str).unwrap());
+        self.analysis_state = AnalysisState::Input;
+    }
     pub fn run(&mut self) {
 
         if self.input.is_none() {

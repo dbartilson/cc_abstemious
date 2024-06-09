@@ -62,3 +62,8 @@ pub fn read_input_json<P: AsRef<Path>>(path: P) -> Result<UserInput, Box<dyn Err
     // Return the `User`.
     Ok(u)
 }
+
+pub fn read_input_string(str: &String) -> Result<UserInput, Box<dyn Error>> {
+    let u = serde_json::from_str(str)?;
+    Ok(u)
+}
