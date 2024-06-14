@@ -3,14 +3,20 @@ pub mod interpolation {
         pub coords: [f64; 2],
         pub wt: f64,
     }
-    pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./6.}, 
-                                    Gp{coords: [1./6., 2./3.], wt: 1./6.}, 
-                                    Gp{coords: [2./3., 1./6.], wt: 1./6.}];
+    pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
+                                  Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
+                                  Gp{coords: [2./3., 1./6.], wt: 1./3.}];
+    pub static TRIGP6: [Gp; 6] = [Gp{coords: [0.091576213509771, 0.091576213509771], wt: 0.109951743655322},
+                                  Gp{coords: [0.816847572980459, 0.091576213509771], wt: 0.109951743655322},
+                                  Gp{coords: [0.091576213509771, 0.816847572980459], wt: 0.109951743655322},
+                                  Gp{coords: [0.445948490915965, 0.445948490915965], wt: 0.223381589678011},
+                                  Gp{coords: [0.445948490915965, 0.108103018168070], wt: 0.223381589678011},
+                                  Gp{coords: [0.108103018168070, 0.445948490915965], wt: 0.223381589678011}];
     static ONEOVERSQRT3: f64 = 0.57735026919;
     pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
-                                    Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
-                                    Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
-                                    Gp{coords: [-ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0}];
+                                   Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
+                                   Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
+                                   Gp{coords: [-ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0}];
 }   
 
 use interpolation::*;
@@ -27,13 +33,13 @@ pub trait NumIntElement {
 }
 
 pub struct Triangle <'a> {
-    pub integration: &'a [Gp; 3],
+    pub integration: &'a [Gp; 6],
     pub mesh: &'a Mesh,
     pub element_id: usize,
 }
 impl Triangle <'_> {
     pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> Triangle <'a> {
-        Triangle{integration: &TRIGP3, mesh: &meshdata, element_id: element}
+        Triangle{integration: &TRIGP6, mesh: &meshdata, element_id: element}
     }
 }
 impl NumIntElement for Triangle <'_> {
@@ -41,8 +47,8 @@ impl NumIntElement for Triangle <'_> {
         let xi = gp.coords[0];
         let eta = gp.coords[1];
         let n = [1.0 - xi - eta,
-                            xi,
-                            eta];
+                           xi,
+                           eta];
         return n.to_vec();
     }
     fn coordinates_at(&self, gp: &Gp) -> Coords {
@@ -63,15 +69,16 @@ impl NumIntElement for Triangle <'_> {
         let e2 = &self.mesh.nodes[enodes[2]].coords;
         let a = e1 - e0;
         let b = e2 - e0;
-        b.cross(&a)
+        a.cross(&b)
     }
     fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
 
         let mut h = vec![Cplx::new(0.0, 0.0); 3];
         let mut g = h.clone();
 
-        let normal = self.normal_vector_at();
+        let mut normal = self.normal_vector_at();
         let detj = normal.norm();
+        normal /= detj; // normalize normal
         for gp in self.integration {
             let x = self.coordinates_at(gp);
             let r = origin - x;
@@ -81,8 +88,8 @@ impl NumIntElement for Triangle <'_> {
             let h_gp = g_gp * Cplx::new(1.0 / rdist, -k) * runit.dot(&normal);
             let n = Triangle::shape_functions_at(gp);
             for i in 0..3 {
-                h[i] += h_gp * n[i] * detj * gp.wt;
-                g[i] += g_gp * n[i] * detj * gp.wt;
+                h[i] += h_gp * n[i] * 0.5 * detj * gp.wt;
+                g[i] += g_gp * n[i] * 0.5 * detj * gp.wt;
             }
         }
         return (h, g);
@@ -127,7 +134,7 @@ impl NumIntElement for Quad <'_> {
         let e2 = &self.mesh.nodes[enodes[2]].coords;
         let a = e1 - e0;
         let b = e2 - e0;
-        b.cross(&a)
+        a.cross(&b)
     }
     fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
 

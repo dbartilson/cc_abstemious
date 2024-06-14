@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::preprocess::{input_data::*, mesh_data::Mesh};
-use na::{DVector, Complex, Vector3};
+use na::{Complex, ComplexField, DVector, Vector3};
 use std::f64::consts::PI;
 type Cplx = Complex<f64>;
 
@@ -21,28 +21,29 @@ pub fn get_incident_wave(user_input: &UserInput, mesh: &Mesh,
     let inc_wave = &user_input.incident_wave;
     let amp = Cplx::new(inc_wave.amplitude[0], inc_wave.amplitude[1]);
     let vector = &inc_wave.origin;
-    let vec3 = Vector3::from_column_slice(vector);
+    let mut vec3 = Vector3::from_column_slice(vector);
+    vec3 /= vec3.magnitude();
     match inc_wave.wave_type {
         WaveType::PlaneWave => {
             for (inode, ieqn) in eqn_map {
                 let coord = &mesh.nodes[*inode].coords;
-                phi_inc[*ieqn] = amp * Cplx::new(0., k * vec3.dot(coord));
+                phi_inc[*ieqn] = amp * Cplx::new(0., k * vec3.dot(coord)).exp();
             }
             for i in 0..num_fp {
                 let coord = Vector3::from_column_slice(&fp[i]);
-                phi_inc_fp[i] = amp * Cplx::new(0., k * vec3.dot(&coord));
+                phi_inc_fp[i] = amp * Cplx::new(0., k * vec3.dot(&coord)).exp();
             }
         }
         WaveType::SphericalWave => {
             for (inode, ieqn) in eqn_map {
                 let coord = &mesh.nodes[*inode].coords;
                 let r = (coord - vec3).magnitude();
-                phi_inc[*ieqn] = amp * Cplx::new(0., k * r) / (4.0 * PI * r);
+                phi_inc[*ieqn] = amp * Cplx::new(0., k * r).exp() / (4.0 * PI * r);
             }
             for i in 0..num_fp {
                 let coord = Vector3::from_column_slice(&fp[i]);
                 let r = (coord - vec3).magnitude();
-                phi_inc_fp[i] = amp * Cplx::new(0., k * r) / (4.0 * PI * r);
+                phi_inc_fp[i] = amp * Cplx::new(0., k * r).exp() / (4.0 * PI * r);
             }
         }
     }

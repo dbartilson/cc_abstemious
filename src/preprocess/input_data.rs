@@ -46,7 +46,8 @@ pub struct UserInput {
     pub problem_type: ProblemType,
     pub field_points: Vec<[f64;3]>,
     pub incident_wave: IncidentWaveInput,
-    pub surface_bc: SurfaceBoundaryCondition
+    pub surface_bc: SurfaceBoundaryCondition,
+    pub output_file: String
 }
 
 pub fn read_input_json<P: AsRef<Path>>(path: P) -> Result<UserInput, Box<dyn Error>> {
@@ -63,7 +64,7 @@ pub fn read_input_json<P: AsRef<Path>>(path: P) -> Result<UserInput, Box<dyn Err
     Ok(u)
 }
 
-pub fn read_input_string(str: &String) -> Result<UserInput, Box<dyn Error>> {
+pub fn read_input_string(str: &str) -> Result<UserInput, Box<dyn Error>> {
     let u = serde_json::from_str(str)?;
     Ok(u)
 }

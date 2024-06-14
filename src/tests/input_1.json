@@ -30,5 +30,6 @@
             0.0,
             0.0
         ]
-    }
+    },
+    "output_file": "./src/tests/rigid_sphere_plane_wave_bem.csv"
 }

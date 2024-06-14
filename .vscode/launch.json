@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -19,7 +16,9 @@
                     "kind": "bin"
                 }
             },
-            "args": ["./docs/input_1.json"],
+            "args": [
+                "./docs/input_1.json"
+            ],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -40,6 +39,12 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Python Debugger: Python File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}"
         }
     ]
 }

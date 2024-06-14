@@ -74,8 +74,8 @@ pub fn get_field_influence_matrices(user_input: &id::UserInput, mesh: &mesh::Mes
     let nelem = &mesh.bodies[body_id-1].element_ids.len();
     let num_eqn = eqn_map.len();
 
-    let mut m   = DMatrix::<Cplx>::from_diagonal_element(nfp, num_eqn,  Cplx::new(-1.,0.));
-    let mut l = DMatrix::<Cplx>::from_element(nfp, num_eqn,  Cplx::new(0.,0.));
+    let mut m = DMatrix::<Cplx>::from_element(nfp, num_eqn,  Cplx::new(0.,0.));
+    let mut l = m.clone();
     for i in 0..nfp {
         let fieldpt = &user_input.field_points[i];
         let coord = Vector3::from_column_slice(fieldpt);
