@@ -4,8 +4,8 @@ use cc_abstemious::preprocess::input_data::*;
 
 fn default_input() -> UserInput {
     UserInput {
-        mesh_file: "./src/tests/refined_sphere.vtk".to_string(),
-        body_index: 3,
+        mesh_file: "./src/tests/sphere_quad.vtk".to_string(),
+        body_index: 2,
         frequency: 1.0,
         sound_speed: 1.0,
         mass_density: 1.0,
@@ -28,7 +28,7 @@ fn default_input() -> UserInput {
 fn rigid_sphere_plane_wave() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = 100.0;
+    input.frequency = 10.0;
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;

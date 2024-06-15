@@ -24,7 +24,7 @@ N = 80 # number of terms in sum
 r = 0.5 # radius of sphere
 R = 10.0 # radius of field points
 nfp = 100 # number of field points
-f = 100.0 # frequency
+f = 10.0 # frequency
 c = 1500.0 # sound speed
 rho = 1000.0 # density of fluid
 
