@@ -1,23 +1,22 @@
-use std::collections::HashMap;
 use na::{DMatrix, Complex, Vector3};
+use crate::preprocess;
 use crate::preprocess::input_data as id;
 use crate::preprocess::mesh_data as mesh;
 use crate::elements::*;
-use std::f64::consts::PI;
 type Cplx = Complex<f64>;
 
-pub fn get_surface_influence_matrices(user_input: &id::UserInput, mesh: &mesh::Mesh, 
-    eqn_map: &HashMap<usize, usize>) -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
+pub fn get_surface_influence_matrices(predata: &preprocess::PreData) 
+    -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
 
-    let omega = 2.0 * PI * user_input.frequency;
-    let c = &user_input.sound_speed;
-    let k = omega / c;
+    let mesh = predata.get_mesh();
+    let eqn_map = predata.get_eqn_map();
+    let k = predata.get_wavenumber();
 
     let num_eqn = eqn_map.len();
-    let body_id = &user_input.body_index;
-    let nelem = &mesh.bodies[body_id-1].element_ids.len();
+    let mesh_body = predata.get_mesh_body();
+    let nelem = mesh_body.element_ids.len();
 
-    let hdiag = match user_input.problem_type {
+    let hdiag = match predata.get_problem_type() {
         id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
         id::ProblemType::Interior => Cplx::new(0.0, 0.0)
     };
@@ -25,8 +24,8 @@ pub fn get_surface_influence_matrices(user_input: &id::UserInput, mesh: &mesh::M
     let mut g = DMatrix::<Cplx>::from_element(num_eqn, num_eqn, Cplx::new(0.,0.));
     for (inode, ieqn) in eqn_map {
         let o = &mesh.nodes[*inode].coords;
-        for e in 0..*nelem {
-            let e_id = &mesh.bodies[body_id-1].element_ids[e];
+        for e in 0..nelem {
+            let e_id = &mesh_body.element_ids[e];
 
             let enodes = &mesh.elements[*e_id-1].node_ids;
             let mut e_eqns = Vec::<usize>::new();
@@ -62,25 +61,24 @@ pub fn get_surface_influence_matrices(user_input: &id::UserInput, mesh: &mesh::M
 
 }
 
-pub fn get_field_influence_matrices(user_input: &id::UserInput, mesh: &mesh::Mesh, 
-    eqn_map: &HashMap<usize, usize>) -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
+pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
 
-    let omega = 2.0 * PI * user_input.frequency;
-    let c = &user_input.sound_speed;
-    let k = omega / c;
+    let mesh = predata.get_mesh();
+    let eqn_map = predata.get_eqn_map();
+    let k = predata.get_wavenumber();
 
-    let nfp = user_input.field_points.len();
-    let body_id = &user_input.body_index;
-    let nelem = &mesh.bodies[body_id-1].element_ids.len();
+    let field_points = predata.get_field_points();
+    let nfp = field_points.len();
+    let mesh_body = predata.get_mesh_body();
+    let nelem = mesh_body.element_ids.len();
     let num_eqn = eqn_map.len();
 
     let mut m = DMatrix::<Cplx>::from_element(nfp, num_eqn,  Cplx::new(0.,0.));
     let mut l = m.clone();
-    for i in 0..nfp {
-        let fieldpt = &user_input.field_points[i];
+    for (i, fieldpt) in field_points.iter().enumerate() {
         let coord = Vector3::from_column_slice(fieldpt);
-        for e in 0..*nelem {
-            let e_id = &mesh.bodies[body_id-1].element_ids[e];
+        for e in 0..nelem {
+            let e_id = &mesh_body.element_ids[e];
             let enodes = &mesh.elements[*e_id-1].node_ids;
             let mut e_eqns = Vec::<usize>::new();
             for enode in enodes {

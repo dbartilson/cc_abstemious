@@ -40,7 +40,7 @@ pub struct SurfaceBoundaryCondition {
 pub struct UserInput {
     pub mesh_file: String,
     pub body_index: usize,
-    pub frequency: f64,
+    pub frequency: Vec<f64>,
     pub sound_speed: f64,
     pub mass_density: f64,
     pub problem_type: ProblemType,

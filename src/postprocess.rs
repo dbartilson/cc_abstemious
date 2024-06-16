@@ -4,10 +4,11 @@ use na::{Complex, DVector};
 use csv::Writer;
 type Cplx = Complex<f64>;
 
-pub struct Result {
-    frequency: f64,
-    phi_fp: Option<na::DVector<Cplx>>,
-    phi_fp_inc: Option<na::DVector<Cplx>>,
+pub struct FPResult {
+    pub frequency: f64,
+    pub phi: Option<na::DVector<Cplx>>,
+    pub phi_inc: Option<na::DVector<Cplx>>,
+    pub radiated_power: f64
 }
 
 pub fn write_fp_csv(filename: &String, fp: &DVector<Cplx>, fpi: &DVector<Cplx>, points: &Vec<[f64;3]>) 

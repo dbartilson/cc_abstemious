@@ -6,7 +6,7 @@ fn default_input() -> UserInput {
     UserInput {
         mesh_file: "./src/tests/sphere_quad.vtk".to_string(),
         body_index: 2,
-        frequency: 1.0,
+        frequency: Vec::new(),
         sound_speed: 1.0,
         mass_density: 1.0,
         problem_type: ProblemType::Exterior,
@@ -28,7 +28,7 @@ fn default_input() -> UserInput {
 fn rigid_sphere_plane_wave() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = 10.0;
+    input.frequency = vec![10.0];
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;

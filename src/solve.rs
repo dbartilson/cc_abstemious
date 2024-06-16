@@ -1,19 +1,18 @@
 use na::{DMatrix, DVector, Complex};
-use std::f64::consts::PI;
-use crate::preprocess::input_data::*;
+use crate::preprocess;
 type Cplx = Complex<f64>;   
 
-pub fn solve_lu(user_input: &UserInput, h: &DMatrix::<Cplx>, g: &DMatrix::<Cplx>, phi_inc: &DVector::<Cplx>,
-num_eqn: &usize) -> (DVector::<Cplx>, DVector::<Cplx>) {
+pub fn solve_lu(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix::<Cplx>, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
 
-    let omega = 2.0 * PI * user_input.frequency;
-    let rho = &user_input.mass_density;
+    let omega = predata.get_angular_frequency();
+    let rho = predata.get_mass_density();
+    let num_eqn = predata.get_num_eqn();
 
-    let mut phi = DVector::<Cplx>::from_element(*num_eqn, Cplx::new(0., 0.));
+    let mut phi = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     let mut vn = phi.clone();
-    let sbc = &user_input.surface_bc;
+    let sbc = predata.get_surface_bc();
     match sbc.bc_type {
-        BCType::Pressure => {
+        preprocess::input_data::BCType::Pressure => {
             let pressure_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             phi.fill(pressure_bc);
             vn = phi_inc.clone();
@@ -23,7 +22,7 @@ num_eqn: &usize) -> (DVector::<Cplx>, DVector::<Cplx>) {
             let glu = lhs.lu();
             glu.solve_mut(&mut vn);
         }   
-        BCType::NormalVelocity => {
+        preprocess::input_data::BCType::NormalVelocity => {
             let velocity_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             vn.fill(velocity_bc);
             phi = phi_inc.clone();
@@ -33,7 +32,7 @@ num_eqn: &usize) -> (DVector::<Cplx>, DVector::<Cplx>) {
             let hlu = lhs.lu();
             hlu.solve_mut(&mut phi);
         }
-        BCType::Impedance => {
+        preprocess::input_data::BCType::Impedance => {
             let impedance_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             let factor = Cplx::new(0., -omega * rho) / impedance_bc;
             let mut lhs = h.clone();
