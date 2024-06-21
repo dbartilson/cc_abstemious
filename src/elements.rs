@@ -104,7 +104,7 @@ impl NumIntElement for Triangle <'_> {
             let normal = self.normal_vector_at(gp);
             let detj = self.detj_at(gp);
             let x = self.coordinates_at(gp);
-            let (h_gp, g_gp) = get_greens_functions(k, origin, &x, &normal);
+            let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
             let n = Self::shape_functions_at(gp);
             for i in 0..3 {
                 h[i] += h_gp * n[i] * detj * gp.wt;
@@ -177,7 +177,7 @@ impl NumIntElement for Quad <'_> {
             let normal = self.normal_vector_at(gp);
             let detj = self.detj_at(gp);
             let x = self.coordinates_at(gp);
-            let (h_gp, g_gp) = get_greens_functions(k, origin, &x, &normal);
+            let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
             let n = Quad::shape_functions_at(gp);
             for i in 0..4 {
                 h[i] += h_gp * n[i] * detj * gp.wt;
