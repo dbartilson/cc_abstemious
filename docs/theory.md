@@ -1,3 +1,5 @@
+# `cc_abstemious` Theory
+
 The linear wave equation is satisfied over a field, at a given location $`\mathbf{x}`$ and at a time $`t$
 
 ```math
@@ -17,10 +19,20 @@ given that the angular drive frequency is $`\omega = 2 \pi f`$, where $`f`$ is t
 The harmonic form of the Helmholtz equation for the fluid is then
 
 ```math
-\nabla ^2 \psi + k^2 \psi= \psi_{inc}
+\nabla ^2 \phi + k^2 \phi= \phi_{I}
 ```
 
-where $`k=\omega / c`$ is the wavenumber. Three classes of boundary condition may be used on the surface, and only one type may be used on any partition of the surface:
+where $`k=\omega / c`$ is the wavenumber. The directional derivative, along a specified normal direction, will also be important. This is expressed as
+
+```math
+v_n(\mathbf{x}) = \nabla \phi (\mathbf{x}) \cdot \mathbf{n}(\mathbf{x}) = \frac{\partial \phi(\mathbf{x})}{\partial n(\mathbf{x})}
+```
+
+
+
+## Boundary conditions and source (incident field) terms
+
+Three classes of boundary condition may be used on the surface, and only one type may be used on any partition of the surface:
 
 1. **Velocity potential or pressure B.C.**: $`\mathbf{\phi} = \bar{\mathbf{\phi}}`$. This can represent a known non-zero surface pressure, or if set to zero, it represents a sound-soft (infinitely absorptive) boundary. ( $`\beta = 0, \gamma/\alpha = \bar{\mathbf{\phi}}`$ )
 2. **Surface normal velocity B.C.**: $`\mathbf{v}_n = \bar{\mathbf{v}}_n`$. This can represent a known non-zero surface motion, or if set to zero, it represents a sound-hard (reflective) boundary. ( $`\alpha = 0, \gamma/\beta = \bar{\mathbf{v}}_n`$ )
@@ -42,11 +54,7 @@ The incident sound sources (incident acoustic fields) can be defined similarly:
 \phi_I(\mathbf{x}) = \frac{A}{4 \pi r}e^{ikr}; \qquad r = \mathbf{x} - \mathbf{x}_I
 ```
 
-The directional derivative, along a specified normal direction, will also be important. This is expressed as
-
-```math
-v_n(\mathbf{x}) = \nabla \phi (\mathbf{x}) \cdot \mathbf{n}(\mathbf{x}) = \frac{\partial \phi(\mathbf{x})}{\partial n(\mathbf{x})}
-```
+## Integral solution
 
 The integral solution to the Helmholtz equation is written as
 
@@ -69,6 +77,8 @@ h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n
 ```
 
 with $`\mathbf{r} = \mathbf{x} - \mathbf{y}`$ as the vector pointing from $`\mathbf{y}`$ to $`\mathbf{x}`$ and $`r = || \mathbf{r} ||`$ as the magnitude (distance) and $`\mathbf{e}_r = \mathbf{r}/r`$ as the unit vector form.
+
+## Boundary elements and discretization
 
 Within an element, the shape functions are used to represent the variation in value in the domain, such that
 
@@ -116,6 +126,8 @@ For the three possible boundary conditions, this is solved as:
 \left[\mathbf{H} - \frac{1}{2} \mathbf{I} - \frac{i \omega \rho}{Z} \mathbf{G}\right] \mathbf{\phi} = -\mathbf{\phi}_I  & \text{impedance B.C.}
 \end{array}
 ```
+
+## Field solution
 
 Once the velocity potential and normal velocity fields are known on the surface, the velocity potential for an arbitrary point $`\mathbf{x}`$ in the interior or exterior field can be found from the general solution via: 
 
