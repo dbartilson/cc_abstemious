@@ -1,19 +1,24 @@
 use std::error::Error;
 
-use na::{Complex, DVector};
 use csv::Writer;
-type Cplx = Complex<f64>;
+
+use crate::preprocess;
+use crate::Cplx;
 
 pub struct FPResult {
     pub frequency: f64,
-    pub phi: Option<na::DVector<Cplx>>,
-    pub phi_inc: Option<na::DVector<Cplx>>,
+    pub scattered: Option<na::DVector<Cplx>>,
+    pub incident: Option<na::DVector<Cplx>>,
     pub radiated_power: f64
 }
 
-pub fn write_fp_csv(filename: &String, fp: &DVector<Cplx>, fpi: &DVector<Cplx>, points: &Vec<[f64;3]>) 
+pub fn write_results_at_frequency(predata: &preprocess::PreData, result: &FPResult) 
     -> Result<(), Box<dyn Error>> {
-    let mut wtr = Writer::from_path(filename)?;
+    let mut wtr = Writer::from_path(predata.get_output_filename())?;
+
+    let fp = result.scattered.as_ref().unwrap();
+    let fpi = result.incident.as_ref().unwrap();
+    let points = predata.get_field_points();
     if fp.len() != points.len() {
         panic!("Error while writing results: pressure array and field point array not equal length!")
     }
@@ -30,4 +35,37 @@ pub fn write_fp_csv(filename: &String, fp: &DVector<Cplx>, fpi: &DVector<Cplx>, 
     }
     wtr.flush()?;
     Ok(())
+}
+
+pub fn write_results_at_point(predata: &preprocess::PreData, results: &Vec<FPResult>, index: usize) 
+    -> Result<(), Box<dyn Error>> {
+    let mut wtr = Writer::from_path(predata.get_output_filename())?;
+    let _ = wtr.write_record(&["freq","phi_re","phi_im","inc_re","inc_im"]);
+    for result in results {
+        wtr.write_record(&[result.frequency.to_string(), 
+                           result.scattered.as_ref().unwrap()[index].re.to_string(),
+                           result.scattered.as_ref().unwrap()[index].im.to_string(),
+                           result.incident.as_ref().unwrap()[index].re.to_string(),
+                           result.incident.as_ref().unwrap()[index].im.to_string()])?;
+    }
+    wtr.flush()?;
+    Ok(())
+}
+
+pub fn convert_results(predata: &preprocess::PreData, results: &mut Vec<FPResult>) {
+    if *predata.get_output_field() == preprocess::input_data::OutputField::Pressure {
+        let rho = predata.get_mass_density();
+        for result in results {
+            let omega = 2.0 * std::f64::consts::PI * result.frequency;
+            convert_phi_to_pressure_vec(result.scattered.as_mut().unwrap(), omega, rho);
+            convert_phi_to_pressure_vec(result.incident.as_mut().unwrap(), omega, rho);
+        }
+    }
+}
+
+pub fn convert_phi_to_pressure_vec(phi: &mut na::DVector<Cplx>, omega: f64, rho: f64) {
+    let scale = Cplx::new(0.0, omega * rho);
+    for i in 0..phi.len() {
+        phi[i] *= scale;
+    }
 }

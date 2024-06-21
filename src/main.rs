@@ -4,5 +4,5 @@ fn main() {
     let mut analysis = cc_abstemious::Analysis::new();
     analysis.input_from_file(input_path_str);
     analysis.run();
-    let _fp = analysis.get_fp_result();
+    let _fp = analysis.get_result();
 }

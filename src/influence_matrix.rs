@@ -1,9 +1,9 @@
-use na::{DMatrix, Complex, Vector3};
+use na::{DMatrix, Vector3};
 use crate::preprocess;
 use crate::preprocess::input_data as id;
 use crate::preprocess::mesh_data as mesh;
 use crate::elements::*;
-type Cplx = Complex<f64>;
+use crate::Cplx;
 
 pub fn get_surface_influence_matrices(predata: &preprocess::PreData) 
     -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
@@ -27,7 +27,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
         for e in 0..nelem {
             let e_id = &mesh_body.element_ids[e];
 
-            let enodes = &mesh.elements[*e_id-1].node_ids;
+            let enodes = &mesh.elements[*e_id].node_ids;
             let mut e_eqns = Vec::<usize>::new();
             for enode in enodes {
                 match eqn_map.get(enode) {
@@ -37,7 +37,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
             }
             let mut he = Vec::new();
             let mut ge = Vec::new();
-            match &mesh.elements[*e_id-1].etype {
+            match &mesh.elements[*e_id].etype {
                 mesh::ElementType::Tri => {
                     let tri = Triangle::new(&mesh, *e_id);
                     (he, ge) = tri.influence_matrices_at(k, o);
@@ -79,7 +79,7 @@ pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::
         let coord = Vector3::from_column_slice(fieldpt);
         for e in 0..nelem {
             let e_id = &mesh_body.element_ids[e];
-            let enodes = &mesh.elements[*e_id-1].node_ids;
+            let enodes = &mesh.elements[*e_id].node_ids;
             let mut e_eqns = Vec::<usize>::new();
             for enode in enodes {
                 match eqn_map.get(enode) {
@@ -89,7 +89,7 @@ pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::
             }
             let mut me = Vec::new();
             let mut le = Vec::new();
-            match &mesh.elements[*e_id-1].etype {
+            match &mesh.elements[*e_id].etype {
                 mesh::ElementType::Tri => {
                     let tri = Triangle::new(&mesh, *e_id);
                     (me, le) = tri.influence_matrices_at(k, &coord);

@@ -28,7 +28,7 @@ pub fn solve_lu(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix:
             phi = phi_inc.clone();
             phi.gemv(Cplx::new(1.0,0.0), &g, &vn, Cplx::new(-1.0,0.0));
             //phi = g * vn - phi_inc; // rhs
-            let lhs = g.clone();
+            let lhs = h.clone();
             let hlu = lhs.lu();
             hlu.solve_mut(&mut phi);
         }
@@ -49,13 +49,16 @@ pub fn solve_lu(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix:
     return (phi, vn);
 }
 
-pub fn get_fp(m: &DMatrix::<Cplx>, l: &DMatrix::<Cplx>, phi: &DVector::<Cplx>, 
-    vn: &DVector::<Cplx>, phi_inc_fp: &DVector::<Cplx>) -> DVector::<Cplx> {
+pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix::<Cplx>, 
+    phi: &DVector::<Cplx>, vn: &DVector::<Cplx>, phi_inc_fp: &DVector::<Cplx>) -> DVector::<Cplx> {
 
+    let want_total = *predata.get_output_type() == preprocess::input_data::OutputType::Total;
     let mut phi_fp = phi_inc_fp.clone();
+    if !want_total {phi_fp.fill(Cplx::new(0.0,0.0));}
 
-    phi_fp.gemv(-Cplx::new(-1.0, 0.0), &m, &phi, Cplx::new(1.0, 0.0));
-    phi_fp.gemv(-Cplx::new(1.0, 0.0), &l, &vn, Cplx::new(1.0, 0.0));
-    //let phi_fp = - m * phi + l * vn + phi_inc_fp;
+    phi_fp.gemv(-Cplx::new(1.0, 0.0), &m, &phi, Cplx::new(1.0, 0.0));
+    phi_fp.gemv(-Cplx::new(-1.0, 0.0), &l, &vn, Cplx::new(1.0, 0.0));
+    //let phi_fp = m * phi - l * vn + phi_inc_fp;
+
     return phi_fp;
 }

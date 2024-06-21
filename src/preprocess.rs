@@ -23,12 +23,15 @@ impl PreData {
     pub fn get_mass_density(&self) -> f64 {return self.input.mass_density;}
     pub fn get_problem_type(&self) -> &input_data::ProblemType {return &self.input.problem_type;}
     pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}
-    pub fn get_field_points(&self) -> &Vec<[f64; 3]> {return &self.input.field_points;}
     pub fn get_incident_wave(&self) -> &input_data::IncidentWaveInput {return &self.input.incident_wave;}
     pub fn get_surface_bc(&self) -> &input_data::SurfaceBoundaryCondition {return &self.input.surface_bc;}
     pub fn get_eqn_map(&self) -> &HashMap<usize, usize> {return &self.eqn_map;}
     pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
     pub fn get_num_eqn(&self) -> usize {return self.eqn_map.len();}
+    pub fn get_output_filename(&self) -> &String {return &self.input.output.file;}
+    pub fn get_output_field(&self) -> &input_data::OutputField {return &self.input.output.field;}
+    pub fn get_output_type(&self) -> &input_data::OutputType {return &self.input.output.o_type;}
+    pub fn get_field_points(&self) -> &Vec<[f64; 3]> {return &self.input.output.field_points;}
 }
 
 pub fn preprocess(input: input_data::UserInput) -> PreData {

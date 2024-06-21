@@ -17,7 +17,10 @@ pub fn get_incident_wave(predata: &preprocess::PreData) -> (DVector::<Cplx>, DVe
     let mut phi_inc_fp = DVector::<Cplx>::from_element(num_fp, Cplx::new(0., 0.));
     
     let inc_wave = predata.get_incident_wave();
-    let amp = Cplx::new(inc_wave.amplitude[0], inc_wave.amplitude[1]);
+    // amplitude in pressure units
+    let p_amp = Cplx::new(inc_wave.amplitude[0], inc_wave.amplitude[1]);
+    // amplitude in velocity potential units (phi = p / (i omega rho))
+    let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
     let vector = &inc_wave.origin;
     let mut vec3 = Vector3::from_column_slice(vector);
     vec3 /= vec3.magnitude();

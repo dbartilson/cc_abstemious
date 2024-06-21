@@ -20,41 +20,50 @@ pub mod interpolation {
 }   
 
 use interpolation::*;
-use na::{Vector3, ComplexField, Complex};
+use na::{Complex, ComplexField, DMatrix, Vector3};
 type Cplx = Complex<f64>;
 use crate::preprocess::mesh_data::{Coords, Mesh};
 
 // Methods for numerically-integrated elements
 pub trait NumIntElement {
     fn shape_functions_at(gp: &Gp) -> Vec<f64>;
+    fn shape_derivatives_at(gp: &Gp) -> DMatrix<f64>;
     fn coordinates_at(&self, gp: &Gp) -> Coords;
-    fn normal_vector_at(&self) -> Vector3<f64>;
+    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64>;
+    fn detj_at(&self, gp: &Gp) -> f64;
     fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>);
 }
 
 pub struct Triangle <'a> {
-    pub integration: &'a [Gp; 6],
+    pub integration: &'a [Gp; 3],
     pub mesh: &'a Mesh,
     pub element_id: usize,
 }
 impl Triangle <'_> {
     pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> Triangle <'a> {
-        Triangle{integration: &TRIGP6, mesh: &meshdata, element_id: element}
+        Triangle{integration: &TRIGP3, mesh: &meshdata, element_id: element}
     }
 }
 impl NumIntElement for Triangle <'_> {
     fn shape_functions_at(gp: &Gp) -> Vec<f64> {
         let xi = gp.coords[0];
         let eta = gp.coords[1];
-        let n = [1.0 - xi - eta,
-                           xi,
-                           eta];
-        return n.to_vec();
+        let n = vec![1.0 - xi - eta,
+                               xi,
+                               eta];
+        return n
+    }
+    fn shape_derivatives_at(_gp: &Gp) -> DMatrix<f64> {
+        let dn = DMatrix::from_row_slice(3, 2,
+            &[-1.0, -1.0,
+                    1.0, 0.0,
+                    0.0, 1.0]);
+        return dn
     }
     fn coordinates_at(&self, gp: &Gp) -> Coords {
         let n = Triangle::shape_functions_at(gp);
         let mut x = Coords::from_element(0.0);
-        let element = &self.mesh.elements[self.element_id-1];
+        let element = &self.mesh.elements[self.element_id];
         for ni in 0..n.len() {
             let node_index = &element.node_ids[ni];
             let icoord = &self.mesh.nodes[*node_index].coords;
@@ -62,34 +71,41 @@ impl NumIntElement for Triangle <'_> {
         }
         return x;
     }
-    fn normal_vector_at(&self) -> Vector3<f64> {
-        let enodes = &self.mesh.elements[self.element_id-1].node_ids;
-        let e0 = &self.mesh.nodes[enodes[0]].coords;
-        let e1 = &self.mesh.nodes[enodes[1]].coords;
-        let e2 = &self.mesh.nodes[enodes[2]].coords;
-        let a = e1 - e0;
-        let b = e2 - e0;
-        a.cross(&b)
+    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
+        let dn = Self::shape_derivatives_at(gp);
+        let mut dndxi = Vector3::from_element(0.0);
+        let mut dndeta = dndxi.clone();
+        let element = &self.mesh.elements[self.element_id];
+        for i in 0..3 {
+            let node_index = &element.node_ids[i];
+            let icoord = &self.mesh.nodes[*node_index].coords;
+            dndxi += dn[(i,0)] * icoord;
+            dndeta += dn[(i,1)] * icoord;
+        }
+        return dndxi.cross(&dndeta)
+    }
+    fn detj_at(&self, gp: &Gp) -> f64 {
+        return self.normal_vector_at(gp).norm() * 0.5
     }
     fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
 
         let mut h = vec![Cplx::new(0.0, 0.0); 3];
         let mut g = h.clone();
 
-        let mut normal = self.normal_vector_at();
-        let detj = normal.norm();
-        normal /= detj; // normalize normal
         for gp in self.integration {
+            let mut normal = self.normal_vector_at(gp);
+            let detj = self.detj_at(gp);
+            normal /= normal.norm(); // normalize normal
             let x = self.coordinates_at(gp);
             let r = origin - x;
             let rdist = r.norm();
             let runit = r / rdist;
             let g_gp = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
             let h_gp = g_gp * Cplx::new(1.0 / rdist, -k) * runit.dot(&normal);
-            let n = Triangle::shape_functions_at(gp);
+            let n = Self::shape_functions_at(gp);
             for i in 0..3 {
-                h[i] += h_gp * n[i] * 0.5 * detj * gp.wt;
-                g[i] += g_gp * n[i] * 0.5 * detj * gp.wt;
+                h[i] += h_gp * n[i] * detj * gp.wt;
+                g[i] += g_gp * n[i] * detj * gp.wt;
             }
         }
         return (h, g);
@@ -116,10 +132,18 @@ impl NumIntElement for Quad <'_> {
                             0.25*(1.-xi)*(1.+eta)];
         return n.to_vec();
     }
+    fn shape_derivatives_at(_gp: &Gp) -> DMatrix<f64> {
+        let dn = DMatrix::from_row_slice(4, 2,
+            &[-0.25, -0.25,
+                    0.25, -0.25,
+                    0.25, 0.25,
+                   -0.25, 0.25]);
+        return dn
+    }
     fn coordinates_at(&self, gp: &Gp) -> Coords {
         let n = Quad::shape_functions_at(gp);
         let mut x = Coords::from_element(0.0);
-        let element = &self.mesh.elements[self.element_id-1];
+        let element = &self.mesh.elements[self.element_id];
         for ni in 0..n.len() {
             let node_index = &element.node_ids[ni];
             let icoord = &self.mesh.nodes[*node_index].coords;
@@ -127,23 +151,31 @@ impl NumIntElement for Quad <'_> {
         }
         return x;
     }
-    fn normal_vector_at(&self) -> Vector3<f64> {
-        let enodes = &self.mesh.elements[self.element_id-1].node_ids;
-        let e0 = &self.mesh.nodes[enodes[0]].coords;
-        let e1 = &self.mesh.nodes[enodes[1]].coords;
-        let e2 = &self.mesh.nodes[enodes[2]].coords;
-        let a = e1 - e0;
-        let b = e2 - e0;
-        a.cross(&b)
+    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
+        let dn = Self::shape_derivatives_at(gp);
+        let mut dndxi = Vector3::from_element(0.0);
+        let mut dndeta = dndxi.clone();
+        let element = &self.mesh.elements[self.element_id];
+        for i in 0..4 {
+            let node_index = &element.node_ids[i];
+            let icoord = &self.mesh.nodes[*node_index].coords;
+            dndxi += dn[(i,0)] * icoord;
+            dndeta += dn[(i,1)] * icoord;
+        }
+        return dndxi.cross(&dndeta)
+    }
+    fn detj_at(&self, gp: &Gp) -> f64 {
+        return 0.25 * self.normal_vector_at(gp).norm()
     }
     fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
 
         let mut h = vec![Cplx::new(0.0, 0.0); 4];
         let mut g = h.clone();
 
-        let normal = self.normal_vector_at();
-        let detj = normal.norm();
         for gp in self.integration {
+            let mut normal = self.normal_vector_at(gp);
+            normal /= normal.norm();
+            let detj = self.detj_at(gp);
             let x = self.coordinates_at(gp);
             let r = origin - x;
             let rdist = r.norm();

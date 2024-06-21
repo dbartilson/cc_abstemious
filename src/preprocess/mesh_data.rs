@@ -96,7 +96,7 @@ impl Mesh {
             let first_word = sline.next();
             if first_word == Some("POINTS") {
                 let npts: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                for i in 1..npts+1 {
+                for i in 0..npts {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
                     let mut node_temp: Node = Node{id: i, coords:Coords::from_element(0.0)};
@@ -108,7 +108,7 @@ impl Mesh {
             }
             else if first_word == Some("CELLS") {
                 let nelem: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                for i in 1..nelem+1 {
+                for i in 0..nelem {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
                     let body_id: usize = sline.next().as_ref().unwrap().parse().unwrap();
@@ -142,7 +142,7 @@ impl Mesh {
         for el in &mut *elements {
             let body_id = &el.body_id;
             if (*body_id) > bodies.len() {
-                bodies.push(Body {id: *body_id, element_ids: Vec::new()});
+                bodies.push(Body {id: *body_id-1, element_ids: Vec::new()});
             }
             bodies[(body_id-1) as usize].element_ids.push(el.id);
         }

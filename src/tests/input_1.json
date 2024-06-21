@@ -5,13 +5,6 @@
     "sound_speed": 1.0,
     "mass_density": 1.0,
     "problem_type": "Exterior",
-    "field_points": [
-        [
-            0.0,
-            1.0,
-            1.0
-        ]
-    ],
     "incident_wave": {
         "origin": [
             0.0,
@@ -31,5 +24,16 @@
             0.0
         ]
     },
-    "output_file": "./src/tests/rigid_sphere_plane_wave_bem.csv"
+    "output": {
+        "o_type": "Scattered",
+        "field": "Pressure",
+        "file": "./src/tests/rigid_sphere_plane_wave_bem.csv",
+        "field_points": [
+            [
+                0.0,
+                1.0,
+                1.0
+            ]
+        ]
+    }
 }

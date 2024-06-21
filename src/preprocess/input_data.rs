@@ -8,7 +8,7 @@ use std::path::Path;
 pub enum ProblemType {
     Interior,
     Exterior
-}    
+}
 
 #[derive(Deserialize)]
 pub enum WaveType {
@@ -36,6 +36,26 @@ pub struct SurfaceBoundaryCondition {
     pub value: [f64; 2]
 }
 
+#[derive(Deserialize, PartialEq)]
+pub enum OutputType {
+    Total,
+    Scattered
+}
+
+#[derive(Deserialize, PartialEq)]
+pub enum OutputField {
+    Pressure,
+    VelocityPotential
+}
+
+#[derive(Deserialize)]
+pub struct Output {
+    pub o_type: OutputType,
+    pub field: OutputField,
+    pub file: String,
+    pub field_points: Vec<[f64;3]>
+}
+
 #[derive(Deserialize)]
 pub struct UserInput {
     pub mesh_file: String,
@@ -44,10 +64,9 @@ pub struct UserInput {
     pub sound_speed: f64,
     pub mass_density: f64,
     pub problem_type: ProblemType,
-    pub field_points: Vec<[f64;3]>,
     pub incident_wave: IncidentWaveInput,
     pub surface_bc: SurfaceBoundaryCondition,
-    pub output_file: String
+    pub output: Output
 }
 
 pub fn read_input_json<P: AsRef<Path>>(path: P) -> Result<UserInput, Box<dyn Error>> {
