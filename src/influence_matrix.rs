@@ -7,6 +7,8 @@ use crate::Cplx;
 
 pub fn get_surface_influence_matrices(predata: &preprocess::PreData) 
     -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
+    // evaluate the surface BEM influence matrices. These matrices are complex-valued,
+    // square, and non-symmetric in general
 
     let mesh = predata.get_mesh();
     let eqn_map = predata.get_eqn_map();
@@ -17,6 +19,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
     let nelem = mesh_body.element_ids.len();
 
     let hdiag = match predata.get_problem_type() {
+        // the H matrix has -1/2 added along the diagonal for exterior problems
         id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
         id::ProblemType::Interior => Cplx::new(0.0, 0.0)
     };
@@ -62,6 +65,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
 }
 
 pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
+    // evaluate the field BEM influence matrices. These matrices are complex-valued, and typically rectangular
 
     let mesh = predata.get_mesh();
     let eqn_map = predata.get_eqn_map();

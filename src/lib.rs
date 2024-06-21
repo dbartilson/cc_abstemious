@@ -9,5 +9,4 @@ pub mod solve;
 pub mod postprocess;
 
 pub use analysis::Analysis as Analysis;
-
 pub type Cplx = na::Complex<f64>;

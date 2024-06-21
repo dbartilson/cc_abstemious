@@ -122,7 +122,7 @@ Once the velocity potential and normal velocity fields are known on the surface,
 ```math
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) g(\mathbf{x}, \mathbf{y}) d\mathbf{y} =
 \phi(\mathbf{x})-\phi_I(\mathbf{x}) \\
-\mathbf{\phi}_{fp} = -\mathbf{M} \mathbf{\phi} + \mathbf{L} \mathbf{v}_n + \mathbf{\phi}_I
+\mathbf{\phi}_{fp} = \mathbf{M} \mathbf{\phi} - \mathbf{L} \mathbf{v}_n + \mathbf{\phi}_I
 ```
 
 where $`\mathbf{M}`$ and $`\mathbf{G}`$ are analagously constructed to $`\mathbf{H}`$ and $`\mathbf{G}`$, but are (generally) rectangular matrices of dimension $`n_{fp} \times n_s`$ where $`n_{fp}`$ is the number of field points and $`n_s`$ is the number of surface points. $`\mathbf{M}`$ and $`\mathbf{G}`$ represent the influence of the surface fields on the velocity potential at each field point. Note that $`\mathbf{\phi}_I`$ contains the vector of $`n_{fp}`$ incident wave velocity potentials at each field point.

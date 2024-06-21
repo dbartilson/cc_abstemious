@@ -76,10 +76,9 @@ pub fn read_input_json<P: AsRef<Path>>(path: P) -> Result<UserInput, Box<dyn Err
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
-    // Read the JSON contents of the file as an instance of `User`.
+    // Read the JSON contents of the file as an instance of `UserInput`
     let u = serde_json::from_reader(reader)?;
     println!(" Complete!");
-    // Return the `User`.
     Ok(u)
 }
 

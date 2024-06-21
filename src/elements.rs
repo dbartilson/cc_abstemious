@@ -24,6 +24,16 @@ use na::{Complex, ComplexField, DMatrix, Vector3};
 type Cplx = Complex<f64>;
 use crate::preprocess::mesh_data::{Coords, Mesh};
 
+fn get_greens_functions(k: f64, origin: &Coords, x: &Coords, normal: &Vector3<f64>) -> (Cplx, Cplx) {
+    let n = normal / normal.norm();
+    let r = origin - x;
+    let rdist = r.norm();
+    let runit = r / rdist;
+    let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
+    let h = g * Cplx::new(1.0 / rdist, -k) * runit.dot(&n);
+    return (g, h)
+}
+
 // Methods for numerically-integrated elements
 pub trait NumIntElement {
     fn shape_functions_at(gp: &Gp) -> Vec<f64>;
@@ -88,20 +98,13 @@ impl NumIntElement for Triangle <'_> {
         return self.normal_vector_at(gp).norm() * 0.5
     }
     fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
-
         let mut h = vec![Cplx::new(0.0, 0.0); 3];
         let mut g = h.clone();
-
         for gp in self.integration {
-            let mut normal = self.normal_vector_at(gp);
+            let normal = self.normal_vector_at(gp);
             let detj = self.detj_at(gp);
-            normal /= normal.norm(); // normalize normal
             let x = self.coordinates_at(gp);
-            let r = origin - x;
-            let rdist = r.norm();
-            let runit = r / rdist;
-            let g_gp = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
-            let h_gp = g_gp * Cplx::new(1.0 / rdist, -k) * runit.dot(&normal);
+            let (h_gp, g_gp) = get_greens_functions(k, origin, &x, &normal);
             let n = Self::shape_functions_at(gp);
             for i in 0..3 {
                 h[i] += h_gp * n[i] * detj * gp.wt;
@@ -168,20 +171,13 @@ impl NumIntElement for Quad <'_> {
         return 0.25 * self.normal_vector_at(gp).norm()
     }
     fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
-
         let mut h = vec![Cplx::new(0.0, 0.0); 4];
         let mut g = h.clone();
-
         for gp in self.integration {
-            let mut normal = self.normal_vector_at(gp);
-            normal /= normal.norm();
+            let normal = self.normal_vector_at(gp);
             let detj = self.detj_at(gp);
             let x = self.coordinates_at(gp);
-            let r = origin - x;
-            let rdist = r.norm();
-            let runit = r / rdist;
-            let g_gp = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
-            let h_gp = g_gp * Cplx::new(1.0 / rdist, -k) * runit.dot(&normal);
+            let (h_gp, g_gp) = get_greens_functions(k, origin, &x, &normal);
             let n = Quad::shape_functions_at(gp);
             for i in 0..4 {
                 h[i] += h_gp * n[i] * detj * gp.wt;

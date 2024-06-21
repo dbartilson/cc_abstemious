@@ -8,8 +8,8 @@ use std::path::Path;
 pub struct PreData {
     input: input_data::UserInput,
     mesh: mesh_data::Mesh,
-    eqn_map: HashMap<usize,usize>,
-    ifreq: usize
+    eqn_map: HashMap<usize,usize>, // map nodes
+    ifreq: usize // current frequency index
 }
 
 impl PreData {
@@ -52,14 +52,14 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
 }
 
 pub fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
+    // create a map from node index to eqn index
     let mut eqn_map = HashMap::<usize, usize>::new();
-
     let nnode = meshdata.nodes.len();
     let ibody = &meshdata.bodies[body_id-1];
     let mut eqn_vector = vec![false; nnode];
     // Mark each possible node (eqn) as used or not
     for element_id in &ibody.element_ids {
-        let element = &meshdata.elements[*element_id-1];
+        let element = &meshdata.elements[*element_id];
         for node_id in &element.node_ids {
             eqn_vector[*node_id] = true;
         }

@@ -1,5 +1,6 @@
 #[test]
 fn json_reader() {
+    // test json reader capability
     use cc_abstemious::preprocess::input_data::*;
     let u = read_input_json("./src/tests/input_1.json").unwrap();
     assert_eq!(u.body_index, 3);
@@ -7,6 +8,7 @@ fn json_reader() {
 
 #[test]
 fn vtk_reader() {
+    // test mesh reader (VTK ASCII) capability
     use cc_abstemious::preprocess::*;
     use std::path::Path;
 
