@@ -1,5 +1,5 @@
 mod text_reader {
-
+    // module for reading text files line by line to a buffer
     use std::{
         fs::File,
         io::{self, prelude::*},
@@ -83,7 +83,8 @@ impl Default for Mesh {
 }
 impl Mesh {
     pub fn read_from_vtk(&mut self, path: &Path) -> std::io::Result<()> {
-        print!(" Reading VTK file '{}' ...", path.display().to_string());
+        // read mesh from VTK (ASCII) format
+        print!(" Reading VTK (ASCII) file '{}' ...", path.display().to_string());
         std::io::stdout().flush().unwrap();
         let mut reader = text_reader::BufReader::open(path)?;
         let mut buffer = String::new();
@@ -91,12 +92,12 @@ impl Mesh {
         let nodes = &mut self.nodes;
         let elements = &mut self.elements;
         while let Some(_line) = reader.read_line(&mut buffer) {
-            //println!("{}", line?.trim());
             let mut sline = buffer.trim().split_whitespace();
             let first_word = sline.next();
+            // Read POINTS data block
             if first_word == Some("POINTS") {
                 let npts: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                for i in 1..npts+1 {
+                for i in 0..npts {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
                     let mut node_temp: Node = Node{id: i, coords:Coords::from_element(0.0)};
@@ -106,9 +107,10 @@ impl Mesh {
                     nodes.push(node_temp);
                 }
             }
+            // Read CELL data block
             else if first_word == Some("CELLS") {
                 let nelem: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                for i in 1..nelem+1 {
+                for i in 0..nelem {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
                     let body_id: usize = sline.next().as_ref().unwrap().parse().unwrap();
@@ -120,6 +122,7 @@ impl Mesh {
                     elements.push(elem_temp)
                 }
             }
+            // Read CELL_TYPES data block
             else if first_word == Some("CELL_TYPES") {
                 let nelem: usize = sline.next().as_ref().unwrap().parse().unwrap();
                 for i in 1..nelem+1 {
@@ -142,9 +145,9 @@ impl Mesh {
         for el in &mut *elements {
             let body_id = &el.body_id;
             if (*body_id) > bodies.len() {
-                bodies.push(Body {id: *body_id, element_ids: Vec::new()});
+                bodies.push(Body {id: *body_id-1, element_ids: Vec::new()});
             }
-            bodies[(body_id-1) as usize].element_ids.push(el.id);
+            bodies[body_id-1].element_ids.push(el.id);
         }
         println!(" Done!");
         println!(" Read {} bodies, {} elements, {} nodes", bodies.len(), elements.len(), nodes.len());

@@ -1,11 +1,29 @@
 [package]
-name = "cc-abstemious"
+name = "cc_abstemious"
 version = "0.0.0"
 edition = "2021"
+
+[lib]
+name = "cc_abstemious"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cc_abstemious"
+path = "src/main.rs"
+
+[[test]]
+name = "cc_abstemious_pre"
+path = "src/tests/preprocess.rs"
+
+[[test]]
+name = "cc_abstemious_verification"
+path = "src/tests/verification.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+approx = "0.5.1"
+csv = "1.3.0"
 nalgebra = "*"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
