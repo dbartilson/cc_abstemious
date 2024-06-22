@@ -17,7 +17,7 @@ where
 A problem with the following parameters was simulated:
 
 * $`R = 0.5`$
-* $`p_i = 1.0 + 0.0i`$
+* $`p_i = 1.0 + 0.0i`$, propagating in the positive x direction
 * $`c = 1500`$
 * Frequency ranging from $`f = 10.0`$ Hz to $`f = 1000.0`$ Hz ($`k \in [4.19\times10^{-2}, 4.19\times10^0]`$)
 
@@ -28,6 +28,15 @@ For the BEM results, a spherical mesh of 336 triangular elements was used
 ![](sphere.png)
 
 Field pressures were evaluated in the shadow zone of the plane wave, i.e., $`\theta = 0`$ at a radius of $`R = 10`$.
+
+Results are shown below with good agreement.
+
+![](real.png)
+![](imag.png)
+
+![](magn.png)
+![](phase.png)
+
 
 ## References
 
