@@ -4,7 +4,6 @@ extern crate approx;
 use std::f64::consts::PI;
 
 use cc_abstemious::preprocess::input_data::*;
-use nalgebra::ComplexField;
 
 fn default_input() -> UserInput {
     UserInput {
