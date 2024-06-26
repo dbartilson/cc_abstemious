@@ -11,6 +11,19 @@ pub enum ProblemType {
 }
 
 #[derive(Deserialize)]
+pub enum SolverType {
+    Direct,
+    Iterative
+}
+
+#[derive(Deserialize)]
+pub struct Solver {
+    pub s_type: SolverType,
+    pub tolerance: f64,
+    pub max_iterations: usize
+}
+
+#[derive(Deserialize)]
 pub enum WaveType {
     PlaneWave,
     SphericalWave,
@@ -64,6 +77,7 @@ pub struct UserInput {
     pub sound_speed: f64,
     pub mass_density: f64,
     pub problem_type: ProblemType,
+    pub solver: Solver,
     pub incident_wave: IncidentWaveInput,
     pub surface_bc: SurfaceBoundaryCondition,
     pub output: Output

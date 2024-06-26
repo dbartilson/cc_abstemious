@@ -21,7 +21,7 @@ pub fn get_surface(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatr
             vn.gemv(Cplx::new(-1.0,0.0), &h, &phi, Cplx::new(1.0,0.0));
             //vn = phi_inc - h * phi; // rhs
             let lhs = g.clone();
-            solve_lu(lhs, &mut vn);
+            solve(predata, lhs, &mut vn);
         }   
         preprocess::input_data::BCType::NormalVelocity => {
             let velocity_bc = Cplx::new(sbc.value[0], sbc.value[1]);
@@ -30,7 +30,7 @@ pub fn get_surface(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatr
             phi.gemv(Cplx::new(1.0,0.0), &g, &vn, Cplx::new(-1.0,0.0));
             //phi = g * vn - phi_inc; // rhs
             let lhs = h.clone();
-            solve_lu(lhs, &mut phi);
+            solve(predata, lhs, &mut phi);
         }
         preprocess::input_data::BCType::Impedance => {
             let impedance_bc = Cplx::new(sbc.value[0], sbc.value[1]);
@@ -42,10 +42,17 @@ pub fn get_surface(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatr
                 }
             }
             phi = -phi_inc.clone(); // rhs
-            solve_lu(lhs, &mut phi);
+            solve(predata, lhs, &mut phi);
         }
     }
     return (phi, vn);
+}
+
+fn solve(predata: &preprocess::PreData, a: DMatrix<Cplx>, x: &mut DVector<Cplx>) {
+    match predata.get_solver_type() {
+        preprocess::input_data::SolverType::Direct => solve_lu(a, x),
+        preprocess::input_data::SolverType::Iterative => gmres::solve_gmresk(&a, x, predata.get_solver_max_it(), predata.get_solver_tolerance())
+    }
 }
 
 fn solve_lu(a: DMatrix<Cplx>, x: &mut DVector<Cplx>) {

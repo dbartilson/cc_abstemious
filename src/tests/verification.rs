@@ -13,7 +13,11 @@ fn default_input() -> UserInput {
         sound_speed: 1.0,
         mass_density: 1.0,
         problem_type: ProblemType::Exterior,
-
+        solver: Solver {
+            s_type: SolverType::Iterative,
+            tolerance: 0.0,
+            max_iterations: 100
+        },
         incident_wave: IncidentWaveInput {
             origin: [0.0, 0.0, 0.0],
             wave_type: WaveType::SphericalWave,

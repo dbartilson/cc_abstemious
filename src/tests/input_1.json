@@ -5,6 +5,11 @@
     "sound_speed": 1.0,
     "mass_density": 1.0,
     "problem_type": "Exterior",
+    "solver": {
+        "s_type": "Direct",
+        "tolerance": 0.0,
+        "max_iterations": 0
+    },
     "incident_wave": {
         "origin": [
             0.0,
