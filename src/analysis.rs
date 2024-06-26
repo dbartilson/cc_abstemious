@@ -76,7 +76,7 @@ impl Analysis {
             let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(predata);
     
             if single_freq_flag {print!(" Solving system (direct LU)...");std::io::stdout().flush().unwrap();}
-            let (phi, vn) = solve::solve_lu(predata, &h, &g, &phi_inc);
+            let (phi, vn) = solve::get_surface(predata, &h, &g, &phi_inc);
             if single_freq_flag {println!(" Complete!");}
         
             if single_freq_flag {print!(" Post-processing...");std::io::stdout().flush().unwrap();}

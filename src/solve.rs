@@ -1,8 +1,10 @@
-use na::{DMatrix, DVector, Complex};
-use crate::preprocess;
-type Cplx = Complex<f64>;   
+pub mod gmres;
 
-pub fn solve_lu(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix::<Cplx>, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
+use na::{DMatrix, DVector};
+use crate::preprocess;
+use crate::Cplx;
+
+pub fn get_surface(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix::<Cplx>, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let omega = predata.get_angular_frequency();
     let rho = predata.get_mass_density();
@@ -19,8 +21,7 @@ pub fn solve_lu(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix:
             vn.gemv(Cplx::new(-1.0,0.0), &h, &phi, Cplx::new(1.0,0.0));
             //vn = phi_inc - h * phi; // rhs
             let lhs = g.clone();
-            let glu = lhs.lu();
-            glu.solve_mut(&mut vn);
+            solve_lu(lhs, &mut vn);
         }   
         preprocess::input_data::BCType::NormalVelocity => {
             let velocity_bc = Cplx::new(sbc.value[0], sbc.value[1]);
@@ -29,8 +30,7 @@ pub fn solve_lu(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix:
             phi.gemv(Cplx::new(1.0,0.0), &g, &vn, Cplx::new(-1.0,0.0));
             //phi = g * vn - phi_inc; // rhs
             let lhs = h.clone();
-            let hlu = lhs.lu();
-            hlu.solve_mut(&mut phi);
+            solve_lu(lhs, &mut phi);
         }
         preprocess::input_data::BCType::Impedance => {
             let impedance_bc = Cplx::new(sbc.value[0], sbc.value[1]);
@@ -42,11 +42,16 @@ pub fn solve_lu(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix:
                 }
             }
             phi = -phi_inc.clone(); // rhs
-            let hlu = lhs.lu();
-            hlu.solve_mut(&mut phi);
+            solve_lu(lhs, &mut phi);
         }
     }
     return (phi, vn);
+}
+
+fn solve_lu(a: DMatrix<Cplx>, x: &mut DVector<Cplx>) {
+    // solve A*x = b using direct LU, where the input vector b is overwritten by the solution
+    let a_lu = a.lu();
+    a_lu.solve_mut(x);
 }
 
 pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix::<Cplx>, 
