@@ -37,7 +37,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
             for enode in enodes {
                 match eqn_map.get(enode) {
                     Some(eqn) => e_eqns.push(*eqn),
-                    None => println!("Eqn not found for element node {}", enode)
+                    None => error!("Eqn not found for element node {}", enode)
                 }
             }
             let mut he = Vec::new();
@@ -52,7 +52,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
                     (he, ge) = quad.influence_matrices_at(k, o);
                 }
                 _ => {
-                    println!("Invalid element!");
+                    error!("Invalid element!");
                 }
             }
 
@@ -92,7 +92,7 @@ pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::
             for enode in enodes {
                 match eqn_map.get(enode) {
                     Some(eqn) => e_eqns.push(*eqn),
-                    None => println!("Eqn not found for element node {}", enode)
+                    None => error!("Eqn not found for element node {}", enode)
                 }
             }
             let mut me = Vec::new();
@@ -107,7 +107,7 @@ pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::
                     (me, le) = quad.influence_matrices_at(k, &coord);
                 }
                 _ => {
-                    println!("Invalid element!");
+                    error!("Invalid element!");
                 }
             }
             for j in 0..e_eqns.len() {

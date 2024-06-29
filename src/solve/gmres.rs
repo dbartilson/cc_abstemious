@@ -41,7 +41,9 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
     let b_norm = b.norm();
     let mut r = b.clone();
     r.gemv(-c_one, a, x, c_one);
-    let mut error = r.norm() / b_norm;
+
+    let alpha = a.norm();
+    let mut error = backward_error(r.norm(), alpha, x, b_norm);
 
     let mut sn = DVector::<Cplx>::from_element(m, c_zero);
     let mut cs = sn.clone();
@@ -61,26 +63,42 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
         q.set_column(k+1, &qk1);
         beta[k+1] = -sn[k].conj() * beta[k];
         beta[k] *= cs[k];
-        error = beta[k+1].norm() / b_norm;
+
+        error = backward_error(beta[k+1].norm(), alpha, x, b_norm);
         e.push(error);
 
         if error < thresh {
-            flag = ExitFlag::Tolerance;
-            info!("  GMRES tolerance acheived! ({} < {})", error, thresh);
-            break;
+            // recompute backward error using exact arithmetic
+            r = b.clone();
+            get_x(&h, &q, &beta, kk, x);
+            r.gemv(-c_one, a, x, c_one);
+            error = backward_error(r.norm(), alpha, x, b_norm);
+            *e.last_mut().unwrap() = error;
+            if error < thresh {     
+                flag = ExitFlag::Tolerance;
+                info!("  GMRES tolerance acheived! ({} < {})", error, thresh);
+                break;
+            }
         }
-        else if k == m-1 {
+        if k == m-1 {
             flag = ExitFlag::Iterations;
         }
-
     }
-
-    let hkk = h.view((0, 0), (kk, kk));
-    let hkklu = hkk.lu();
-    let betakk = beta.rows(0, kk);
-    let y = hkklu.solve(&betakk);
-    x.gemv(c_one, &q.columns(0,kk), y.as_ref().unwrap(), c_one);
     return flag;
+}
+
+fn backward_error(r: f64, alpha: f64, x: &DVector::<Cplx>, beta: f64) -> f64 {
+    r / (alpha * x.norm() + beta)
+}
+
+fn get_x(h: &DMatrix::<Cplx>, q: &DMatrix::<Cplx>, beta: &DVector::<Cplx>, k: usize, 
+         x: &mut DVector::<Cplx>) {
+    let c_one = Cplx::new(1.0, 0.0);
+    let hkk = h.view((0, 0), (k, k));
+    let hkklu = hkk.lu();
+    let betak = beta.rows(0, k);
+    let y = hkklu.solve(&betak);
+    x.gemv(c_one, &q.columns(0,k), y.as_ref().unwrap(), c_one);
 }
 
 fn arnoldi(a: &DMatrix::<Cplx>, q: &DMatrix<Cplx>, k: usize) 

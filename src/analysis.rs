@@ -10,6 +10,9 @@ use crate::influence_matrix;
 use crate::solve;
 use crate::postprocess;
 
+const VER_MAJOR: usize = 0;
+const VER_MINOR: usize = 0; 
+
 enum AnalysisState {
     Input,
     Solve,
@@ -27,14 +30,9 @@ pub struct Analysis {
 
 impl Analysis {
     pub fn new() -> Analysis {
-        println!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
-        println!("Ver. 0.0");
-        println!("");
-        println!(" Current directory: {}", std::env::current_dir().unwrap().display());
-
         Analysis {
             temp_input: None,
-            log_file: "cc_abstemious".to_string(),
+            log_file: "".to_string(),
             predata: None,
             analysis_state: AnalysisState::Null,
             freq_index: 0,
@@ -62,18 +60,24 @@ impl Analysis {
             panic!("No input found");
         }
 
-        let logfile = File::create(format!("{}{}",self.log_file,".log")).unwrap();
-        CombinedLogger::init(
-            vec![
-                TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
-                WriteLogger::new(LevelFilter::Info, Config::default(), logfile),
-            ]
-        ).unwrap();
+        if self.log_file.is_empty() {
+            let loglevel = if cfg!(integration_test) {LevelFilter::Warn} else {LevelFilter::Info};
+            let _ = TermLogger::init(loglevel, Config::default(), TerminalMode::Mixed, ColorChoice::Auto);
+        }
+        else {
+            let logfile = File::create(format!("{}{}",self.log_file,".log")).unwrap();
+            let _ = CombinedLogger::init(
+                vec![
+                    TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
+                    WriteLogger::new(LevelFilter::Info, Config::default(), logfile),
+                ]
+            );
+        }
 
         info!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
-        info!("Ver. 0.0");
+        info!("Ver. {}.{}", VER_MAJOR, VER_MINOR);
         info!(" Current directory: {}", std::env::current_dir().unwrap().display());
-        println!(" Starting analysis... (see log file: {}{})", self.log_file,".log");
+        info!(" Starting analysis... (see log file: {}{})", self.log_file,".log");
 
         // preprocess to get node to eqn map
         self.predata = Some(preprocess::preprocess(self.temp_input.take().unwrap()));
@@ -110,7 +114,6 @@ impl Analysis {
         self.analysis_state = AnalysisState::Solve;
 
         info!(" Complete!");
-        println!(" Complete!");
     }
     pub fn get_result(&self) -> &Vec<postprocess::FPResult> {
         return &self.results;
