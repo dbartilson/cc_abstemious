@@ -100,3 +100,14 @@ pub fn read_input_string(str: &str) -> Result<UserInput, Box<dyn Error>> {
     let u = serde_json::from_str(str)?;
     Ok(u)
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn json_reader() {
+        use std::path::Path;
+        // test json reader capability
+        let u = crate::preprocess::input_data::read_input_json(Path::new("./src/tests/input_1.json")).unwrap();
+        assert_eq!(u.body_index, 3);
+    }
+}

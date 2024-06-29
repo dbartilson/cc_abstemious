@@ -154,4 +154,17 @@ impl Mesh {
         Ok(())
     }
 }
-    
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn vtk_reader() {
+        // test mesh reader (VTK ASCII) capability
+        use std::path::Path;
+
+        let mut mesh: crate::preprocess::mesh_data::Mesh = Default::default();
+        let _result = mesh.read_from_vtk(Path::new("./src/tests/sphere.vtk"));
+
+        assert_eq!(mesh.elements.len(), 336);
+    }
+}

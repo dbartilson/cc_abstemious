@@ -1,12 +1,12 @@
 extern crate nalgebra as na;
 
 pub mod preprocess;
-pub mod analysis;
-pub mod elements;
-pub mod incident_wave;
-pub mod influence_matrix;
-pub mod solve;
-pub mod postprocess;
+mod elements;
+mod incident_wave;
+mod influence_matrix;
+mod solve;
+mod postprocess;
 
+pub mod analysis;
 pub use analysis::Analysis as Analysis;
 pub type Cplx = na::Complex<f64>;

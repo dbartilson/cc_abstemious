@@ -79,15 +79,13 @@ pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix
 mod tests {
     extern crate approx;
     use crate::Cplx;
+    use crate::solve;
 
-    #[test]
-    fn random_matrix_lu() {
+    fn generate_random_ab(n: usize, seed: u64) -> (na::DMatrix::<Cplx>, na::DVector::<Cplx>) {
         use rand::{Rng, SeedableRng, rngs::StdRng};
-        use crate::solve;
-        let n = 100;
         let mut a = na::DMatrix::<Cplx>::from_diagonal_element(n, n, Cplx::new(n as f64, 0.0));
 
-        let mut rng = StdRng::seed_from_u64(10);
+        let mut rng = StdRng::seed_from_u64(seed);
         for ai in a.iter_mut() {
             ai.re += rng.gen::<f64>();
             ai.im += rng.gen::<f64>();
@@ -97,6 +95,13 @@ mod tests {
             bi.re = rng.gen::<f64>();
             bi.im = rng.gen::<f64>();
         }
+        return (a, b)
+    }
+
+    #[test]
+    fn random_matrix_lu() {
+        let n = 100;
+        let (a, mut b) = generate_random_ab(n, 10);
         solve::solve_lu(a, &mut b);
         approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-10, max_relative = 1.0);
         approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-10, max_relative = 1.0);
@@ -104,21 +109,8 @@ mod tests {
 
     #[test]
     fn random_matrix_gmres() {
-        use rand::{Rng, SeedableRng, rngs::StdRng};
-        use crate::solve;
         let n = 100;
-        let mut a = na::DMatrix::<Cplx>::from_diagonal_element(n, n, Cplx::new(n as f64, 0.0));
-
-        let mut rng = StdRng::seed_from_u64(10);
-        for ai in a.iter_mut() {
-            ai.re += rng.gen::<f64>();
-            ai.im += rng.gen::<f64>();
-        }
-        let mut b = na::DVector::<Cplx>::from_element(n, Cplx::new(0.0, 0.0));
-        for bi in b.iter_mut() {
-            bi.re = rng.gen::<f64>();
-            bi.im = rng.gen::<f64>();
-        }
+        let (a, mut b) = generate_random_ab(n, 10);
         solve::gmres::solve_gmresk(&a, &mut b, 100, 1.0e-8);
         approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-10, max_relative = 1.0);
         approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-10, max_relative = 1.0);

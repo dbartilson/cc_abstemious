@@ -12,10 +12,6 @@ name = "cc_abstemious"
 path = "src/main.rs"
 
 [[test]]
-name = "cc_abstemious_pre"
-path = "src/tests/preprocess.rs"
-
-[[test]]
 name = "cc_abstemious_verification"
 path = "src/tests/verification.rs"
 
