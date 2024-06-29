@@ -38,6 +38,8 @@ impl PreData {
 }
 
 pub fn preprocess(input: input_data::UserInput) -> PreData {
+    
+    info!(" Preprocessing...");
     // read mesh VTK
     let mut mesh: mesh_data::Mesh = Default::default();
     let _result = mesh.read_from_vtk(Path::new(&input.mesh_file));

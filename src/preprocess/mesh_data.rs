@@ -84,7 +84,7 @@ impl Default for Mesh {
 impl Mesh {
     pub fn read_from_vtk(&mut self, path: &Path) -> std::io::Result<()> {
         // read mesh from VTK (ASCII) format
-        print!(" Reading VTK (ASCII) file '{}' ...", path.display().to_string());
+        info!(" Reading VTK (ASCII) file '{}' ...", path.display().to_string());
         std::io::stdout().flush().unwrap();
         let mut reader = text_reader::BufReader::open(path)?;
         let mut buffer = String::new();
@@ -149,8 +149,7 @@ impl Mesh {
             }
             bodies[body_id-1].element_ids.push(el.id);
         }
-        println!(" Done!");
-        println!(" Read {} bodies, {} elements, {} nodes", bodies.len(), elements.len(), nodes.len());
+        info!(" Read {} bodies, {} elements, {} nodes", bodies.len(), elements.len(), nodes.len());
         Ok(())
     }
 }

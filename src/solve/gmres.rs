@@ -9,6 +9,8 @@ enum ExitFlag {
 
 pub fn solve_gmresk(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, 
                     mut max_it: usize, mut thresh: f64) {
+
+    info!(" Using iterative (GMRES) solver...");
     let b = x.clone();
     // zero as initial guess
     x.fill(Cplx::new(0.0, 0.0));
@@ -17,7 +19,7 @@ pub fn solve_gmresk(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>,
     let k = (max_it as f64).sqrt().ceil() as usize;
     let max_restarts = max_it / k;
     for i in 0..max_restarts {
-        println!("  GMRES restart: {}", i);
+        info!("  GMRES restart: {}", i);
         let flag = gmres(a, x, &b, k, thresh);
         match flag {
             ExitFlag::Tolerance => {break;},
@@ -52,7 +54,7 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
     let mut kk: usize = 0;
     for k in 0..m {
         kk = k+1;
-        println!("   Iteration: {}, Error: {}", k, error);
+        info!("   Iteration: {}, Error: {}", k, error);
         let (mut hk1, qk1) = arnoldi(a, &q, k);
         apply_givens_rotation(&mut hk1, &mut cs, &mut sn, k);
         h.set_column(k, &hk1);
@@ -64,7 +66,7 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
 
         if error < thresh {
             flag = ExitFlag::Tolerance;
-            println!("  GMRES tolerance acheived! ({} < {})", error, thresh);
+            info!("  GMRES tolerance acheived! ({} < {})", error, thresh);
             break;
         }
         else if k == m-1 {

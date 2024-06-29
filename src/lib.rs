@@ -1,4 +1,5 @@
 extern crate nalgebra as na;
+#[macro_use] extern crate log;
 
 pub mod preprocess;
 mod elements;

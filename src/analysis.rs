@@ -1,4 +1,8 @@
-use std::io::Write;
+extern crate simplelog;
+
+use simplelog::*;
+use std::fs::File;
+use std::path::Path;
 
 use crate::preprocess;
 use crate::incident_wave;
@@ -14,6 +18,7 @@ enum AnalysisState {
 
 pub struct Analysis {
     temp_input: Option<preprocess::input_data::UserInput>,
+    log_file: String,
     predata: Option<preprocess::PreData>,
     analysis_state: AnalysisState,
     freq_index: usize,
@@ -25,10 +30,11 @@ impl Analysis {
         println!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
         println!("Ver. 0.0");
         println!("");
-    
         println!(" Current directory: {}", std::env::current_dir().unwrap().display());
+
         Analysis {
             temp_input: None,
+            log_file: "cc_abstemious".to_string(),
             predata: None,
             analysis_state: AnalysisState::Null,
             freq_index: 0,
@@ -37,6 +43,8 @@ impl Analysis {
     }
     pub fn input_from_file(&mut self, input_path_str: &String) {
         println!(" Attempting to read input file: {}", input_path_str);
+        let path = Path::new(input_path_str);
+        self.log_file = path.file_stem().unwrap().to_str().unwrap().to_string();
         self.temp_input = Some(preprocess::input_data::read_input_json(input_path_str).unwrap());
         self.analysis_state = AnalysisState::Input;
     }
@@ -49,37 +57,41 @@ impl Analysis {
         self.analysis_state = AnalysisState::Input;
     }
     pub fn run(&mut self) {
-
+        
         if self.temp_input.is_none() {
             panic!("No input found");
         }
 
+        let logfile = File::create(format!("{}{}",self.log_file,".log")).unwrap();
+        CombinedLogger::init(
+            vec![
+                TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
+                WriteLogger::new(LevelFilter::Info, Config::default(), logfile),
+            ]
+        ).unwrap();
+
+        info!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
+        info!("Ver. 0.0");
+        info!(" Current directory: {}", std::env::current_dir().unwrap().display());
+        println!(" Starting analysis... (see log file: {}{})", self.log_file,".log");
+
         // preprocess to get node to eqn map
-        print!(" Preprocessing...");
-        std::io::stdout().flush().unwrap();
         self.predata = Some(preprocess::preprocess(self.temp_input.take().unwrap()));
         let predata = self.predata.as_mut().unwrap();
-        println!(" Complete!");
 
         let nfreq = predata.get_frequencies().len();
-        let single_freq_flag = nfreq == 1;
         for i in 0..predata.get_frequencies().len() {
             predata.set_frequency_index(&i);
             let freq = predata.get_frequency();
-            if !single_freq_flag {print!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);std::io::stdout().flush().unwrap();}
+            info!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);
             self.freq_index = i;
 
-            if single_freq_flag {print!(" Assembling surface BEM influence matrices...");std::io::stdout().flush().unwrap();}
             let (h, g) = influence_matrix::get_surface_influence_matrices(predata);
-            if single_freq_flag {println!(" Complete!");}
         
             let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(predata);
     
-            if single_freq_flag {print!(" Solving system (direct LU)...");std::io::stdout().flush().unwrap();}
             let (phi, vn) = solve::get_surface(predata, &h, &g, &phi_inc);
-            if single_freq_flag {println!(" Complete!");}
         
-            if single_freq_flag {print!(" Post-processing...");std::io::stdout().flush().unwrap();}
             let (m, l) = influence_matrix::get_field_influence_matrices(predata);
             
             let phi_fp = solve::get_field(predata,&m, &l, &phi, &vn, &phi_inc_fp);
@@ -91,13 +103,14 @@ impl Analysis {
                 radiated_power: 0.0
             };
             self.results.push(result);
-            
-            println!(" Complete!");std::io::stdout().flush().unwrap();
         }
 
         postprocess::convert_results(predata, &mut self.results);
 
         self.analysis_state = AnalysisState::Solve;
+
+        info!(" Complete!");
+        println!(" Complete!");
     }
     pub fn get_result(&self) -> &Vec<postprocess::FPResult> {
         return &self.results;

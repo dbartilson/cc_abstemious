@@ -6,6 +6,8 @@ use crate::Cplx;
 
 pub fn get_surface(predata: &preprocess::PreData, h: &DMatrix::<Cplx>, g: &DMatrix::<Cplx>, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
 
+    info!(" Solving system of equations...");
+
     let omega = predata.get_angular_frequency();
     let rho = predata.get_mass_density();
     let num_eqn = predata.get_num_eqn();
@@ -57,6 +59,7 @@ fn solve(predata: &preprocess::PreData, a: DMatrix<Cplx>, x: &mut DVector<Cplx>)
 
 pub fn solve_lu(a: DMatrix<Cplx>, x: &mut DVector<Cplx>) {
     // solve A*x = b using direct LU, where the input vector b is overwritten by the solution
+    info!(" Using direct (LU) solver...");
     let a_lu = a.lu();
     a_lu.solve_mut(x);
 }

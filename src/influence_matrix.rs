@@ -10,6 +10,8 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
     // evaluate the surface BEM influence matrices. These matrices are complex-valued,
     // square, and non-symmetric in general
 
+    info!(" Assembling surface BEM influence matrices...");
+
     let mesh = predata.get_mesh();
     let eqn_map = predata.get_eqn_map();
     let k = predata.get_wavenumber();
@@ -66,6 +68,8 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
 
 pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
     // evaluate the field BEM influence matrices. These matrices are complex-valued, and typically rectangular
+
+    info!(" Calculating field results...");
 
     let mesh = predata.get_mesh();
     let eqn_map = predata.get_eqn_map();
