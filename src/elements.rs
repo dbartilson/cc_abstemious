@@ -20,7 +20,7 @@ pub mod interpolation {
 }   
 
 use interpolation::*;
-use na::{Complex, ComplexField, DMatrix, Vector3};
+use na::{Complex, DMatrix, Vector3};
 type Cplx = Complex<f64>;
 use crate::preprocess::mesh_data::{Coords, Mesh};
 

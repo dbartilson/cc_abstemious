@@ -55,7 +55,7 @@ fn solve(predata: &preprocess::PreData, a: DMatrix<Cplx>, x: &mut DVector<Cplx>)
     }
 }
 
-fn solve_lu(a: DMatrix<Cplx>, x: &mut DVector<Cplx>) {
+pub fn solve_lu(a: DMatrix<Cplx>, x: &mut DVector<Cplx>) {
     // solve A*x = b using direct LU, where the input vector b is overwritten by the solution
     let a_lu = a.lu();
     a_lu.solve_mut(x);
@@ -73,4 +73,54 @@ pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix
     //let phi_fp = m * phi - l * vn + phi_inc_fp;
 
     return phi_fp;
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate approx;
+    use crate::Cplx;
+
+    #[test]
+    fn random_matrix_lu() {
+        use rand::{Rng, SeedableRng, rngs::StdRng};
+        use crate::solve;
+        let n = 100;
+        let mut a = na::DMatrix::<Cplx>::from_diagonal_element(n, n, Cplx::new(n as f64, 0.0));
+
+        let mut rng = StdRng::seed_from_u64(10);
+        for ai in a.iter_mut() {
+            ai.re += rng.gen::<f64>();
+            ai.im += rng.gen::<f64>();
+        }
+        let mut b = na::DVector::<Cplx>::from_element(n, Cplx::new(0.0, 0.0));
+        for bi in b.iter_mut() {
+            bi.re = rng.gen::<f64>();
+            bi.im = rng.gen::<f64>();
+        }
+        solve::solve_lu(a, &mut b);
+        approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-10, max_relative = 1.0);
+        approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-10, max_relative = 1.0);
+    }
+
+    #[test]
+    fn random_matrix_gmres() {
+        use rand::{Rng, SeedableRng, rngs::StdRng};
+        use crate::solve;
+        let n = 100;
+        let mut a = na::DMatrix::<Cplx>::from_diagonal_element(n, n, Cplx::new(n as f64, 0.0));
+
+        let mut rng = StdRng::seed_from_u64(10);
+        for ai in a.iter_mut() {
+            ai.re += rng.gen::<f64>();
+            ai.im += rng.gen::<f64>();
+        }
+        let mut b = na::DVector::<Cplx>::from_element(n, Cplx::new(0.0, 0.0));
+        for bi in b.iter_mut() {
+            bi.re = rng.gen::<f64>();
+            bi.im = rng.gen::<f64>();
+        }
+        solve::gmres::solve_gmresk(&a, &mut b, 100, 1.0e-8);
+        approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-10, max_relative = 1.0);
+        approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-10, max_relative = 1.0);
+    }
 }

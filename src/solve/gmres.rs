@@ -51,7 +51,7 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
     let mut h = DMatrix::<Cplx>::from_element(n, m, c_zero);
     let mut kk: usize = 0;
     for k in 0..m {
-        kk = k;
+        kk = k+1;
         println!("   Iteration: {}, Error: {}", k, error);
         let (mut hk1, qk1) = arnoldi(a, &q, k);
         apply_givens_rotation(&mut hk1, &mut cs, &mut sn, k);
