@@ -1,4 +1,5 @@
 pub mod interpolation {
+    #[derive(Clone)]
     pub struct Gp {
         pub coords: [f64; 2],
         pub wt: f64,
@@ -42,17 +43,32 @@ pub trait NumIntElement {
     fn coordinates_at(&self, gp: &Gp) -> Coords;
     fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64>;
     fn detj_at(&self, gp: &Gp) -> f64;
-    fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>);
+    fn get_integration(&self) -> &Vec<Gp>;
+    fn influence_matrices_at(&self, k: f64, origin: &Coords, h: &mut Vec::<Cplx>, g: &mut Vec::<Cplx>) {
+        h.fill(Cplx::new(0.0, 0.0));
+        g.fill(Cplx::new(0.0, 0.0));
+        for gp in self.get_integration() {
+            let normal = self.normal_vector_at(gp);
+            let detj = self.detj_at(gp);
+            let x = self.coordinates_at(gp);
+            let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
+            let n = Self::shape_functions_at(gp);
+            for i in 0..n.len() {
+                h[i] += h_gp * n[i] * detj * gp.wt;
+                g[i] += g_gp * n[i] * detj * gp.wt;
+            }
+        }
+    }
 }
 
 pub struct Triangle <'a> {
-    pub integration: &'a [Gp; 3],
+    pub integration: Vec<Gp>,
     pub mesh: &'a Mesh,
     pub element_id: usize,
 }
 impl Triangle <'_> {
     pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> Triangle <'a> {
-        Triangle{integration: &TRIGP3, mesh: &meshdata, element_id: element}
+        Triangle{integration: TRIGP3.to_vec(), mesh: &meshdata, element_id: element}
     }
 }
 impl NumIntElement for Triangle <'_> {
@@ -98,32 +114,19 @@ impl NumIntElement for Triangle <'_> {
     fn detj_at(&self, gp: &Gp) -> f64 {
         return self.normal_vector_at(gp).norm() * 0.5
     }
-    fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
-        let mut h = vec![Cplx::new(0.0, 0.0); 3];
-        let mut g = h.clone();
-        for gp in self.integration {
-            let normal = self.normal_vector_at(gp);
-            let detj = self.detj_at(gp);
-            let x = self.coordinates_at(gp);
-            let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
-            let n = Self::shape_functions_at(gp);
-            for i in 0..3 {
-                h[i] += h_gp * n[i] * detj * gp.wt;
-                g[i] += g_gp * n[i] * detj * gp.wt;
-            }
-        }
-        return (h, g);
+    fn get_integration(&self) -> &Vec<Gp> {
+        &self.integration
     }
 }
 
 pub struct Quad <'a> {
-    pub integration: &'a [Gp; 4],
+    pub integration: Vec<Gp>,
     pub mesh: &'a Mesh,
     pub element_id: usize,
 }
 impl Quad <'_> {
     pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> Quad <'a> {
-        Quad{integration: &QUADGP4, mesh: &meshdata, element_id: element}
+        Quad{integration: QUADGP4.to_vec(), mesh: &meshdata, element_id: element}
     }
 }
 impl NumIntElement for Quad <'_> {
@@ -171,20 +174,7 @@ impl NumIntElement for Quad <'_> {
     fn detj_at(&self, gp: &Gp) -> f64 {
         return 0.25 * self.normal_vector_at(gp).norm()
     }
-    fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
-        let mut h = vec![Cplx::new(0.0, 0.0); 4];
-        let mut g = h.clone();
-        for gp in self.integration {
-            let normal = self.normal_vector_at(gp);
-            let detj = self.detj_at(gp);
-            let x = self.coordinates_at(gp);
-            let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
-            let n = Quad::shape_functions_at(gp);
-            for i in 0..4 {
-                h[i] += h_gp * n[i] * detj * gp.wt;
-                g[i] += g_gp * n[i] * detj * gp.wt;
-            }
-        }
-        return (h, g);
+    fn get_integration(&self) -> &Vec<Gp> {
+        &self.integration
     }
 }
