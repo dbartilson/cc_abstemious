@@ -44,6 +44,7 @@ pub trait NumIntElement {
     fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64>;
     fn detj_at(&self, gp: &Gp) -> f64;
     fn get_integration(&self) -> &Vec<Gp>;
+    #[allow(dead_code)]
     fn get_num_nodes(&self) -> usize;
     fn influence_matrices_at(&self, k: f64, origin: &Coords, h: &mut Vec::<Cplx>, g: &mut Vec::<Cplx>) {
         h.fill(Cplx::new(0.0, 0.0));

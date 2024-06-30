@@ -7,7 +7,6 @@ use std::path::Path;
 use crate::preprocess;
 use crate::incident_wave;
 use crate::influence_matrix;
-use crate::preprocess::PreData;
 use crate::solve;
 use crate::postprocess;
 
@@ -55,7 +54,7 @@ impl Analysis {
         self.temp_input = Some(input);
         self.analysis_state = AnalysisState::Input;
     }
-    pub fn run(&'static mut self) {
+    pub fn run(&mut self) {
         
         if self.temp_input.is_none() {
             panic!("No input found");
@@ -82,7 +81,7 @@ impl Analysis {
 
         // preprocess
         self.predata = Some(preprocess::preprocess(self.temp_input.take().unwrap()));
-        let predata: &mut PreData = self.predata.as_mut().unwrap();
+        let predata = self.predata.as_mut().unwrap();
 
         let nfreq = predata.get_frequencies().len();
         for i in 0..nfreq {

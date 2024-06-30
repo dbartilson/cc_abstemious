@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use threadpool::ThreadPool;
+use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3};
 
 use crate::preprocess;
@@ -28,13 +28,18 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
         id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
         id::ProblemType::Interior => Cplx::new(0.0, 0.0)
     };
-    let pool = ThreadPool::new(4);
+    let numthreads = match std::thread::available_parallelism() {
+        Ok(result) => std::cmp::max(result.get() / 2, 2),
+        Err(_) => 2
+    };
+    let mut pool = Pool::new(numthreads as u32);
     let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
     let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_element(num_eqn, num_eqn, Cplx::new(0.,0.))));
+    pool.scoped(|scope| {
     for e in 0..nelem {
         let h_share = h_share.clone();
         let g_share = g_share.clone();
-        pool.execute(move|| {
+        scope.execute(move|| {
         let e_id = &mesh_body.element_ids[e];
         let enodes = &mesh.elements[*e_id].node_ids;
 
@@ -82,6 +87,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
         }
     });
     }
+    });
     let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
     let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
     return (h, g)
