@@ -10,7 +10,7 @@ use crate::influence_matrix;
 use crate::solve;
 use crate::postprocess;
 
-const VER_MAJOR: usize = 0;
+const VER_MAJOR: usize = 1;
 const VER_MINOR: usize = 0; 
 
 enum AnalysisState {
@@ -60,9 +60,9 @@ impl Analysis {
             panic!("No input found");
         }
 
+        // set up logger, if no input file, just output to stdout
         if self.log_file.is_empty() {
-            let loglevel = if cfg!(integration_test) {LevelFilter::Warn} else {LevelFilter::Info};
-            let _ = TermLogger::init(loglevel, Config::default(), TerminalMode::Mixed, ColorChoice::Auto);
+            let _ = TermLogger::init(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto);
         }
         else {
             let logfile = File::create(format!("{}{}",self.log_file,".log")).unwrap();
@@ -79,12 +79,13 @@ impl Analysis {
         info!(" Current directory: {}", std::env::current_dir().unwrap().display());
         info!(" Starting analysis... (see log file: {}{})", self.log_file,".log");
 
-        // preprocess to get node to eqn map
+        // preprocess
         self.predata = Some(preprocess::preprocess(self.temp_input.take().unwrap()));
         let predata = self.predata.as_mut().unwrap();
 
         let nfreq = predata.get_frequencies().len();
-        for i in 0..predata.get_frequencies().len() {
+        for i in 0..nfreq {
+            // set up frequency index
             predata.set_frequency_index(&i);
             let freq = predata.get_frequency();
             info!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);

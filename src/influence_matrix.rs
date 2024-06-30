@@ -55,7 +55,7 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
                     error!("Invalid element!");
                 }
             }
-
+            // assemble
             for j in 0..e_eqns.len() {
                 h[(*ieqn, e_eqns[j])] += he[j];
                 g[(*ieqn, e_eqns[j])] += ge[j];
@@ -110,6 +110,7 @@ pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::
                     error!("Invalid element!");
                 }
             }
+            // assemble
             for j in 0..e_eqns.len() {
                 m[(i, e_eqns[j])] += me[j];
                 l[(i, e_eqns[j])] += le[j];

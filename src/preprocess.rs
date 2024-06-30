@@ -56,7 +56,7 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
                    ifreq: 0};
 }
 
-pub fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
+fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
     // create a map from node index to eqn index
     let mut eqn_map = HashMap::<usize, usize>::new();
     let nnode = meshdata.nodes.len();
