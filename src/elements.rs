@@ -6,6 +6,7 @@ pub mod interpolation {
     pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
                                   Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
                                   Gp{coords: [2./3., 1./6.], wt: 1./3.}];
+    #[allow(dead_code)]
     pub static TRIGP6: [Gp; 6] = [Gp{coords: [0.091576213509771, 0.091576213509771], wt: 0.109951743655322},
                                   Gp{coords: [0.816847572980459, 0.091576213509771], wt: 0.109951743655322},
                                   Gp{coords: [0.091576213509771, 0.816847572980459], wt: 0.109951743655322},
@@ -20,7 +21,7 @@ pub mod interpolation {
 }   
 
 use interpolation::*;
-use na::{Complex, ComplexField, DMatrix, Vector3};
+use na::{Complex, DMatrix, Vector3};
 type Cplx = Complex<f64>;
 use crate::preprocess::mesh_data::{Coords, Mesh};
 

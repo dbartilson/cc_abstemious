@@ -23,6 +23,9 @@ impl PreData {
     pub fn get_mass_density(&self) -> f64 {return self.input.mass_density;}
     pub fn get_problem_type(&self) -> &input_data::ProblemType {return &self.input.problem_type;}
     pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}
+    pub fn get_solver_type(&self) -> &input_data::SolverType {return &self.input.solver.s_type;}
+    pub fn get_solver_tolerance(&self) -> f64 {return self.input.solver.tolerance;}
+    pub fn get_solver_max_it(&self) -> usize {return self.input.solver.max_iterations;}
     pub fn get_incident_wave(&self) -> &input_data::IncidentWaveInput {return &self.input.incident_wave;}
     pub fn get_surface_bc(&self) -> &input_data::SurfaceBoundaryCondition {return &self.input.surface_bc;}
     pub fn get_eqn_map(&self) -> &HashMap<usize, usize> {return &self.eqn_map;}
@@ -35,6 +38,8 @@ impl PreData {
 }
 
 pub fn preprocess(input: input_data::UserInput) -> PreData {
+    
+    info!(" Preprocessing...");
     // read mesh VTK
     let mut mesh: mesh_data::Mesh = Default::default();
     let _result = mesh.read_from_vtk(Path::new(&input.mesh_file));
@@ -51,7 +56,7 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
                    ifreq: 0};
 }
 
-pub fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
+fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
     // create a map from node index to eqn index
     let mut eqn_map = HashMap::<usize, usize>::new();
     let nnode = meshdata.nodes.len();

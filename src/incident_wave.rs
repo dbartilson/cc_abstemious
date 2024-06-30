@@ -1,5 +1,5 @@
 use crate::preprocess;
-use na::{Complex, ComplexField, DVector, Vector3};
+use na::{Complex, DVector, Vector3};
 use std::f64::consts::PI;
 type Cplx = Complex<f64>;
 

@@ -84,7 +84,7 @@ impl Default for Mesh {
 impl Mesh {
     pub fn read_from_vtk(&mut self, path: &Path) -> std::io::Result<()> {
         // read mesh from VTK (ASCII) format
-        print!(" Reading VTK (ASCII) file '{}' ...", path.display().to_string());
+        info!(" Reading VTK (ASCII) file '{}' ...", path.display().to_string());
         std::io::stdout().flush().unwrap();
         let mut reader = text_reader::BufReader::open(path)?;
         let mut buffer = String::new();
@@ -149,9 +149,21 @@ impl Mesh {
             }
             bodies[body_id-1].element_ids.push(el.id);
         }
-        println!(" Done!");
-        println!(" Read {} bodies, {} elements, {} nodes", bodies.len(), elements.len(), nodes.len());
+        info!(" Read {} bodies, {} elements, {} nodes", bodies.len(), elements.len(), nodes.len());
         Ok(())
     }
 }
-    
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn vtk_reader() {
+        // test mesh reader (VTK ASCII) capability
+        use std::path::Path;
+
+        let mut mesh: crate::preprocess::mesh_data::Mesh = Default::default();
+        let _result = mesh.read_from_vtk(Path::new("./src/tests/sphere.vtk"));
+
+        assert_eq!(mesh.elements.len(), 336);
+    }
+}
