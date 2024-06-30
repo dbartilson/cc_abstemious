@@ -44,6 +44,7 @@ pub trait NumIntElement {
     fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64>;
     fn detj_at(&self, gp: &Gp) -> f64;
     fn get_integration(&self) -> &Vec<Gp>;
+    fn get_num_nodes(&self) -> usize;
     fn influence_matrices_at(&self, k: f64, origin: &Coords, h: &mut Vec::<Cplx>, g: &mut Vec::<Cplx>) {
         h.fill(Cplx::new(0.0, 0.0));
         g.fill(Cplx::new(0.0, 0.0));
@@ -117,6 +118,7 @@ impl NumIntElement for Triangle <'_> {
     fn get_integration(&self) -> &Vec<Gp> {
         &self.integration
     }
+    fn get_num_nodes(&self) -> usize {3}
 }
 
 pub struct Quad <'a> {
@@ -177,4 +179,5 @@ impl NumIntElement for Quad <'_> {
     fn get_integration(&self) -> &Vec<Gp> {
         &self.integration
     }
+    fn get_num_nodes(&self) -> usize {4}
 }

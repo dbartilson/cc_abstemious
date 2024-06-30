@@ -31,8 +31,6 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
         let e_id = &mesh_body.element_ids[e];
         let enodes = &mesh.elements[*e_id].node_ids;
         let mut e_eqns = Vec::<usize>::new();
-        let mut he = Vec::new();
-        let mut ge = Vec::new();
         for enode in enodes {
             match eqn_map.get(enode) {
                 Some(eqn) => e_eqns.push(*eqn),
@@ -42,8 +40,8 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
         match &mesh.elements[*e_id].etype {
             mesh::ElementType::Tri => {
                 let tri = Triangle::new(&mesh, *e_id);
-                he = vec![Cplx::new(0.0, 0.0); 3];
-                ge = he.clone();
+                let mut he = vec![Cplx::new(0.0, 0.0); 3];
+                let mut ge = he.clone();
                 for (inode, ieqn) in eqn_map {
                     let o = &mesh.nodes[*inode].coords;
                     tri.influence_matrices_at(k, o, &mut he, &mut ge);
@@ -55,8 +53,8 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
             },
             mesh::ElementType::Quad => {
                 let quad = Quad::new(&mesh, *e_id);
-                he = vec![Cplx::new(0.0, 0.0); 4];
-                ge = he.clone();
+                let mut he = vec![Cplx::new(0.0, 0.0); 4];
+                let mut ge = he.clone();
                 for (inode, ieqn) in eqn_map {
                     let o = &mesh.nodes[*inode].coords;
                     quad.influence_matrices_at(k, o, &mut he, &mut ge);
@@ -91,37 +89,45 @@ pub fn get_field_influence_matrices(predata: &preprocess::PreData) -> (DMatrix::
 
     let mut m = DMatrix::<Cplx>::from_element(nfp, num_eqn,  Cplx::new(0.,0.));
     let mut l = m.clone();
-    for (i, fieldpt) in field_points.iter().enumerate() {
-        let coord = Vector3::from_column_slice(fieldpt);
-        for e in 0..nelem {
-            let e_id = &mesh_body.element_ids[e];
-            let enodes = &mesh.elements[*e_id].node_ids;
-            let mut e_eqns = Vec::<usize>::new();
-            for enode in enodes {
-                match eqn_map.get(enode) {
-                    Some(eqn) => e_eqns.push(*eqn),
-                    None => error!("Eqn not found for element node {}", enode)
+    for e in 0..nelem {
+        let e_id = &mesh_body.element_ids[e];
+        let enodes = &mesh.elements[*e_id].node_ids;
+        let mut e_eqns = Vec::<usize>::new();
+        for enode in enodes {
+            match eqn_map.get(enode) {
+                Some(eqn) => e_eqns.push(*eqn),
+                None => error!("Eqn not found for element node {}", enode)
+            }
+        }
+        match &mesh.elements[*e_id].etype {
+            mesh::ElementType::Tri => {
+                let tri = Triangle::new(&mesh, *e_id);
+                let mut me = vec![Cplx::new(0.0, 0.0); 3];
+                let mut le = me.clone();
+                for (i, fieldpt) in field_points.iter().enumerate() {
+                    let coord = Vector3::from_column_slice(fieldpt);
+                    tri.influence_matrices_at(k, &coord, &mut me, &mut le);
+                    for j in 0..e_eqns.len() {
+                        m[(i, e_eqns[j])] += me[j];
+                        l[(i, e_eqns[j])] += le[j];
+                    }
+                }
+            },
+            mesh::ElementType::Quad => {
+                let quad = Quad::new(&mesh, *e_id);
+                let mut me = vec![Cplx::new(0.0, 0.0); 4];
+                let mut le = me.clone();
+                for (i, fieldpt) in field_points.iter().enumerate() {
+                    let coord = Vector3::from_column_slice(fieldpt);
+                    quad.influence_matrices_at(k, &coord, &mut me, &mut le);
+                    for j in 0..e_eqns.len() {
+                        m[(i, e_eqns[j])] += me[j];
+                        l[(i, e_eqns[j])] += le[j];
+                    }
                 }
             }
-            let mut me = Vec::new();
-            let mut le = Vec::new();
-            match &mesh.elements[*e_id].etype {
-                mesh::ElementType::Tri => {
-                    let tri = Triangle::new(&mesh, *e_id);
-                    (me, le) = tri.influence_matrices_at(k, &coord);
-                },
-                mesh::ElementType::Quad => {
-                    let quad = Quad::new(&mesh, *e_id);
-                    (me, le) = quad.influence_matrices_at(k, &coord);
-                }
-                _ => {
-                    error!("Invalid element!");
-                }
-            }
-            // assemble
-            for j in 0..e_eqns.len() {
-                m[(i, e_eqns[j])] += me[j];
-                l[(i, e_eqns[j])] += le[j];
+            _ => {
+                error!("Invalid element!");
             }
         }
     }
