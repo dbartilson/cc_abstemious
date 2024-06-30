@@ -9,12 +9,12 @@ enum ExitFlag {
 
 pub fn solve_gmresk(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, 
                     mut max_it: usize, mut thresh: f64) {
-
     info!(" Using iterative (GMRES) solver...");
     let b = x.clone();
     // zero as initial guess
     x.fill(Cplx::new(0.0, 0.0));
     if max_it <= 0 {max_it = 1000;}
+    max_it = std::cmp::min(max_it, a.shape().0);
     if thresh <= 0.0 {thresh = 1.0e-5;}
     let k = (max_it as f64).sqrt().ceil() as usize;
     let max_restarts = max_it / k;
@@ -50,15 +50,18 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
     let mut e = vec![error];
     let mut q = DMatrix::<Cplx>::from_element(n, m+1, c_zero);
     q.set_column(0, &r.normalize());
+    let mut qk1 = DVector::<Cplx>::from_element(n, c_zero);
     let mut beta = DVector::<Cplx>::from_element(m+1, c_zero);
     beta[0] = Cplx::new(r.norm(), 0.0);
-    let mut h = DMatrix::<Cplx>::from_element(n, m, c_zero);
+    let mut h = DMatrix::<Cplx>::from_element(m+1, m, c_zero);
+    let mut hk1 = DVector::<Cplx>::from_element(m+1, c_zero);
     for k in 0..m {
-        let kk = k+1;
         info!("   Iteration: {}, Error: {}", k, error);
-        let (mut hk1, qk1) = arnoldi(a, &q, k);
+        arnoldi(a, &q, k, &mut qk1, &mut hk1);
         apply_givens_rotation(&mut hk1, &mut cs, &mut sn, k);
-        h.set_column(k, &hk1);
+        for i in 0..k+2 {
+            h[(i, k)] = hk1[i];
+        }
         q.set_column(k+1, &qk1);
         beta[k+1] = -sn[k].conj() * beta[k];
         beta[k] *= cs[k];
@@ -69,7 +72,7 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
         if error < thresh {
             // recompute backward error using exact arithmetic
             r = b.clone();
-            get_x(&h, &q, &beta, kk, x);
+            get_x(&h, &q, &beta, k+1, x);
             r.gemv(-c_one, a, x, c_one);
             error = backward_error(r.norm(), alpha, x, b_norm);
             *e.last_mut().unwrap() = error;
@@ -100,24 +103,22 @@ fn get_x(h: &DMatrix::<Cplx>, q: &DMatrix::<Cplx>, beta: &DVector::<Cplx>, k: us
     x.gemv(c_one, &q.columns(0,k), y.as_ref().unwrap(), c_one);
 }
 
-fn arnoldi(a: &DMatrix::<Cplx>, q: &DMatrix<Cplx>, k: usize) 
-        -> (DVector::<Cplx>, DVector::<Cplx>) {
-    let n = a.shape().0;
+fn arnoldi(a: &DMatrix::<Cplx>, q: &DMatrix<Cplx>, k: usize, 
+           qk1: &mut DVector<Cplx>, hk1: &mut DVector<Cplx>)  {
     let c_zero = Cplx::new(0.0, 0.0);
     let c_one = Cplx::new(1.0, 0.0);
-    let mut qk1 = DVector::<Cplx>::from_element(n, c_zero);
+    // zero out and set qk1 = A * Q
     qk1.gemv(c_one, a, &q.column(k), c_zero);
-    let mut hk1 = DVector::<Cplx>::from_element(n, c_zero);
+    hk1.fill(c_zero);
     for i in 0..k+1 {
         hk1[i] = qk1.dotc(&q.column(i));
         qk1.axpy(-hk1[i], &q.column(i), c_one);
     }
     hk1[k+1] = Cplx::new(qk1.norm(), 0.0);
     let scale = c_one / hk1[k+1];
-    for qi in &mut qk1 {
+    for qi in qk1 {
         *qi *= scale;
     }
-    return (hk1, qk1)
 }
 
 fn apply_givens_rotation(hk1: &mut DVector<Cplx>, cs: &mut DVector<Cplx>, 
