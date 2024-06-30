@@ -1,4 +1,7 @@
+use std::sync::{Arc, Mutex};
+use threadpool::ThreadPool;
 use na::{DMatrix, Vector3};
+
 use crate::preprocess;
 use crate::preprocess::input_data as id;
 use crate::preprocess::mesh_data as mesh;
@@ -25,11 +28,16 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
         id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
         id::ProblemType::Interior => Cplx::new(0.0, 0.0)
     };
-    let mut h = DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag);
-    let mut g = DMatrix::<Cplx>::from_element(num_eqn, num_eqn, Cplx::new(0.,0.));
+    let pool = ThreadPool::new(4);
+    let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
+    let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_element(num_eqn, num_eqn, Cplx::new(0.,0.))));
     for e in 0..nelem {
+        let h_share = h_share.clone();
+        let g_share = g_share.clone();
+        pool.execute(move|| {
         let e_id = &mesh_body.element_ids[e];
         let enodes = &mesh.elements[*e_id].node_ids;
+
         let mut e_eqns = Vec::<usize>::new();
         for enode in enodes {
             match eqn_map.get(enode) {
@@ -45,9 +53,11 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
                 for (inode, ieqn) in eqn_map {
                     let o = &mesh.nodes[*inode].coords;
                     tri.influence_matrices_at(k, o, &mut he, &mut ge);
+                    let mut hi = h_share.lock().unwrap();
+                    let mut gi = g_share.lock().unwrap();
                     for j in 0..e_eqns.len() {
-                        h[(*ieqn, e_eqns[j])] += he[j];
-                        g[(*ieqn, e_eqns[j])] += ge[j];
+                        hi[(*ieqn, e_eqns[j])] += he[j];
+                        gi[(*ieqn, e_eqns[j])] += ge[j];
                     }
                 }
             },
@@ -58,9 +68,11 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
                 for (inode, ieqn) in eqn_map {
                     let o = &mesh.nodes[*inode].coords;
                     quad.influence_matrices_at(k, o, &mut he, &mut ge);
+                    let mut hi = h_share.lock().unwrap();
+                    let mut gi = g_share.lock().unwrap();
                     for j in 0..e_eqns.len() {
-                        h[(*ieqn, e_eqns[j])] += he[j];
-                        g[(*ieqn, e_eqns[j])] += ge[j];
+                        hi[(*ieqn, e_eqns[j])] += he[j];
+                        gi[(*ieqn, e_eqns[j])] += ge[j];
                     }
                 }
             }
@@ -68,7 +80,10 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
                 error!("Invalid element!");
             }
         }
+    });
     }
+    let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
+    let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
     return (h, g)
 }
 
