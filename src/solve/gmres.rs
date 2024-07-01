@@ -56,7 +56,7 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
     let mut h = DMatrix::<Cplx>::from_element(m+1, m, c_zero);
     let mut hk1 = DVector::<Cplx>::from_element(m+1, c_zero);
     for k in 0..m {
-        info!("   Iteration: {}, Error: {}", k, error);
+        info!("   Iteration: {}, Error: {:10.3e}", k, error);
         arnoldi(a, &q, k, &mut qk1, &mut hk1);
         apply_givens_rotation(&mut hk1, &mut cs, &mut sn, k);
         for i in 0..k+2 {
@@ -78,7 +78,7 @@ fn gmres(a: &DMatrix::<Cplx>, x: &mut DVector<Cplx>, b: &DVector<Cplx>,
             *e.last_mut().unwrap() = error;
             if error < thresh {     
                 flag = ExitFlag::Tolerance;
-                info!("  GMRES tolerance acheived! ({} < {})", error, thresh);
+                info!("  GMRES tolerance acheived! ({:10.3e} < {:10.3e})", error, thresh);
                 break;
             }
         }

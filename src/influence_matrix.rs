@@ -28,11 +28,12 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
         id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
         id::ProblemType::Interior => Cplx::new(0.0, 0.0)
     };
-    let numthreads = match std::thread::available_parallelism() {
+    let num_threads = match std::thread::available_parallelism() {
         Ok(result) => std::cmp::max(result.get() / 2, 2),
         Err(_) => 2
     };
-    let mut pool = Pool::new(numthreads as u32);
+    info!(" Using {} threads...", num_threads);
+    let mut pool = Pool::new(num_threads as u32);
     let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
     let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_element(num_eqn, num_eqn, Cplx::new(0.,0.))));
     pool.scoped(|scope| {
