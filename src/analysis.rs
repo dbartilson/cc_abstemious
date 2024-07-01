@@ -99,7 +99,7 @@ impl Analysis {
         
             let (m, l) = influence_matrix::get_field_influence_matrices(predata);
             
-            let phi_fp = solve::get_field(predata,&m, &l, &phi, &vn, &phi_inc_fp);
+            let phi_fp = solve::get_field(predata, &m, &l, &phi, &vn, &phi_inc_fp);
 
             let result = postprocess::FPResult{
                 frequency: freq,

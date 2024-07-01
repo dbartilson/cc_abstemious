@@ -1,5 +1,6 @@
 extern crate nalgebra as na;
 #[macro_use] extern crate log;
+extern crate scoped_threadpool;
 
 pub mod preprocess;
 mod elements;
