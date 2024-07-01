@@ -40,11 +40,36 @@ fn get_greens_functions(k: f64, origin: &Coords, x: &Coords, normal: &Vector3<f6
 pub trait NumIntElement {
     fn shape_functions_at(gp: &Gp) -> Vec<f64>;
     fn shape_derivatives_at(gp: &Gp) -> DMatrix<f64>;
-    fn coordinates_at(&self, gp: &Gp) -> Coords;
-    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64>;
+    fn coordinates_at(&self, gp: &Gp) -> Coords {
+        let n = Self::shape_functions_at(gp);
+        let mut x = Coords::from_element(0.0);
+        let mesh = self.get_mesh();
+        let element = &mesh.elements[self.get_element_id()];
+        for ni in 0..n.len() {
+            let node_index = &element.node_ids[ni];
+            let icoord = &mesh.nodes[*node_index].coords;
+            x += n[ni] * icoord;
+        }
+        return x;
+    }
+    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
+        let dn = Self::shape_derivatives_at(gp);
+        let mut dndxi = Vector3::from_element(0.0);
+        let mut dndeta = dndxi.clone();
+        let mesh = self.get_mesh();
+        let element = &mesh.elements[self.get_element_id()];
+        for i in 0..self.get_num_nodes() {
+            let node_index = &element.node_ids[i];
+            let icoord = &mesh.nodes[*node_index].coords;
+            dndxi += dn[(i,0)] * icoord;
+            dndeta += dn[(i,1)] * icoord;
+        }
+        return dndxi.cross(&dndeta)
+    }
     fn detj_at(&self, gp: &Gp) -> f64;
     fn get_integration(&self) -> &Vec<Gp>;
-    #[allow(dead_code)]
+    fn get_mesh(&self) -> &Mesh;
+    fn get_element_id(&self) -> usize;
     fn get_num_nodes(&self) -> usize;
     fn influence_matrices_at(&self, k: f64, origin: &Coords, h: &mut Vec::<Cplx>, g: &mut Vec::<Cplx>) {
         h.fill(Cplx::new(0.0, 0.0));
@@ -89,36 +114,22 @@ impl NumIntElement for Triangle <'_> {
                     0.0, 1.0]);
         return dn
     }
-    fn coordinates_at(&self, gp: &Gp) -> Coords {
-        let n = Triangle::shape_functions_at(gp);
-        let mut x = Coords::from_element(0.0);
-        let element = &self.mesh.elements[self.element_id];
-        for ni in 0..n.len() {
-            let node_index = &element.node_ids[ni];
-            let icoord = &self.mesh.nodes[*node_index].coords;
-            x += n[ni] * icoord;
-        }
-        return x;
-    }
-    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
-        let dn = Self::shape_derivatives_at(gp);
-        let mut dndxi = Vector3::from_element(0.0);
-        let mut dndeta = dndxi.clone();
-        let element = &self.mesh.elements[self.element_id];
-        for i in 0..3 {
-            let node_index = &element.node_ids[i];
-            let icoord = &self.mesh.nodes[*node_index].coords;
-            dndxi += dn[(i,0)] * icoord;
-            dndeta += dn[(i,1)] * icoord;
-        }
-        return dndxi.cross(&dndeta)
+    // use custom normal vector for triangle since it is unambiguous and faster
+    fn normal_vector_at(&self, _gp: &Gp) -> Vector3<f64> {
+        let enodes = &self.mesh.elements[self.element_id].node_ids;
+        let e0 = &self.mesh.nodes[enodes[0]].coords;
+        let e1 = &self.mesh.nodes[enodes[1]].coords;
+        let e2 = &self.mesh.nodes[enodes[2]].coords;
+        let a = e1 - e0;
+        let b = e2 - e0;
+        a.cross(&b)
     }
     fn detj_at(&self, gp: &Gp) -> f64 {
         return self.normal_vector_at(gp).norm() * 0.5
     }
-    fn get_integration(&self) -> &Vec<Gp> {
-        &self.integration
-    }
+    fn get_integration(&self) -> &Vec<Gp> {&self.integration}
+    fn get_mesh(&self) -> &Mesh {&self.mesh}
+    fn get_element_id(&self) -> usize {self.element_id}
     fn get_num_nodes(&self) -> usize {3}
 }
 
@@ -150,17 +161,6 @@ impl NumIntElement for Quad <'_> {
                    -0.25, 0.25]);
         return dn
     }
-    fn coordinates_at(&self, gp: &Gp) -> Coords {
-        let n = Quad::shape_functions_at(gp);
-        let mut x = Coords::from_element(0.0);
-        let element = &self.mesh.elements[self.element_id];
-        for ni in 0..n.len() {
-            let node_index = &element.node_ids[ni];
-            let icoord = &self.mesh.nodes[*node_index].coords;
-            x += n[ni] * icoord;
-        }
-        return x;
-    }
     fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
         let dn = Self::shape_derivatives_at(gp);
         let mut dndxi = Vector3::from_element(0.0);
@@ -177,8 +177,8 @@ impl NumIntElement for Quad <'_> {
     fn detj_at(&self, gp: &Gp) -> f64 {
         return 0.25 * self.normal_vector_at(gp).norm()
     }
-    fn get_integration(&self) -> &Vec<Gp> {
-        &self.integration
-    }
+    fn get_integration(&self) -> &Vec<Gp> {&self.integration}
+    fn get_mesh(&self) -> &Mesh {&self.mesh}
+    fn get_element_id(&self) -> usize {self.element_id}
     fn get_num_nodes(&self) -> usize {4}
 }

@@ -37,57 +37,57 @@ pub fn get_surface_influence_matrices(predata: &preprocess::PreData)
     let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
     let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_element(num_eqn, num_eqn, Cplx::new(0.,0.))));
     pool.scoped(|scope| {
-    for e in 0..nelem {
-        let h_share = h_share.clone();
-        let g_share = g_share.clone();
-        scope.execute(move|| {
-        let e_id = &mesh_body.element_ids[e];
-        let enodes = &mesh.elements[*e_id].node_ids;
+        for e in 0..nelem {
+            let h_share = h_share.clone();
+            let g_share = g_share.clone();
 
-        let mut e_eqns = Vec::<usize>::new();
-        for enode in enodes {
-            match eqn_map.get(enode) {
-                Some(eqn) => e_eqns.push(*eqn),
-                None => error!("Eqn not found for element node {}", enode)
-            }
-        }
-        match &mesh.elements[*e_id].etype {
-            mesh::ElementType::Tri => {
-                let tri = Triangle::new(&mesh, *e_id);
-                let mut he = vec![Cplx::new(0.0, 0.0); 3];
-                let mut ge = he.clone();
-                for (inode, ieqn) in eqn_map {
-                    let o = &mesh.nodes[*inode].coords;
-                    tri.influence_matrices_at(k, o, &mut he, &mut ge);
-                    let mut hi = h_share.lock().unwrap();
-                    let mut gi = g_share.lock().unwrap();
-                    for j in 0..e_eqns.len() {
-                        hi[(*ieqn, e_eqns[j])] += he[j];
-                        gi[(*ieqn, e_eqns[j])] += ge[j];
+            scope.execute(move|| {
+                let e_id = &mesh_body.element_ids[e];
+                let enodes = &mesh.elements[*e_id].node_ids;
+                let mut e_eqns = Vec::<usize>::new();
+                for enode in enodes {
+                    match eqn_map.get(enode) {
+                        Some(eqn) => e_eqns.push(*eqn),
+                        None => error!("Eqn not found for element node {}", enode)
                     }
                 }
-            },
-            mesh::ElementType::Quad => {
-                let quad = Quad::new(&mesh, *e_id);
-                let mut he = vec![Cplx::new(0.0, 0.0); 4];
-                let mut ge = he.clone();
-                for (inode, ieqn) in eqn_map {
-                    let o = &mesh.nodes[*inode].coords;
-                    quad.influence_matrices_at(k, o, &mut he, &mut ge);
-                    let mut hi = h_share.lock().unwrap();
-                    let mut gi = g_share.lock().unwrap();
-                    for j in 0..e_eqns.len() {
-                        hi[(*ieqn, e_eqns[j])] += he[j];
-                        gi[(*ieqn, e_eqns[j])] += ge[j];
+                match &mesh.elements[*e_id].etype {
+                    mesh::ElementType::Tri => {
+                        let tri = Triangle::new(&mesh, *e_id);
+                        let mut he = vec![Cplx::new(0.0, 0.0); 3];
+                        let mut ge = he.clone();
+                        for (inode, ieqn) in eqn_map {
+                            let o = &mesh.nodes[*inode].coords;
+                            tri.influence_matrices_at(k, o, &mut he, &mut ge);
+                            let mut hi = h_share.lock().unwrap();
+                            let mut gi = g_share.lock().unwrap();
+                            for j in 0..e_eqns.len() {
+                                hi[(*ieqn, e_eqns[j])] += he[j];
+                                gi[(*ieqn, e_eqns[j])] += ge[j];
+                            }
+                        }
+                    },
+                    mesh::ElementType::Quad => {
+                        let quad = Quad::new(&mesh, *e_id);
+                        let mut he = vec![Cplx::new(0.0, 0.0); 4];
+                        let mut ge = he.clone();
+                        for (inode, ieqn) in eqn_map {
+                            let o = &mesh.nodes[*inode].coords;
+                            quad.influence_matrices_at(k, o, &mut he, &mut ge);
+                            let mut hi = h_share.lock().unwrap();
+                            let mut gi = g_share.lock().unwrap();
+                            for j in 0..e_eqns.len() {
+                                hi[(*ieqn, e_eqns[j])] += he[j];
+                                gi[(*ieqn, e_eqns[j])] += ge[j];
+                            }
+                        }
+                    }
+                    _ => {
+                        error!("Invalid element!");
                     }
                 }
-            }
-            _ => {
-                error!("Invalid element!");
-            }
+            });
         }
-    });
-    }
     });
     let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
     let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();

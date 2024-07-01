@@ -3,10 +3,10 @@
 `cc_abstemious` is a numerical acoustics simulation software based on the boundary element method. The main features are:
 
 * Direct boundary integral formulation
-* Formulated using velocity potential
-* Support for interior and exterior problems
 * Collocation points are located at element nodes, avoiding singular integration and allowing easier interpolation
 * Support for VTK mesh files
+* Direct (LU) and iterative (GMRES) solvers
+* Parallel processing of surface influence matrix
 
 **License:** MIT
 
@@ -18,9 +18,10 @@
 
 * Mesh file in `.vtk` format [^1][^2][^3]
 * Body index in the mesh file [^3]
-* Analysis (drive) frequency [^4]
+* Vector of analysis (drive) frequencies [^4]
 * Acoustic fluid sound speed and mass density
 * Problem type (interior or exterior domain)
+* Solver specification (direct/iterative, tolerance and max iterations for iterative solver)
 * Incident acoustic fields (plane waves and spherical waves)
 * Surface boundary conditions (velocity potential, normal velocity, or impedance) [^5]
 * Output information, including file name, pressure/velocity potential, scattered/total field, and field point locations [^6]
