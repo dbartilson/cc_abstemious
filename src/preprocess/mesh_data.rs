@@ -35,6 +35,7 @@ use na::Vector3;
 
 pub type Coords = Vector3<f64>;
 
+#[derive(Clone)]
 pub enum ElementType {
     Null,
     Point,

@@ -8,7 +8,9 @@ use std::path::Path;
 pub struct PreData {
     input: input_data::UserInput,
     mesh: mesh_data::Mesh,
-    eqn_map: HashMap<usize,usize>, // map nodes
+    eqn_map: HashMap<usize,usize>, // map nodes to equations
+    node_map: HashMap<usize,usize>, // map equations to nodes
+    revcon: Vec<Vec<usize>>, // list of elements at each node
     ifreq: usize // current frequency index
 }
 
@@ -29,6 +31,8 @@ impl PreData {
     pub fn get_incident_wave(&self) -> &input_data::IncidentWaveInput {return &self.input.incident_wave;}
     pub fn get_surface_bc(&self) -> &input_data::SurfaceBoundaryCondition {return &self.input.surface_bc;}
     pub fn get_eqn_map(&self) -> &HashMap<usize, usize> {return &self.eqn_map;}
+    pub fn get_node_map(&self) -> &HashMap<usize, usize> {return &self.node_map;}
+    pub fn get_revcon(&self) -> &Vec<Vec<usize>> {return &self.revcon;}
     pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
     pub fn get_num_eqn(&self) -> usize {return self.eqn_map.len();}
     pub fn get_output_filename(&self) -> &String {return &self.input.output.file;}
@@ -47,35 +51,42 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
     let body_id = &input.body_index;
 
     // preprocess to get node to eqn map
-    let eqn_map = get_eqn_map(&mesh, *body_id);
+    let (eqn_map, node_map, revcon) = get_eqn_map(&mesh, *body_id);
 
     // take ownership of input data
     return PreData{input, 
                    mesh: mesh, 
                    eqn_map: eqn_map, 
+                   node_map: node_map,
+                   revcon: revcon,
                    ifreq: 0};
 }
 
-fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) -> HashMap::<usize, usize> {
+fn get_eqn_map(meshdata: &mesh_data::Mesh, body_id: usize) 
+    -> (HashMap::<usize, usize>, 
+        HashMap::<usize, usize>, 
+        Vec<Vec<usize>>) {
     // create a map from node index to eqn index
-    let mut eqn_map = HashMap::<usize, usize>::new();
     let nnode = meshdata.nodes.len();
     let ibody = &meshdata.bodies[body_id-1];
-    let mut eqn_vector = vec![false; nnode];
-    // Mark each possible node (eqn) as used or not
+    let mut revcon = vec![Vec::<usize>::new(); nnode];
+    // Push the elements that are at each node
     for element_id in &ibody.element_ids {
         let element = &meshdata.elements[*element_id];
         for node_id in &element.node_ids {
-            eqn_vector[*node_id] = true;
+            revcon[*node_id].push(*element_id);
         }
     }
     // Scroll through all used eqns in order and put in map
+    let mut eqn_map = HashMap::<usize, usize>::new();
+    let mut node_map = HashMap::<usize, usize>::new();
     let mut eqn_number: usize = 0;
-    for i in 0..eqn_vector.len() {
-        if eqn_vector[i] {
+    for i in 0..revcon.len() {
+        if !revcon[i].is_empty() {
             eqn_map.insert(i, eqn_number);
+            node_map.insert(eqn_number, i);
             eqn_number += 1;
         }
     }
-    return eqn_map;
+    return (eqn_map, node_map, revcon);
 }

@@ -91,10 +91,10 @@ impl Analysis {
             info!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);
             self.freq_index = i;
 
+            let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(predata);
+
             let (h, g) = influence_matrix::get_surface_influence_matrices(predata);
         
-            let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(predata);
-    
             let (phi, vn) = solve::get_surface(predata, &h, &g, &phi_inc);
         
             let (m, l) = influence_matrix::get_field_influence_matrices(predata);
