@@ -26,12 +26,16 @@ use na::{DMatrix, Vector3};
 use crate::Cplx;
 use crate::preprocess::mesh_data::{Coords, ElementType, Mesh};
 
+/// Calculate the Green's function (g) and its derivative (h) for the given origin, destination (x),
+/// normal vector, and wavenumber (k)
 fn get_greens_functions(k: f64, origin: &Coords, x: &Coords, normal: &Vector3<f64>) -> (Cplx, Cplx) {
     let n = normal / normal.norm();
     let r = origin - x;
     let rdist = r.norm();
     let runit = r / rdist;
+    // g = e^(ikr) / (4 pi r)
     let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
+    // h = (1/r - ik) * g * (r dot n), where r and n are unit vectors -> (r dot n) is a direction cosine
     let h = g * Cplx::new(1.0 / rdist, -k) * runit.dot(&n);
     return (g, h)
 }
@@ -56,6 +60,7 @@ impl NIElement <'_> {
                   element_id: element,
                   element_type: etype.clone()}
     }
+    #[inline]
     fn get_num_nodes(&self) -> usize {
         match self.element_type {
             ElementType::Tri => 3,
@@ -63,6 +68,7 @@ impl NIElement <'_> {
             _ => 0
         }
     }
+    /// Get shape functions for this element at the given natural coordinates
     fn shape_functions_at(&self, gp: &Gp) -> Vec<f64> {
         let xi = &gp.coords[0];
         let eta = &gp.coords[1];
@@ -81,6 +87,7 @@ impl NIElement <'_> {
             _ => vec![0.0]
         }
     }
+    /// Get shape function derivatives for this element at the given natural coordinates
     fn shape_derivatives_at(&self, _gp: &Gp) -> DMatrix<f64> {
         match self.element_type {
             ElementType::Tri => {
@@ -99,7 +106,8 @@ impl NIElement <'_> {
             _ => DMatrix::from_element(1, 1, 0.0)
         }
     }
-    pub fn coordinates_at(&self, gp: &Gp) -> Coords {
+    /// Get physical coordinates at the given natural coordinates, using shape functions
+    fn coordinates_at(&self, gp: &Gp) -> Coords {
         let n = self.shape_functions_at(gp);
         let mut x = Coords::from_element(0.0);
         let element = &self.mesh.elements[self.element_id];
@@ -110,7 +118,8 @@ impl NIElement <'_> {
         }
         return x;
     }
-    pub fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
+    /// Get normal vector (non-normalized) at the given natural coordinates
+    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
         match self.element_type {
             ElementType::Tri => {
                 let enodes = &self.mesh.elements[self.element_id].node_ids;
@@ -121,7 +130,8 @@ impl NIElement <'_> {
                 let b = e2 - e0;
                 a.cross(&b)
             },
-            // for quads or higher
+            // for quads or higher, use shape functions to calculate the derivative dx / dxi,
+            // i.e., change in physical coordinates w.r.t. natural coordinates
             _ => {
                 let dn = self.shape_derivatives_at(gp);
                 let mut dndxi = Vector3::from_element(0.0);
@@ -133,17 +143,22 @@ impl NIElement <'_> {
                     dndxi += dn[(i,0)] * icoord;
                     dndeta += dn[(i,1)] * icoord;
                 }
+                // normal vector is then the cross product of dx/dxi and dx/deta
                 dndxi.cross(&dndeta)
             }
         }
     }
-    pub fn detj_at(&self, gp: &Gp) -> f64 {
+    /// Get the determinant of the transformation from natural to physical coordinates at the given 
+    /// natural coordinates
+    fn detj_at(&self, gp: &Gp) -> f64 {
+        // Calculate using the normal vector, since it is return un-scaled
         match self.element_type {
             ElementType::Tri => 0.5 * self.normal_vector_at(gp).norm(),
             ElementType::Quad => 0.25 * self.normal_vector_at(gp).norm(),
             _ => 0.0
         }
     }
+    /// Numerically integrate the influence matrices from this element to a given origin point
     pub fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
         let mut h = vec![Cplx::new(0.0, 0.0); self.get_num_nodes()];
         let mut g = h.clone();

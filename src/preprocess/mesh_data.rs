@@ -43,7 +43,6 @@ pub enum ElementType {
     Tri,
     Quad
 }
-
 pub struct Element {
     pub id: usize,
     pub body_id: usize,
