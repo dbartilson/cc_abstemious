@@ -80,7 +80,7 @@ fn get_surface_aca(predata: & preprocess::PreData, phi_inc: &DVector::<Cplx>) ->
         let get_row = |i: usize| -> Vec<Cplx> {influence_matrix::get_rhs_row(predata, &i)};
         let get_col = |i: usize| -> Vec<Cplx> {influence_matrix::get_rhs_column(predata, &i)};
         let aca = aca::ACA::new(predata.get_solver_tolerance(), 
-                                        predata.get_solver_max_it(),
+                                        num_eqn / 2,
                                         predata.get_num_eqn(),
                                         get_row, get_col);
         let sbc = predata.get_surface_bc();
@@ -106,7 +106,7 @@ fn get_surface_aca(predata: & preprocess::PreData, phi_inc: &DVector::<Cplx>) ->
     let get_row = |i: usize| -> Vec<Cplx> {influence_matrix::get_lhs_row(predata, &i)};
     let get_col = |i: usize| -> Vec<Cplx> {influence_matrix::get_lhs_column(predata, &i)};
     let aca = aca::ACA::new(predata.get_solver_tolerance(), 
-                                    predata.get_solver_max_it(),
+                           num_eqn / 2,
                                     predata.get_num_eqn(),
                                     get_row, get_col);
     let mut gm = gmres::GMRES::new(predata.get_solver_max_it(), predata.get_solver_tolerance());
@@ -240,7 +240,8 @@ mod tests {
         let mut gm = gmres::GMRES::new(100, 1.0e-8);
         gm.aca = Some(aca);
         gm.solve(&mut b);
-        approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-10);
-        approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-10);
+
+        approx::assert_relative_eq!(b[0].re, 0.14230536182611053, epsilon = 1.0e-10);
+        approx::assert_relative_eq!(b[0].im, 0.076844046474277852, epsilon = 1.0e-10);
     }
 }

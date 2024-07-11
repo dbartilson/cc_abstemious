@@ -237,7 +237,6 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, j: &usize)
     let k = predata.get_wavenumber();
 
     let num_eqn = eqn_map.len();
-    let mesh_body = predata.get_mesh_body();
 
     // find node index corresponding to equation j
     let jnode = match predata.get_node_map().get(j) {
@@ -249,8 +248,7 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, j: &usize)
     if el_list.is_empty() {error!("Element list is empty for node {}",j);}
     let mut h = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
-    for e in el_list {
-        let e_id = &mesh_body.element_ids[*e];
+    for e_id in el_list {
         let enodes = &mesh.elements[*e_id].node_ids;
         // find which node index of this element corresponds to this column
         let index = match enodes.iter().position(|&r| r == *jnode) {

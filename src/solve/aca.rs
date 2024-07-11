@@ -26,7 +26,7 @@ impl ACA<'_>
                get_column: impl Fn(usize) -> Vec::<Cplx> + 'a) -> ACA<'a> {
         let mut a = ACA {
             thresh: thresh,
-            max_vec: max_vec,
+            max_vec: std::cmp::min(max_vec, num_eqn),
             num_eqn: num_eqn,
             get_row: Box::new(get_row), 
             get_column: Box::new(get_column),
@@ -35,12 +35,7 @@ impl ACA<'_>
         a.get_uv();
         return a
     }
-    pub fn get_num_eqn(&self) -> usize {
-        match self.uv.last() {
-            Some(uv) => uv.u.len(),
-            None => 0
-        }
-    }
+    pub fn get_num_eqn(&self) -> usize { self.num_eqn }
     /// Get the current residual for the given row
     fn get_residual_row(&self, i: usize) -> DVector::<Cplx> {
         let rv = (self.get_row)(i);
@@ -64,8 +59,9 @@ impl ACA<'_>
         // largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
         // also see https://doi.org/10.1007/s00607-004-0103-1
         info!("  Assembling Adaptive Cross Approximation matrix...");
+        let n = self.get_num_eqn();
         let mut rng = rand::rngs::StdRng::seed_from_u64(10);
-        let drange = Uniform::new_inclusive(0, self.num_eqn-1);
+        let drange = Uniform::new_inclusive(0, n-1);
         // get randomized starting row/col
         let mut iref = drange.sample(&mut rng);
         let mut jref = drange.sample(&mut rng);
@@ -114,7 +110,7 @@ impl ACA<'_>
             if step_size < self.thresh { break; }
             // If pivoting occurred on reference row (iref == istar), get new random row
             if iref == istar {
-                Self::get_random_index_exclude(&mut iref, &istar_list, &mut rng, &drange);
+                Self::get_random_index_exclude(&mut iref, &n, &istar_list, &mut rng, &drange);
                 riref = self.get_residual_row(iref);
             }
             else {
@@ -122,7 +118,7 @@ impl ACA<'_>
                 riref.axpy(-self.uv[k].u[iref], &self.uv[k].v, Cplx::new(1.0, 0.0));
             }
             if jref == jstar {
-                Self::get_random_index_exclude(&mut jref, &jstar_list, &mut rng, &drange);
+                Self::get_random_index_exclude(&mut jref, &n, &jstar_list, &mut rng, &drange);
                 rjref = self.get_residual_column(jref);
             }
             else {
@@ -168,10 +164,14 @@ impl ACA<'_>
     }
     /// Check if desired index is already in not_allowed HashSet, 
     /// if so, randomly find a new index
-    fn get_random_index_exclude(i: &mut usize, not_allowed: &HashSet<usize>, 
+    fn get_random_index_exclude(i: &mut usize, n: &usize, not_allowed: &HashSet<usize>, 
         rng: &mut StdRng, drange: &Uniform<usize>) {
-        while not_allowed.contains(i) {
+        if not_allowed.contains(i) {
             *i = drange.sample(rng);
+            for _ in 0..*n-1 {
+                *i = (*i + 1) % n;
+                if !not_allowed.contains(i) {break;}
+            }
         }
     }
     /// Get the index corresponding to the max(abs()) of the array while also
