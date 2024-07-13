@@ -2,8 +2,6 @@ use std::rc::Rc;
 
 use crate::preprocess::mesh_data::Node;
 
-const LEAF_CARDINALITY: usize = 32;
-
 #[derive(Clone)]
 pub struct Cluster {
     u_bound: [f64;3],
@@ -14,25 +12,21 @@ pub struct Cluster {
 }
 
 impl Cluster {
-    fn new() -> Cluster {
-        Cluster {
+    fn new(nodes: &Vec<Node>, indices_contained: Vec<usize>, leaf_cardinality: usize) -> Cluster {
+        let mut cluster = Cluster {
             u_bound: [f64::NEG_INFINITY;3],
             l_bound: [f64::INFINITY;3],
             diameter: 0.0,
-            indices_contained: Vec::new(),
+            indices_contained: indices_contained,
             sons: Vec::new()
-        }
+        };
+        cluster.process_cluster(nodes, leaf_cardinality);
+        return cluster;
     }
-    pub fn build_tree(nodes: &Vec<Node>) -> Cluster {
-        let mut tree = Cluster::new();
-        tree.indices_contained = (0..nodes.len()).collect();
-        tree.process_cluster(nodes);
-        return tree
-    }
-    fn process_cluster(&mut self, nodes: &Vec<Node>) {
+    fn process_cluster(&mut self, nodes: &Vec<Node>, leaf_cardinality: usize) {
         self.update_bounds(nodes);
         self.update_diameter();
-        if self.indices_contained.len() <= LEAF_CARDINALITY {return;}
+        if self.indices_contained.len() <= leaf_cardinality {return;}
         // Determine which direction to split the cluster
         let mut jmax: usize = 0;
         let mut diff = 0.0;
@@ -44,21 +38,19 @@ impl Cluster {
         }
         // Split cluster at gamma in jmax direction
         let gamma = 0.5 * (alpha[jmax] + beta[jmax]);
-        let mut son1 = Cluster::new();
-        let mut son2 = Cluster::new();
+        let mut indx1 = Vec::<usize>::new();
+        let mut indx2 = indx1.clone();
         for index in &self.indices_contained {
             if nodes[*index].coords[jmax] <= gamma {
-                son1.indices_contained.push(*index);
+                indx1.push(*index);
             }
             else {
-                son2.indices_contained.push(*index);
+                indx2.push(*index);
             }
         }
         //self.indices_contained = Vec::new();
-        son1.process_cluster(nodes);
-        son2.process_cluster(nodes);
-        self.sons.push(Rc::new(son1));
-        self.sons.push(Rc::new(son2));
+        self.sons.push(Rc::new(Cluster::new(nodes, indx1, leaf_cardinality)));
+        self.sons.push(Rc::new(Cluster::new(nodes, indx2, leaf_cardinality)));
     }
     pub fn is_leaf(&self) -> bool { return self.sons.is_empty()}
     pub fn get_sons(&self) -> &Vec<Rc<Cluster>> { return &self.sons;}
@@ -109,7 +101,7 @@ mod tests {
                 i += 1;
             }
         }
-        let tree = Cluster::build_tree(&nodes);
+        let tree = Cluster::new(&nodes, (0..nodes.len()).collect(), 32);
         assert_eq!(tree.get_bounds().1[0], 24.0)
     }
     #[test]
@@ -122,7 +114,7 @@ mod tests {
                 i += 1;
             }
         }
-        let cluster_tree = Rc::new(Cluster::build_tree(&nodes));
+        let cluster_tree = Rc::new(Cluster::new(&nodes, (0..nodes.len()).collect(), 32));
         let block_tree = Block::new(cluster_tree.clone(), cluster_tree.clone(), 4.0);
     }
 }
@@ -145,25 +137,23 @@ impl Block {
         tree.process_block(eta);
         return tree;
     }
-    fn update_admissibility(&mut self, eta: f64) {
-        let diam1 = self.rows.get_diameter();
-        let diam2 = self.columns.get_diameter();
-        let dist12 = Cluster::get_distance(&self.rows, &self.columns);
-        self.admissible = f64::min(diam1, diam2) <= eta * dist12 
-    }
     /// Check if block can be divided (is not admissible, neither cluster is a leaf)
     #[inline]
     fn is_divisible(&self) -> bool {
         !(self.admissible || self.rows.is_leaf() || self.columns.is_leaf())
     }
     fn process_block(&mut self, eta: f64) {
-        self.update_admissibility(eta);
+        // update admissibility 
+        let diam1 = self.rows.get_diameter();
+        let diam2 = self.columns.get_diameter();
+        let dist12 = Cluster::get_distance(&self.rows, &self.columns);
+        self.admissible = f64::min(diam1, diam2) <= eta * dist12;
+        // check divisibility, if divisible, do so
         if self.is_divisible() {
+            // divide into 4 blocks according to sons of row/son clusters
             for rson in &self.rows.sons {
                 for cson in &self.columns.sons {
-                    let cblock = Block::new(
-                        rson.clone(),cson.clone(), eta);
-                    self.children.push(cblock);
+                    self.children.push(Block::new(rson.clone(),cson.clone(), eta));
                 }
             }
         }
