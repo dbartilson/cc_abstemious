@@ -8,16 +8,16 @@ enum ExitFlag {
     Iterations
 }
 
-pub struct GMRES<'a> {
+pub struct GMRES{
     max_it: usize,
     max_it_per_restart: usize,
     thresh: f64,
     pub a: Option<DMatrix::<Cplx>>,
-    pub aca: Option<aca::ACA<'a>>
+    pub aca: Option<aca::ACA>
 }
 
-impl <'a>GMRES<'a> {
-    pub fn new(max_it: usize, thresh: f64) -> GMRES<'a> {
+impl GMRES{
+    pub fn new(max_it: usize, thresh: f64) -> GMRES {
         GMRES {
             max_it: max_it,
             max_it_per_restart: 0,

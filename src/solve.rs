@@ -1,5 +1,6 @@
 pub mod gmres;
 pub mod aca;
+pub mod h_matrix;
 
 use na::{DMatrix, DVector};
 use crate::influence_matrix;

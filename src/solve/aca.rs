@@ -8,37 +8,31 @@ struct UV {
     u: DVector::<Cplx>,
     v: DVector::<Cplx>
 }
-pub struct ACA<'a>
+pub struct ACA
 {
-    thresh: f64,
-    max_vec: usize,
     num_eqn: usize,
-    get_row: Box<dyn Fn(usize) -> Vec::<Cplx> + 'a>,
-    get_column: Box<dyn Fn(usize) -> Vec::<Cplx>+ 'a>,
     uv: Vec<UV>,
     norm: f64,
 }
 
-impl ACA<'_>
+impl ACA
 {
-    pub fn new<'a>(thresh: f64, max_vec: usize, num_eqn: usize, 
-               get_row: impl Fn(usize) -> Vec::<Cplx> + 'a, 
-               get_column: impl Fn(usize) -> Vec::<Cplx> + 'a) -> ACA<'a> {
+    pub fn new<F,G>(tol: f64, max_vec: usize, num_eqn: usize, get_row: F, get_column: G) -> ACA
+        where F: Fn(usize) -> Vec::<Cplx>,
+              G: Fn(usize) -> Vec::<Cplx>  {
         let mut a = ACA {
-            thresh: thresh,
-            max_vec: std::cmp::min(max_vec, num_eqn),
             num_eqn: num_eqn,
-            get_row: Box::new(get_row), 
-            get_column: Box::new(get_column),
             uv: Vec::new(), 
             norm: 0.0};
-        a.get_uv();
+        let mv = std::cmp::min(max_vec, num_eqn);
+        a.get_uv(tol, mv, &get_row, &get_column);
         return a
     }
     pub fn get_num_eqn(&self) -> usize { self.num_eqn }
     /// Get the current residual for the given row
-    fn get_residual_row(&self, i: usize) -> DVector::<Cplx> {
-        let rv = (self.get_row)(i);
+    fn get_residual_row<F>(&self, get_row: F, i: usize) -> DVector::<Cplx>
+    where F: Fn(usize) -> Vec::<Cplx> {
+        let rv = get_row(i);
         let mut r = DVector::<Cplx>::from_column_slice(&rv);
         for uv in &self.uv {
             r.axpy(-uv.u[i], &uv.v, Cplx::new(1.0, 0.0));
@@ -46,8 +40,9 @@ impl ACA<'_>
         return r;
     }
     /// Get the current residual for the given column
-    fn get_residual_column(&self, j: usize) -> DVector::<Cplx> {
-        let rv = (self.get_column)(j);
+    fn get_residual_column<G>(&self, get_column: G, j: usize) -> DVector::<Cplx>
+    where G: Fn(usize) -> Vec::<Cplx> {
+        let rv = get_column(j);
         let mut r = DVector::<Cplx>::from_column_slice(&rv);
         for uv in &self.uv {
             r.axpy(-uv.v[j], &uv.u, Cplx::new(1.0, 0.0));
@@ -55,7 +50,9 @@ impl ACA<'_>
         return r;
     }
     /// Calculate the Adaptive Cross Approximation for the given matrix
-    fn get_uv(&mut self) {
+    fn get_uv<F,G>(&mut self, tol: f64, max_vec: usize, get_row: &F, get_column: &G) 
+    where F: Fn(usize) -> Vec::<Cplx>,
+          G: Fn(usize) -> Vec::<Cplx> {
         // largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
         // also see https://doi.org/10.1007/s00607-004-0103-1
         info!("  Assembling Adaptive Cross Approximation matrix...");
@@ -69,14 +66,14 @@ impl ACA<'_>
         let mut istar_list = HashSet::<usize>::new();
         let mut jstar_list = istar_list.clone();
         // calculate residual for reference row/col
-        let mut riref = self.get_residual_row(iref);
-        let mut rjref = self.get_residual_column(jref);
+        let mut riref = self.get_residual_row(get_row, iref);
+        let mut rjref = self.get_residual_column(get_column, jref);
         #[allow(unused_assignments)]
         let mut ristar = DVector::<Cplx>::from_element(1, Cplx::new(0.0, 0.0));
         #[allow(unused_assignments)]
         let mut rjstar = DVector::<Cplx>::from_element(1, Cplx::new(0.0, 0.0));
         let mut norm_f2_total = 0.0;
-        for k in 0..self.max_vec {
+        for k in 0..max_vec{
             // get column index of maximum value of row
             let mut jstar = Self::index_max_exclude(&riref, &istar_list);
             let jstar_val = riref[jstar].abs();
@@ -86,16 +83,16 @@ impl ACA<'_>
             // choose whichever index set has larger value
             if istar_val > jstar_val {
                 // get the residual row corresponding to istar
-                ristar = self.get_residual_row(istar);
+                ristar = self.get_residual_row(get_row,istar);
                 // get the column index of maximum of ristar
                 jstar = Self::index_max_exclude(&ristar, &jstar_list);
                 // get the residual for this column
-                rjstar = self.get_residual_column(jstar);
+                rjstar = self.get_residual_column(get_column, jstar);
             }
             else {
-                rjstar = self.get_residual_column(jstar);
+                rjstar = self.get_residual_column(get_column, jstar);
                 istar = Self::index_max_exclude(&rjstar, &istar_list);
-                ristar = self.get_residual_row(istar);
+                ristar = self.get_residual_row(get_row,istar);
             }
             istar_list.insert(istar);
             jstar_list.insert(jstar);
@@ -107,11 +104,11 @@ impl ACA<'_>
             let norm_f2_k = self.update_norm_estimate(&mut norm_f2_total);
             let step_size = norm_f2_k.sqrt() / norm_f2_total.sqrt();
             info!("   Step: {}, Row: {}, Column: {}, Step size: {}", k, istar, jstar, step_size);
-            if step_size < self.thresh { break; }
+            if step_size < tol { break; }
             // If pivoting occurred on reference row (iref == istar), get new random row
             if iref == istar {
                 Self::get_random_index_exclude(&mut iref, &n, &istar_list, &mut rng, &drange);
-                riref = self.get_residual_row(iref);
+                riref = self.get_residual_row(get_row, iref);
             }
             else {
                 // update reference row with new approximation
@@ -119,7 +116,7 @@ impl ACA<'_>
             }
             if jref == jstar {
                 Self::get_random_index_exclude(&mut jref, &n, &jstar_list, &mut rng, &drange);
-                rjref = self.get_residual_column(jref);
+                rjref = self.get_residual_column(get_column, jref);
             }
             else {
                 // update reference column

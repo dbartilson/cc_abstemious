@@ -62,6 +62,7 @@ pub struct Body {
     pub element_ids: Vec<usize>
 }
 
+#[derive(Clone)]
 pub struct Node {
     pub id: usize,
     pub coords: Coords,
