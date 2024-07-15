@@ -10,25 +10,29 @@ struct UV {
 }
 pub struct ACA
 {
-    num_eqn: usize,
+    num_rows: usize,
+    num_columns: usize,
     uv: Vec<UV>,
     norm: f64,
 }
 
 impl ACA
 {
-    pub fn new<F,G>(tol: f64, max_vec: usize, num_eqn: usize, get_row: F, get_column: G) -> ACA
+    pub fn new<F,G>(tol: f64, max_vec: usize, m: usize, n: usize, get_row: F, get_column: G) -> ACA
         where F: Fn(usize) -> Vec::<Cplx>,
               G: Fn(usize) -> Vec::<Cplx>  {
         let mut a = ACA {
-            num_eqn: num_eqn,
+            num_rows: m,
+            num_columns: n,
             uv: Vec::new(), 
             norm: 0.0};
-        let mv = std::cmp::min(max_vec, num_eqn);
-        a.get_uv(tol, mv, &get_row, &get_column);
+        let mv = [max_vec, m, n].iter().min().unwrap();
+        a.get_uv(tol, *mv, &get_row, &get_column);
         return a
     }
-    pub fn get_num_eqn(&self) -> usize { self.num_eqn }
+    pub fn get_num_rows(&self) -> usize { self.num_rows }
+    pub fn get_num_columns(&self) -> usize { self.num_columns }
+    pub fn get_num_eqn(&self) -> usize { self.num_rows }
     /// Get the current residual for the given row
     fn get_residual_row<F>(&self, get_row: F, i: usize) -> DVector::<Cplx>
     where F: Fn(usize) -> Vec::<Cplx> {
@@ -214,7 +218,7 @@ mod tests {
         let get_row = move |i: usize| -> Vec<Cplx> {d.clone().row(i).iter().cloned().collect()};
         let get_col = move |i: usize| -> Vec<Cplx> {c.clone().column(i).iter().cloned().collect()};
         // build ACA of matrix and compare norms
-        let aca = ACA::new(1.0e-8, 19, n, get_row, get_col);
+        let aca = ACA::new(1.0e-8, 19, n, n, get_row, get_col);
         approx::assert_relative_eq!(aca.get_norm(), a.norm(), max_relative = 0.05);
         // compare matrix multiplication against random vector for both
         let mut x1 = b.clone();

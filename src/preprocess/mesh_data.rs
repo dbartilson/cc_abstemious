@@ -47,7 +47,8 @@ pub struct Element {
     pub id: usize,
     pub body_id: usize,
     pub etype: ElementType,
-    pub node_ids: Vec<usize>
+    pub node_ids: Vec<usize>,
+    pub eqn_idx: Vec<usize>
 }
 
 //pub enum BodyType {
@@ -115,8 +116,12 @@ impl Mesh {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
                     let body_id: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                    let mut elem_temp: Element = Element{id: i, body_id: body_id as usize,
-                        etype: ElementType::Null, node_ids: Vec::new()};
+                    let mut elem_temp: Element = 
+                        Element{id: i, 
+                                body_id: body_id as usize,
+                                etype: ElementType::Null, 
+                                node_ids: Vec::new(),
+                                eqn_idx: Vec::new()};
                     for slinej in sline {
                         elem_temp.node_ids.push(slinej.parse().unwrap());
                     }

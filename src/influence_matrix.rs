@@ -7,41 +7,6 @@ use crate::preprocess::input_data as id;
 use crate::elements::*;
 use crate::Cplx;
 
-/// return alpha and beta for system matrix [alpha*H + beta*G]
-pub fn get_lhs_factors(predata: &preprocess::PreData) -> (Cplx, Cplx) {
-    let sbc = predata.get_surface_bc();
-    match sbc.bc_type {
-        preprocess::input_data::BCType::Pressure => {
-            (Cplx::new(0.0, 0.0), Cplx::new(1.0, 0.0))
-        }   
-        preprocess::input_data::BCType::NormalVelocity => {
-            (Cplx::new(1.0, 0.0), Cplx::new(0.0, 0.0))
-        }
-        preprocess::input_data::BCType::Impedance => {
-            let impedance_bc = Cplx::new(sbc.value[0], sbc.value[1]);
-            let omega = predata.get_angular_frequency();
-            let rho = predata.get_mass_density();
-            (Cplx::new(1.0, 0.0), Cplx::new(0.0, -omega * rho) / impedance_bc)
-        }
-    }
-}
-
-/// return gamma and delta for rhs [gamma*H + delta*G] * vn or phi
-pub fn get_rhs_factors(predata: &preprocess::PreData) -> (Cplx, Cplx) {
-    let sbc = predata.get_surface_bc();
-    match sbc.bc_type {
-        preprocess::input_data::BCType::Pressure => {
-            (Cplx::new(-1.0, 0.0), Cplx::new(0.0, 0.0))
-        }   
-        preprocess::input_data::BCType::NormalVelocity => {
-            (Cplx::new(0.0, 0.0), Cplx::new(1.0, 0.0))
-        }
-        preprocess::input_data::BCType::Impedance => {
-            (Cplx::new(0.0, 0.0), Cplx::new(0.0, 0.0))
-        }
-    }
-}
-
 /// evaluate the surface BEM influence matrices. These matrices are complex-valued,
 /// square, and non-symmetric in general
 pub fn get_dense_surface_matrices(predata: &preprocess::PreData) 
@@ -77,13 +42,7 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
             scope.execute(move|| {
                 let e_id = &mesh_body.element_ids[e];
                 let enodes = &mesh.elements[*e_id].node_ids;
-                let mut e_eqns = Vec::<usize>::new();
-                for enode in enodes {
-                    match eqn_map.get(enode) {
-                        Some(eqn) => e_eqns.push(*eqn),
-                        None => error!("Eqn not found for element node {}", enode)
-                    }
-                }
+                let e_eqns = &mesh.elements[*e_id].eqn_idx;
                 let element = NIElement::new(&mesh, *e_id);
                 for (inode, ieqn) in eqn_map {
                     let o = &mesh.nodes[*inode].coords;
@@ -122,13 +81,7 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
     for e in 0..nelem {
         let e_id = &mesh_body.element_ids[e];
         let enodes = &mesh.elements[*e_id].node_ids;
-        let mut e_eqns = Vec::<usize>::new();
-        for enode in enodes {
-            match eqn_map.get(enode) {
-                Some(eqn) => e_eqns.push(*eqn),
-                None => error!("Eqn not found for element node {}", enode)
-            }
-        }
+        let mut e_eqns = &mesh.elements[*e_id].eqn_idx;
         let element = NIElement::new(&mesh, *e_id);
         for (i, fieldpt) in field_points.iter().enumerate()  {
             let coord = Vector3::from_column_slice(fieldpt);
@@ -142,94 +95,123 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
     return (m, l);
 }
 
-/// Get the row of the LHS (for ACA)
-pub fn get_lhs_row(predata: &preprocess::PreData, i: &usize) -> Vec<Cplx> {
-    let (h, g) = get_surface_matrices_row(predata, &i);
-    let (alpha, beta) = get_lhs_factors(predata);
-    let mut r = h;
-    // r = alpha * h + beta * g
-    r.axpy(beta, &g, alpha);
-    let rr: Vec<Cplx> = r.data.into();
-    return rr
-}
-/// Get the column of the LHS (for ACA)
-pub fn get_lhs_column(predata: &preprocess::PreData, j: &usize) -> Vec<Cplx> {
-    let (h, g) = get_surface_matrices_column(predata, &j);
-    let (alpha, beta) = get_lhs_factors(predata);
-    let mut r = h;
-    // r = alpha * h + beta * g
-    r.axpy(beta, &g, alpha);
-    let rr: Vec<Cplx> = r.data.into();
-    return rr
-}
-/// Get the row of the RHS (for ACA)
-pub fn get_rhs_row(predata: &preprocess::PreData, i: &usize) -> Vec<Cplx> {
-    let (h, g) = get_surface_matrices_row(predata, &i);
-    let (alpha, beta) = get_rhs_factors(predata);
-    let mut r = h;
-    // r = alpha * h + beta * g
-    r.axpy(beta, &g, alpha);
-    let rr: Vec<Cplx> = r.data.into();
-    return rr
-}
-/// Get the column of the RHS (for ACA)
-pub fn get_rhs_column(predata: &preprocess::PreData, j: &usize) -> Vec<Cplx> {
-    let (h, g) = get_surface_matrices_column(predata, &j);
-    let (alpha, beta) = get_rhs_factors(predata);
-    let mut r = h;
-    // r = alpha * h + beta * g
-    r.axpy(beta, &g, alpha);
-    let rr: Vec<Cplx> = r.data.into();
-    return rr
+/// return alpha and beta for system matrix [alpha*H + beta*G]
+fn get_lhs_factors(predata: &preprocess::PreData) -> (Cplx, Cplx) {
+    let sbc = predata.get_surface_bc();
+    match sbc.bc_type {
+        preprocess::input_data::BCType::Pressure => {
+            (Cplx::new(0.0, 0.0), Cplx::new(1.0, 0.0))
+        }   
+        preprocess::input_data::BCType::NormalVelocity => {
+            (Cplx::new(1.0, 0.0), Cplx::new(0.0, 0.0))
+        }
+        preprocess::input_data::BCType::Impedance => {
+            let impedance_bc = Cplx::new(sbc.value[0], sbc.value[1]);
+            let omega = predata.get_angular_frequency();
+            let rho = predata.get_mass_density();
+            (Cplx::new(1.0, 0.0), Cplx::new(0.0, -omega * rho) / impedance_bc)
+        }
+    }
 }
 
-fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize) 
+/// return gamma and delta for rhs [gamma*H + delta*G] * vn or phi
+fn get_rhs_factors(predata: &preprocess::PreData) -> (Cplx, Cplx) {
+    let sbc = predata.get_surface_bc();
+    match sbc.bc_type {
+        preprocess::input_data::BCType::Pressure => {
+            (Cplx::new(-1.0, 0.0), Cplx::new(0.0, 0.0))
+        }   
+        preprocess::input_data::BCType::NormalVelocity => {
+            (Cplx::new(0.0, 0.0), Cplx::new(1.0, 0.0))
+        }
+        preprocess::input_data::BCType::Impedance => {
+            (Cplx::new(0.0, 0.0), Cplx::new(0.0, 0.0))
+        }
+    }
+}
+
+pub enum EqnSide {
+    RHS,
+    LHS
+}
+
+/// Get row or column of the LHS or RHS, i or j must be singleton vector
+pub fn get_surface_row_or_column(predata: &preprocess::PreData, 
+                                 i: &Vec<usize>, 
+                                 j: &Vec<usize>, 
+                                 side: EqnSide) -> Vec<Cplx> {
+    if !((i.len() == 1)^(j.len() == 1)) {
+        error!("Invalid call to get_surface_row_or_column: i or j must be singleton");
+    }
+    let (alpha, beta) = match side {
+        EqnSide::LHS => get_lhs_factors(predata),
+        EqnSide::RHS => get_rhs_factors(predata),
+    };
+    if i.len() == 1 {
+        let (mut h, g) = get_surface_matrices_row(predata, &i[0], j);
+        h.axpy(beta, &g, alpha);
+        let rr: Vec<Cplx> = h.data.into();
+        return rr      
+    }
+    else {
+        let (mut h, g) = get_surface_matrices_column(predata, i, &j[0]);
+        h.axpy(beta, &g, alpha);
+        let rr: Vec<Cplx> = h.data.into();
+        return rr   
+    };  
+}
+
+fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<usize>) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let mesh = predata.get_mesh();
-    let eqn_map = predata.get_eqn_map();
     let k = predata.get_wavenumber();
 
-    let num_eqn = eqn_map.len();
+    let num_column = j.len();
     let mesh_body = predata.get_mesh_body();
-    let nelem = mesh_body.element_ids.len();
 
+    let mut el_list = Vec::<usize>::new();
+    for jeqn in j {
+        if let Some(node_index) = predata.get_node_map().get(jeqn) {
+            let node_id = mesh.nodes[*node_index].id;
+            let mut els = predata.get_revcon()[node_id];
+            el_list.append(&mut els);
+        }
+    }
     // find node index corresponding to equation j
     let inode = match predata.get_node_map().get(i) {
         Some(node) => node,
         None => {error!("Node index not found for equation {}", i); &0}
     };
     let o = &mesh.nodes[*inode].coords;
-    let mut h = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0.0, 0.0));
+    let mut h = DVector::<Cplx>::from_element(num_column, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
-    for e in 0..nelem {
+    for e in el_list {
         let e_id = &mesh_body.element_ids[e];
         let enodes = &mesh.elements[*e_id].node_ids;
-        let mut e_eqns = Vec::<usize>::new();
-        for enode in enodes {
-            match eqn_map.get(enode) {
-                Some(eqn) => e_eqns.push(*eqn),
-                None => error!("Eqn not found for element node {}", enode)
-            }
-        }
+        let mut e_eqns = &mesh.elements[*e_id].eqn_idx;
         let element = NIElement::new(&mesh, *e_id);
         let (he, ge) = element.influence_matrices_at(k, o);
-        for j in 0..e_eqns.len() {
-            h[e_eqns[j]] += he[j];
-            g[e_eqns[j]] += ge[j];
+        for k in 0..e_eqns.len() {
+            if let Some(index) = j.iter().position(|&r| r == e_eqns[k]) {
+                h[index] += he[k];
+                g[index] += ge[k];
+            }
         }
     }
-    let hdiag = match predata.get_problem_type() {
-        // the H matrix has -1/2 added along the diagonal for exterior problems
-        id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
-        id::ProblemType::Interior => Cplx::new(0.0, 0.0)
-    };
-    h[*i] += hdiag;
+    if let Some(diag) = j.iter().position(|&r| r == *i) {
+        let hdiag = match predata.get_problem_type() {
+            // the H matrix has -1/2 added along the diagonal for exterior problems
+            id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
+            id::ProblemType::Interior => Cplx::new(0.0, 0.0)
+        };
+        h[diag] += hdiag;
+    }
 
     return (h, g)
 }
 
-fn get_surface_matrices_column(predata: &preprocess::PreData, j: &usize) 
+fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j: &usize) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let mesh = predata.get_mesh();
@@ -256,19 +238,25 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, j: &usize)
             None => {error!("Node not found for element"); 0}
         };
         let element = NIElement::new(&mesh, *e_id);
-        for (inode, ieqn) in eqn_map {
+        for (eqn_index, ieqn) in i.iter().enumerate() {
+            let inode = match predata.get_node_map().get(ieqn) {
+                Some(node) => node,
+                None => {error!("Node index not found for equation {}", ieqn); &0}
+            };
             let o = &mesh.nodes[*inode].coords;
             let (he, ge) = element.influence_matrices_at(k, o);
-            h[*ieqn] += he[index];
-            g[*ieqn] += ge[index];
+            h[eqn_index] += he[index];
+            g[eqn_index] += ge[index];
         }
     }
-    let hdiag = match predata.get_problem_type() {
-        // the H matrix has -1/2 added along the diagonal for exterior problems
-        id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
-        id::ProblemType::Interior => Cplx::new(0.0, 0.0)
-    };
-    h[*j] += hdiag;
+    if let Some(diag) = i.iter().position(|&r| r == *j) {
+        let hdiag = match predata.get_problem_type() {
+            // the H matrix has -1/2 added along the diagonal for exterior problems
+            id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
+            id::ProblemType::Interior => Cplx::new(0.0, 0.0)
+        };
+        h[diag] += hdiag;
+    }
 
     return (h, g)
 }

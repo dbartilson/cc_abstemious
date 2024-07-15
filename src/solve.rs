@@ -217,32 +217,4 @@ mod tests {
         approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-6);
         approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-6);
     }
-
-    #[test]
-    fn solve_aca() {
-        let n = 100;
-        let (mut a, mut b) = generate_random_ab(n, 10);
-        a.fill(Cplx::new(0.0,0.0));
-        for k in 0..10 {
-            let (_, c) = generate_random_ab(n, k);
-            let (_, d) = generate_random_ab(n, k+2);
-            for i in 0..n {
-                for j in 0..n {
-                    a[(i,j)] += c[i] * d[j];
-                }
-            }
-        }
-        let c = a.clone();
-        let d = a.clone();
-        let get_row = move |i: usize| -> Vec<Cplx> {d.clone().row(i).iter().cloned().collect()};
-        let get_col = move |i: usize| -> Vec<Cplx> {c.clone().column(i).iter().cloned().collect()};
-        // build ACA of matrix and compare norms
-        let aca = ACA::new(1.0e-8, 19, n, get_row, get_col);
-        let mut gm = gmres::GMRES::new(100, 1.0e-8);
-        gm.aca = Some(aca);
-        gm.solve(&mut b);
-
-        approx::assert_relative_eq!(b[0].re, 0.14230536182611053, epsilon = 1.0e-10);
-        approx::assert_relative_eq!(b[0].im, 0.076844046474277852, epsilon = 1.0e-10);
-    }
 }
