@@ -26,13 +26,12 @@ impl ACA
             num_columns: n,
             uv: Vec::new(), 
             norm: 0.0};
-        let mv = [max_vec, m, n].iter().min().unwrap();
+        let mvec = [max_vec, m, n];
+        let mv = mvec.iter().min().unwrap();
         a.get_uv(tol, *mv, &get_row, &get_column);
         return a
     }
-    pub fn get_num_rows(&self) -> usize { self.num_rows }
-    pub fn get_num_columns(&self) -> usize { self.num_columns }
-    pub fn get_num_eqn(&self) -> usize { self.num_rows }
+    fn get_max_rank(&self) -> usize { std::cmp::min(self.num_rows, self.num_columns) }
     /// Get the current residual for the given row
     fn get_residual_row<F>(&self, get_row: F, i: usize) -> DVector::<Cplx>
     where F: Fn(usize) -> Vec::<Cplx> {
@@ -60,7 +59,7 @@ impl ACA
         // largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
         // also see https://doi.org/10.1007/s00607-004-0103-1
         info!("  Assembling Adaptive Cross Approximation matrix...");
-        let n = self.get_num_eqn();
+        let n = self.get_max_rank();
         let mut rng = rand::rngs::StdRng::seed_from_u64(10);
         let drange = Uniform::new_inclusive(0, n-1);
         // get randomized starting row/col
@@ -130,7 +129,6 @@ impl ACA
         self.norm = norm_f2_total.sqrt();
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
-    /// where self = U * V^H, but V entries are already conjugated
     pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>)  {
         // M ~ sum u_k v_k^H
         // do first step separately to use beta scaling of b vector

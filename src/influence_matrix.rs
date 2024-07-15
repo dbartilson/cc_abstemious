@@ -41,7 +41,6 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
             let g_share = g_share.clone();
             scope.execute(move|| {
                 let e_id = &mesh_body.element_ids[e];
-                let enodes = &mesh.elements[*e_id].node_ids;
                 let e_eqns = &mesh.elements[*e_id].eqn_idx;
                 let element = NIElement::new(&mesh, *e_id);
                 for (inode, ieqn) in eqn_map {
@@ -80,8 +79,7 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
     let mut l = m.clone();
     for e in 0..nelem {
         let e_id = &mesh_body.element_ids[e];
-        let enodes = &mesh.elements[*e_id].node_ids;
-        let mut e_eqns = &mesh.elements[*e_id].eqn_idx;
+        let e_eqns = &mesh.elements[*e_id].eqn_idx;
         let element = NIElement::new(&mesh, *e_id);
         for (i, fieldpt) in field_points.iter().enumerate()  {
             let coord = Vector3::from_column_slice(fieldpt);
@@ -137,8 +135,8 @@ pub enum EqnSide {
 
 /// Get row or column of the LHS or RHS, i or j must be singleton vector
 pub fn get_surface_row_or_column(predata: &preprocess::PreData, 
-                                 i: &Vec<usize>, 
-                                 j: &Vec<usize>, 
+                                 i: Vec<usize>, 
+                                 j: Vec<usize>, 
                                  side: EqnSide) -> Vec<Cplx> {
     if !((i.len() == 1)^(j.len() == 1)) {
         error!("Invalid call to get_surface_row_or_column: i or j must be singleton");
@@ -148,16 +146,16 @@ pub fn get_surface_row_or_column(predata: &preprocess::PreData,
         EqnSide::RHS => get_rhs_factors(predata),
     };
     if i.len() == 1 {
-        let (mut h, g) = get_surface_matrices_row(predata, &i[0], j);
+        let (mut h, g) = get_surface_matrices_row(predata, &i[0], &j);
         h.axpy(beta, &g, alpha);
         let rr: Vec<Cplx> = h.data.into();
         return rr      
     }
     else {
-        let (mut h, g) = get_surface_matrices_column(predata, i, &j[0]);
+        let (mut h, g) = get_surface_matrices_column(predata, &i, &j[0]);
         h.axpy(beta, &g, alpha);
         let rr: Vec<Cplx> = h.data.into();
-        return rr   
+        return rr
     };  
 }
 
@@ -174,7 +172,7 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
     for jeqn in j {
         if let Some(node_index) = predata.get_node_map().get(jeqn) {
             let node_id = mesh.nodes[*node_index].id;
-            let mut els = predata.get_revcon()[node_id];
+            let mut els = predata.get_revcon()[node_id].clone();
             el_list.append(&mut els);
         }
     }
@@ -188,8 +186,7 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
     let mut g = h.clone();
     for e in el_list {
         let e_id = &mesh_body.element_ids[e];
-        let enodes = &mesh.elements[*e_id].node_ids;
-        let mut e_eqns = &mesh.elements[*e_id].eqn_idx;
+        let e_eqns = &mesh.elements[*e_id].eqn_idx;
         let element = NIElement::new(&mesh, *e_id);
         let (he, ge) = element.influence_matrices_at(k, o);
         for k in 0..e_eqns.len() {

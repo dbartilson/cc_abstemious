@@ -1,6 +1,7 @@
 use na::{DMatrix, DVector, Normed};
 use crate::Cplx;
-use crate::solve::aca;
+
+use super::h_matrix;
 
 enum ExitFlag {
     Error,
@@ -13,7 +14,7 @@ pub struct GMRES{
     max_it_per_restart: usize,
     thresh: f64,
     pub a: Option<DMatrix::<Cplx>>,
-    pub aca: Option<aca::ACA>
+    pub hmatrix: Option<h_matrix::HMatrix>
 }
 
 impl GMRES{
@@ -23,7 +24,7 @@ impl GMRES{
             max_it_per_restart: 0,
             thresh: thresh,
             a: None,
-            aca: None
+            hmatrix: None
         }
     }
     /// Solve the system of equations in-place for a given RHS 'x'
@@ -60,16 +61,16 @@ impl GMRES{
     fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
         // Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
         if self.a.is_some() {b.gemv(alpha, &self.a.as_ref().unwrap(), x, beta); return}
-        if self.aca.is_some() {self.aca.as_ref().unwrap().gemv(alpha, x, beta, b); return}
+        if self.hmatrix.is_some() {self.hmatrix.as_ref().unwrap().gemv(alpha, x, beta, b); return}
     }
     fn get_num_eqn(&self) -> usize {
         if self.a.is_some() { return self.a.as_ref().unwrap().shape().0} else {}
-        if self.aca.is_some() { return self.aca.as_ref().unwrap().get_num_eqn()} else {}
+        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_num_eqn()} else {}
         return 0
     }
     fn get_norm(&self) -> f64 {
         if self.a.is_some() { return self.a.as_ref().unwrap().norm()} else {}
-        if self.aca.is_some() { return self.aca.as_ref().unwrap().get_norm()} else {}
+        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_norm()} else {}
         return 0.0
     }
     fn gmres(&self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {

@@ -1,5 +1,5 @@
 use std::{collections::HashMap, rc::Rc};
-use na::DMatrix;
+use na::{DMatrix, DVector};
 use crate::{preprocess::mesh_data::Node, Cplx};
 
 use super::aca::ACA;
@@ -66,9 +66,6 @@ impl Cluster {
         self.sons.push(Rc::new(Cluster::new_from(nodes, indx2, leaf_cardinality, eqn_map)));
     }
     fn is_leaf(&self) -> bool { return self.sons.is_empty()}
-    fn get_sons(&self) -> &Vec<Rc<Cluster>> { return &self.sons;}
-    fn get_bounds(&self) -> (&[f64;3], &[f64;3]) {return (&self.l_bound, &self.u_bound)}
-    fn get_indices(&self) -> &Vec<usize> { return &self.indices_contained;}
     fn get_diameter(&self) -> f64 { return self.diameter;}
     fn update_bounds(&mut self, nodes: &Vec<Node>) {
         let alpha = &mut self.l_bound;
@@ -97,10 +94,7 @@ impl Cluster {
     }
     fn map_nodes_to_eqns(&mut self, eqn_map: &HashMap::<usize, usize>) {
         for idx in &mut self.indices_contained {
-            let idx = match eqn_map.get(idx) {
-                Some(new_idx) => new_idx,
-                None => {error!("Equation not found for node index {}", idx); &0}
-            };
+            if let Some(new_idx) = eqn_map.get(idx) {*idx = *new_idx;}
         }
     }
 }
@@ -108,8 +102,8 @@ impl Cluster {
 #[cfg(test)]
 mod tests {
     use std::{collections::HashMap, rc::Rc};
-    use na::Vector3;
-    use crate::preprocess::mesh_data::Node;
+    use na::{DMatrix, Vector3};
+    use crate::{preprocess::mesh_data::Node, solve::{h_matrix, tests::generate_random_ab}, Cplx};
     use super::{Block, Cluster};
 
     #[test]
@@ -125,7 +119,7 @@ mod tests {
             }
         }
         let tree = Cluster::new_from(&nodes, (0..nodes.len()).collect(), 32, &hmap);
-        assert_eq!(tree.get_bounds().1[0], 24.0)
+        assert_eq!(tree.get_diameter(), 24.0)
     }
     #[test]
     fn build_block_tree() {
@@ -141,6 +135,57 @@ mod tests {
         }
         let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), 32, &hmap));
         let block_tree = Block::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
+        assert_eq!(block_tree.children[1].children[1].children[1].admissible, true)
+    }
+
+    fn get_row_or_column(a: &DMatrix::<Cplx>, i: Vec<usize>, j: Vec<usize>) -> Vec<Cplx> {
+        if i.len() == 1 {
+             let mut b = Vec::<Cplx>::new();
+             for ji in j {
+                b.push(a[(i[0],ji)]);
+             }
+             return b;
+        }
+        else {
+            let mut b = Vec::<Cplx>::new();
+            for ii in i {
+               b.push(a[(ii,j[0])]);
+            }
+            return b;
+        }; 
+    }
+    #[test]
+    fn mult_hmatrix() {
+        let mut hmap = HashMap::<usize, usize>::new();
+        let mut nodes = Vec::<Node>::new();
+        let n = 100;
+        let mut i = 0;
+        for j in 0..n {
+            for k in 0..n {
+                nodes.push(Node { id: i, coords: Vector3::new(j as f64, k as f64, 0.0)});
+                hmap.insert(i, i);
+                i += 1;
+            }
+        }
+        let (mut a, b) = generate_random_ab(n, 10);
+        for i in 0..n {
+            for j in 0..n {
+                let ii = i as f64;
+                let jj = j as f64;
+                a[(i,j)] += 1.0 / f64::max(0.5, (ii-jj)*(ii-jj));
+            }
+        }
+        let get_row_or_column = |i,j| get_row_or_column(&a, i, j);
+        // build ACA of matrix and compare norms
+        let hm = h_matrix::HMatrix::new_from(n, get_row_or_column, &nodes, 32, &hmap);
+        // compare matrix multiplication against random vector for both
+        let mut x1 = b.clone();
+        x1.gemv(Cplx::new(1.0, 0.0), &a, &b, Cplx::new(0.0, 0.0));
+        let mut x2 = b.clone();
+        hm.gemv(Cplx::new(1.0, 0.0), &b, Cplx::new(0.0, 0.0), &mut x2);
+        // calculate norm of difference
+        let f = (x2 - x1.clone()).norm() / x1.norm();
+        approx::assert_relative_eq!(f, 0.0, epsilon = 1.0e-10);
     }
 }
 
@@ -194,14 +239,31 @@ struct AdmissibleBlock {
 }
 impl AdmissibleBlock {
     fn new<F>(rows: Vec<usize>, columns: Vec<usize>, get_row_or_column: F) -> AdmissibleBlock
-    where F: Fn(&Vec<usize>, &Vec<usize>) -> Vec::<Cplx> {
+    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
         let aca = ACA::new(1.0e-5, 10, rows.len(), columns.len(), 
-        |i| get_row_or_column(&vec![i], &columns),
-        |j| get_row_or_column(&rows, &vec![j]));
+        |i| get_row_or_column(vec![i], columns.clone()),
+        |j| get_row_or_column(rows.clone(), vec![j]));
         AdmissibleBlock {
             rows: rows,
             columns: columns,
             values: aca
+        }
+    }
+    /// Perform gather, multiply, scatter for this contribution to b = alpha * self * x + beta * b
+    /// Note that beta is not used, assumed to be done on top level of hierarchical matrix
+    fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, _beta: Cplx, b: &mut DVector::<Cplx>) {
+        // gather x
+        let czero = Cplx::new(0.0, 0.0);
+        let mut x1 = DVector::<Cplx>::from_element(self.columns.len(), czero);
+        for (j, column) in self.columns.iter().enumerate() {
+            x1[j] = x[*column];
+        }
+        let mut b1 = DVector::<Cplx>::from_element(self.rows.len(), czero);
+        // multiply
+        self.values.gemv(alpha, &x1, czero, &mut b1);
+        // scatter
+        for (i, row) in self.rows.iter().enumerate() {
+            b[*row] += b1[i];
         }
     }
 }
@@ -228,31 +290,62 @@ impl InadmissibleBlock {
             values: values
         }
     }
+    /// Perform gather, multiply, scatter for this contribution to b = alpha * self * x + beta * b
+    /// Note that beta is not used, assumed to be done on top level of hierarchical matrix
+    fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, _beta: Cplx, b: &mut DVector::<Cplx>) {
+        // gather x
+        let czero = Cplx::new(0.0, 0.0);
+        let mut x1 = DVector::<Cplx>::from_element(self.columns.len(), czero);
+        for (j, column) in self.columns.iter().enumerate() {
+            x1[j] = x[*column];
+        }
+        let mut b1 = DVector::<Cplx>::from_element(self.rows.len(), czero);
+        // multiply
+        b1.gemv(alpha, &self.values, &x1, czero);
+        // scatter
+        for (i, row) in self.rows.iter().enumerate() {
+            b[*row] += b1[i];
+        }
+    }
 }
 
 /// Hierarchical matrix built from block tree
 pub struct HMatrix {
     num_eqn: usize,
+    norm: f64,
     admissible_blocks: Vec<AdmissibleBlock>,
     inadmissible_blocks: Vec<InadmissibleBlock>
 }
 
 impl HMatrix {
-    pub fn new(n: usize) -> HMatrix {
-        HMatrix {
+    pub fn new_from<F>(n: usize, 
+                   get_row_or_column: F, 
+                   nodes: &Vec<Node>, 
+                   leaf_cardinality: usize, 
+                   eqn_map: &HashMap::<usize, usize>) -> HMatrix 
+    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
+        let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), leaf_cardinality, eqn_map));
+        let block_tree = Block::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
+        let mut mat = HMatrix {
             num_eqn: n,
+            norm: 0.0,
             admissible_blocks: Vec::new(),
             inadmissible_blocks: Vec::new()
-        }
+        };
+        mat.load_from(block_tree, &get_row_or_column);
+        mat.update_norm();
+        return mat;
     }
+    pub fn get_num_eqn(&self) -> usize { self.num_eqn }
+    pub fn get_norm(&self) -> f64 { self.norm }
     /// Process block tree into flat vectors of admissible and inadmissible blocks
-    pub fn load_from<F>(&mut self, block: Block, get_row_or_column: F)
-    where F: Fn(&Vec<usize>, &Vec<usize>) -> Vec::<Cplx> {
+    fn load_from<F>(&mut self, block: Block, get_row_or_column: &F)
+    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
         if block.admissible {
             self.admissible_blocks.push(
                 AdmissibleBlock::new(
-                    block.rows.indices_contained,
-                    block.columns.indices_contained,
+                    block.rows.indices_contained.clone(),
+                    block.columns.indices_contained.clone(),
                     get_row_or_column
                 )
             );
@@ -260,9 +353,9 @@ impl HMatrix {
         else if block.children.is_empty() {
             self.inadmissible_blocks.push(
                 InadmissibleBlock::new(
-                    block.rows.indices_contained,
-                    block.columns.indices_contained,
-                    |i: usize| -> Vec<Cplx> {get_row_or_column(&vec![i], &block.columns.indices_contained)}
+                    block.rows.indices_contained.clone(),
+                    block.columns.indices_contained.clone(),
+                    |i: usize| -> Vec<Cplx> {get_row_or_column(vec![i], block.columns.indices_contained.clone())}
                 )
             );
         }
@@ -270,6 +363,26 @@ impl HMatrix {
             for child in block.children {
                 self.load_from(child, get_row_or_column);
             }
+        }
+    }
+    fn update_norm(&mut self) {
+        for block in &self.inadmissible_blocks {
+            self.norm += block.values.norm();
+        }
+        for block in &self.admissible_blocks {
+            self.norm += block.values.get_norm();
+        }
+    }
+    /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
+    pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
+        for i in 0..b.len() {
+            b[i] *= beta;
+        }
+        for block in &self.inadmissible_blocks {
+            block.gemv(alpha, &x, Cplx::new(1.0, 0.0), b);
+        }
+        for block in &self.admissible_blocks {
+            block.gemv(alpha, &x, Cplx::new(1.0, 0.0), b);
         }
     }
 }

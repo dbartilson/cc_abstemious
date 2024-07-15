@@ -4,6 +4,8 @@ pub mod h_matrix;
 
 use na::{DMatrix, DVector};
 use crate::influence_matrix;
+use crate::influence_matrix::get_surface_row_or_column;
+use crate::influence_matrix::EqnSide;
 use crate::preprocess;
 use crate::Cplx;
 
@@ -14,7 +16,7 @@ pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, phi_inc: &DVector
             get_surface_dense(predata, phi_inc)
         }
         preprocess::input_data::SolverType::ACA => {
-            get_surface_aca(predata, phi_inc)
+            get_surface_hmatrix(predata, phi_inc)
         }
     }  
 }
@@ -70,7 +72,7 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) -
 }
 
 
-fn get_surface_aca(predata: & preprocess::PreData, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
+fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let num_eqn = predata.get_num_eqn();
     let mut phi = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
@@ -78,25 +80,25 @@ fn get_surface_aca(predata: & preprocess::PreData, phi_inc: &DVector::<Cplx>) ->
     let mut rhs = phi_inc.clone();
     {
         info!(" Calculating RHS...");
-        let get_row = |i: usize| -> Vec<Cplx> {influence_matrix::get_rhs_row(predata, &i)};
-        let get_col = |i: usize| -> Vec<Cplx> {influence_matrix::get_rhs_column(predata, &i)};
-        let aca = aca::ACA::new(predata.get_solver_tolerance(), 
-                                        num_eqn / 2,
-                                        predata.get_num_eqn(),
-                                        get_row, get_col);
+        let get_row_or_column = |i: Vec<usize>, j: Vec<usize>| get_surface_row_or_column(predata, i, j, EqnSide::RHS);
+        let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
+                                                           get_row_or_column, 
+                                                           &predata.get_mesh().nodes, 
+                                                           32,
+                                                           predata.get_eqn_map() );
         let sbc = predata.get_surface_bc();
         match sbc.bc_type {
             preprocess::input_data::BCType::Pressure => {
                 let pressure_bc = Cplx::new(sbc.value[0], sbc.value[1]);
                 phi.fill(pressure_bc);
                 // rhs = phi_inc - H * phi
-                aca.gemv(Cplx::new(1.0, 0.0), &phi, Cplx::new(1.0, 0.0), &mut rhs);
+                hmatrix.gemv(Cplx::new(1.0, 0.0), &phi, Cplx::new(1.0, 0.0), &mut rhs);
             }   
             preprocess::input_data::BCType::NormalVelocity => {
                 let velocity_bc = Cplx::new(sbc.value[0], sbc.value[1]);
                 vn.fill(velocity_bc);
                 // rhs = G*vn - phi_inc
-                aca.gemv(Cplx::new(1.0, 0.0), &vn, Cplx::new(-1.0, 0.0), &mut rhs);
+                hmatrix.gemv(Cplx::new(1.0, 0.0), &vn, Cplx::new(-1.0, 0.0), &mut rhs);
             }
             preprocess::input_data::BCType::Impedance => {
                 // solve for phi, but need to post-process for vn later
@@ -104,14 +106,14 @@ fn get_surface_aca(predata: & preprocess::PreData, phi_inc: &DVector::<Cplx>) ->
             }
         }
     }
-    let get_row = |i: usize| -> Vec<Cplx> {influence_matrix::get_lhs_row(predata, &i)};
-    let get_col = |i: usize| -> Vec<Cplx> {influence_matrix::get_lhs_column(predata, &i)};
-    let aca = aca::ACA::new(predata.get_solver_tolerance(), 
-                           num_eqn / 2,
-                                    predata.get_num_eqn(),
-                                    get_row, get_col);
+    let get_row_or_column = |i, j| get_surface_row_or_column(predata, i, j, EqnSide::LHS);
+    let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
+                                                       get_row_or_column, 
+                                                       &predata.get_mesh().nodes, 
+                                                       32,
+                                                       predata.get_eqn_map() );
     let mut gm = gmres::GMRES::new(predata.get_solver_max_it(), predata.get_solver_tolerance());
-    gm.aca = Some(aca);
+    gm.hmatrix = Some(hmatrix);
     info!(" Solving system of equations...");
     gm.solve(&mut rhs);
 
@@ -176,7 +178,6 @@ pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix
 #[cfg(test)]
 mod tests {
     extern crate approx;
-    use crate::solve::aca::ACA;
     use crate::solve::gmres;
     use crate::Cplx;
     use crate::solve;
