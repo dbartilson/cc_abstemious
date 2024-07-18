@@ -100,7 +100,10 @@ impl ACA
             istar_list.insert(istar);
             jstar_list.insert(jstar);
             // simplest way to scale, u_kj = ristar / ristar[rjstar]
-            ristar.axpy(Cplx::new(0.0, 0.0), &rjstar, Cplx::new(1.0, 0.0) / ristar[jstar]);
+            let factor = Cplx::new(1.0, 0.0) / ristar[jstar];
+            for rs in &mut ristar {
+                *rs *= factor;
+            }
             // v_ki = rjstar
             self.uv.push(UV {u: rjstar, v: ristar});
 

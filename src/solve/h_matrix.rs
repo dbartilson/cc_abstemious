@@ -61,7 +61,7 @@ impl Cluster {
                 indx2.push(*index);
             }
         }
-        self.indices_contained = Vec::new();
+        //self.indices_contained = Vec::new();
         self.sons.push(Rc::new(Cluster::new_from(nodes, indx1, leaf_cardinality, eqn_map)));
         self.sons.push(Rc::new(Cluster::new_from(nodes, indx2, leaf_cardinality, eqn_map)));
     }
@@ -83,6 +83,7 @@ impl Cluster {
         for j in 0..3 {
             *diam += f64::powi(self.u_bound[j] - self.l_bound[j],2);
         }
+        *diam = diam.sqrt();
     }
     fn get_distance(c1: &Cluster, c2: &Cluster) -> f64 {
         let mut dist = 0.0;
@@ -119,7 +120,7 @@ mod tests {
             }
         }
         let tree = Cluster::new_from(&nodes, (0..nodes.len()).collect(), 32, &hmap);
-        assert_eq!(tree.get_diameter(), 24.0)
+        approx::assert_relative_eq!(tree.get_diameter(), 33.94, epsilon = 1e-2);
     }
     #[test]
     fn build_block_tree() {
@@ -158,7 +159,7 @@ mod tests {
     fn mult_hmatrix() {
         let mut hmap = HashMap::<usize, usize>::new();
         let mut nodes = Vec::<Node>::new();
-        let n = 100;
+        let n = 20;
         let mut i = 0;
         for j in 0..n {
             for k in 0..n {
@@ -167,9 +168,10 @@ mod tests {
                 i += 1;
             }
         }
-        let (mut a, b) = generate_random_ab(n, 10);
-        for i in 0..n {
-            for j in 0..n {
+        let n2 = n*n;
+        let (mut a, b) = generate_random_ab(n2, 10);
+        for i in 0..n2 {
+            for j in 0..n2 {
                 let ii = i as f64;
                 let jj = j as f64;
                 a[(i,j)] += 1.0 / f64::max(0.5, (ii-jj)*(ii-jj));
@@ -324,7 +326,7 @@ impl HMatrix {
                    leaf_cardinality: usize, 
                    eqn_map: &HashMap::<usize, usize>) -> HMatrix 
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
-        let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), leaf_cardinality, eqn_map));
+        let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()-1).collect(), leaf_cardinality, eqn_map));
         let block_tree = Block::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let mut mat = HMatrix {
             num_eqn: n,
