@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use na::{ComplexField, DVector};
+use na::{ComplexField, DMatrix, DVector};
 use rand::{distributions::{Distribution, Uniform}, SeedableRng, rngs::StdRng};
 use crate::Cplx;
 
@@ -18,7 +18,7 @@ pub struct ACA
 
 impl ACA
 {
-    pub fn new<F,G>(tol: f64, max_vec: usize, m: usize, n: usize, get_row: F, get_column: G) -> ACA
+    pub fn new<F,G>(tol: f64, m: usize, n: usize, get_row: F, get_column: G) -> ACA
         where F: Fn(usize) -> Vec::<Cplx>,
               G: Fn(usize) -> Vec::<Cplx>  {
         let mut a = ACA {
@@ -26,9 +26,7 @@ impl ACA
             num_columns: n,
             uv: Vec::new(), 
             norm: 0.0};
-        let mvec = [max_vec, m, n];
-        let mv = mvec.iter().min().unwrap();
-        a.get_uv(tol, *mv, &get_row, &get_column);
+        a.get_uv(tol,  &get_row, &get_column);
         return a
     }
     fn get_max_rank(&self) -> usize { std::cmp::min(self.num_rows, self.num_columns) }
@@ -53,7 +51,7 @@ impl ACA
         return r;
     }
     /// Calculate the Adaptive Cross Approximation for the given matrix
-    fn get_uv<F,G>(&mut self, tol: f64, max_vec: usize, get_row: &F, get_column: &G) 
+    fn get_uv<F,G>(&mut self, tol: f64, get_row: &F, get_column: &G) 
     where F: Fn(usize) -> Vec::<Cplx>,
           G: Fn(usize) -> Vec::<Cplx> {
         // largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
@@ -76,6 +74,7 @@ impl ACA
         #[allow(unused_assignments)]
         let mut rjstar = DVector::<Cplx>::from_element(1, Cplx::new(0.0, 0.0));
         let mut norm_f2_total = 0.0;
+        let max_vec = std::cmp::min(self.num_columns, self.num_rows);
         for k in 0..max_vec{
             // get column index of maximum value of row
             let mut jstar = Self::index_max_exclude(&riref, &istar_list);
@@ -133,6 +132,9 @@ impl ACA
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>)  {
+        if self.num_rows != b.len() || self.num_columns != x.len() {
+            error!("Dimension mismatch in ACA gemv");
+        }
         // M ~ sum u_k v_k^H
         // do first step separately to use beta scaling of b vector
         let dot_product = alpha * self.uv[0].v.dot(x);
@@ -143,6 +145,19 @@ impl ACA
             let dot_product = alpha * self.uv[k].v.dot(x);
             b.axpy(dot_product, &self.uv[k].u, c_one);
         }
+    }
+    #[allow(dead_code)]
+    pub fn to_full(&self) -> DMatrix::<Cplx> {
+        let mut a = DMatrix::<Cplx>::from_element(
+            self.num_rows, self.num_columns, Cplx::new(0.0,0.0));
+        for uv in &self.uv {
+            for i in 0..self.num_rows {
+                for j in 0..self.num_columns {
+                    a[(i,j)] += uv.u[i] * uv.v[j];
+                }
+            }
+        }
+        return a;
     }
     /// Return the Frobenius norm estimate from the ACA approximation
     pub fn get_norm(&self) -> f64 { self.norm }
@@ -179,8 +194,8 @@ impl ACA
     /// Get the index corresponding to the max(abs()) of the array while also
     /// excluding any indices which are in not_allowed HashSet
     fn index_max_exclude(array: &DVector::<Cplx>, not_allowed: &HashSet<usize>) -> usize {
-        let mut index = 0;
-        let mut val_abs: f64 = 0.0;
+        let mut index = array.len();
+        let mut val_abs: f64 = -1.0;
         for (i, &val) in array.iter().enumerate() {
             if not_allowed.contains(&i) { continue; }
             let ival = val.abs();
@@ -196,35 +211,36 @@ impl ACA
 #[cfg(test)]
 mod tests {
     extern crate approx;
+    use na::DVector;
+
     use crate::solve::aca::ACA;
     use crate::Cplx;
     use crate::solve::tests::generate_random_ab;
 
     #[test]
     fn mult_aca() {
+        let m = 20;
         let n = 100;
-        let (mut a, b) = generate_random_ab(n, 10);
+        let (mut a, b) = generate_random_ab(m, n, 13);
         a.fill(Cplx::new(0.0,0.0));
-        for k in 0..10 {
-            let (_, c) = generate_random_ab(n, k);
-            let (_, d) = generate_random_ab(n, k+2);
-            for i in 0..n {
+        for k in 0..13 {
+            let (_, c) = generate_random_ab(m, m, k);
+            let (_, d) = generate_random_ab(n, n, k+2);
+            for i in 0..m {
                 for j in 0..n {
                     a[(i,j)] += c[i] * d[j];
                 }
             }
         }
-        let c = a.clone();
-        let d = a.clone();
-        let get_row = move |i: usize| -> Vec<Cplx> {d.clone().row(i).iter().cloned().collect()};
-        let get_col = move |i: usize| -> Vec<Cplx> {c.clone().column(i).iter().cloned().collect()};
+        let get_row = |i: usize| -> Vec<Cplx> {a.clone().row(i).iter().cloned().collect()};
+        let get_col = |i: usize| -> Vec<Cplx> {a.clone().column(i).iter().cloned().collect()};
         // build ACA of matrix and compare norms
-        let aca = ACA::new(1.0e-8, 19, n, n, get_row, get_col);
+        let aca = ACA::new(1.0e-8, m, n, get_row, get_col);
         approx::assert_relative_eq!(aca.get_norm(), a.norm(), max_relative = 0.05);
         // compare matrix multiplication against random vector for both
-        let mut x1 = b.clone();
+        let mut x1 = DVector::<Cplx>::from_element(m, Cplx::new(0.0,0.0));
         x1.gemv(Cplx::new(1.0, 0.0), &a, &b, Cplx::new(0.0, 0.0));
-        let mut x2 = b.clone();
+        let mut x2 = x1.clone();
         aca.gemv(Cplx::new(1.0, 0.0), &b, Cplx::new(0.0, 0.0), &mut x2);
         // calculate norm of difference
         let f = (x2 - x1.clone()).norm() / x1.norm();

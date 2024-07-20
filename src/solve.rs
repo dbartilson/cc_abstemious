@@ -84,8 +84,9 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
         let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
                                                            get_row_or_column, 
                                                            &predata.get_mesh().nodes, 
+                                                           predata.get_eqn_map(),
                                                            32,
-                                                           predata.get_eqn_map() );
+                                                           1e-4);
         let sbc = predata.get_surface_bc();
         match sbc.bc_type {
             preprocess::input_data::BCType::Pressure => {
@@ -110,8 +111,9 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
     let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
                                                        get_row_or_column, 
                                                        &predata.get_mesh().nodes, 
+                                                       predata.get_eqn_map(),
                                                        32,
-                                                       predata.get_eqn_map() );
+                                                       1e-4);
     let mut gm = gmres::GMRES::new(predata.get_solver_max_it(), predata.get_solver_tolerance());
     gm.hmatrix = Some(hmatrix);
     info!(" Solving system of equations...");
@@ -182,9 +184,9 @@ mod tests {
     use crate::Cplx;
     use crate::solve;
 
-    pub fn generate_random_ab(n: usize, seed: u64) -> (na::DMatrix::<Cplx>, na::DVector::<Cplx>) {
+    pub fn generate_random_ab(m: usize, n: usize, seed: u64) -> (na::DMatrix::<Cplx>, na::DVector::<Cplx>) {
         use rand::{Rng, SeedableRng, rngs::StdRng};
-        let mut a = na::DMatrix::<Cplx>::from_diagonal_element(n, n, Cplx::new(n as f64, 0.0));
+        let mut a = na::DMatrix::<Cplx>::from_diagonal_element(m, n, Cplx::new(n as f64, 0.0));
 
         let mut rng = StdRng::seed_from_u64(seed);
         for ai in a.iter_mut() {
@@ -202,7 +204,7 @@ mod tests {
     #[test]
     fn solve_lu() {
         let n = 100;
-        let (a, mut b) = generate_random_ab(n, 10);
+        let (a, mut b) = generate_random_ab(n, n, 10);
         solve::solve_lu(&a, &mut b);
         approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-10);
         approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-10);
@@ -211,7 +213,7 @@ mod tests {
     #[test]
     fn solve_gmres() {
         let n = 100;
-        let (a, mut b) = generate_random_ab(n, 10);
+        let (a, mut b) = generate_random_ab(n, n, 10);
         let mut gm = gmres::GMRES::new(100, 1.0e-8);
         gm.a = Some(a);
         gm.solve(&mut b);
