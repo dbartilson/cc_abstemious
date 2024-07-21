@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::path::Path;
 
+use crate::Cplx;
+
 pub struct PreData {
     input: input_data::UserInput,
     mesh: mesh_data::Mesh,
@@ -24,6 +26,19 @@ impl PreData {
     pub fn get_sound_speed(&self) -> f64 {return self.input.sound_speed;}
     pub fn get_mass_density(&self) -> f64 {return self.input.mass_density;}
     pub fn get_problem_type(&self) -> &input_data::ProblemType {return &self.input.problem_type;}
+    pub fn get_num_threads(&self) -> usize {
+        match std::thread::available_parallelism() {
+            Ok(result) => std::cmp::max(result.get() / 2, 2),
+            Err(_) => 2
+        }
+    }
+    pub fn get_hdiag(&self) -> Cplx {
+        match self.get_problem_type() {
+            // the H matrix has -1/2 added along the diagonal for exterior problems
+            input_data::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
+            input_data::ProblemType::Interior => Cplx::new(0.0, 0.0)
+        }
+    }
     pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}
     pub fn get_solver_type(&self) -> &input_data::SolverType {return &self.input.solver.s_type;}
     pub fn get_solver_tolerance(&self) -> f64 {return self.input.solver.tolerance;}

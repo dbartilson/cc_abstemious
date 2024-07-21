@@ -4,7 +4,6 @@ use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3, DVector};
 
 use crate::preprocess;
-use crate::preprocess::input_data as id;
 use crate::elements::*;
 use crate::Cplx;
 
@@ -22,15 +21,8 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     let mesh_body = predata.get_mesh_body();
     let nelem = mesh_body.element_ids.len();
 
-    let hdiag = match predata.get_problem_type() {
-        // the H matrix has -1/2 added along the diagonal for exterior problems
-        id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
-        id::ProblemType::Interior => Cplx::new(0.0, 0.0)
-    };
-    let num_threads = match std::thread::available_parallelism() {
-        Ok(result) => std::cmp::max(result.get() / 2, 2),
-        Err(_) => 2
-    };
+    let hdiag = predata.get_hdiag();
+    let num_threads = predata.get_num_threads();
     // use a parallel pool of threads
     info!(" Using {} threads...", num_threads);
     let mut pool = Pool::new(num_threads as u32);
@@ -195,12 +187,7 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
         }
     }
     if let Some(diag) = j.iter().position(|&r| r == *i) {
-        let hdiag = match predata.get_problem_type() {
-            // the H matrix has -1/2 added along the diagonal for exterior problems
-            id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
-            id::ProblemType::Interior => Cplx::new(0.0, 0.0)
-        };
-        h[diag] += hdiag;
+        h[diag] += predata.get_hdiag();
     }
 
     return (h, g)
@@ -244,12 +231,7 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
         }
     }
     if let Some(diag) = i.iter().position(|&r| r == *j) {
-        let hdiag = match predata.get_problem_type() {
-            // the H matrix has -1/2 added along the diagonal for exterior problems
-            id::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
-            id::ProblemType::Interior => Cplx::new(0.0, 0.0)
-        };
-        h[diag] += hdiag;
+        h[diag] += predata.get_hdiag();
     }
 
     return (h, g)

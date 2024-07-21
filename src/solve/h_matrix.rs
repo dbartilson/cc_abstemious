@@ -19,8 +19,8 @@ impl AdmissibleBlock {
     fn new<F>(rows: Vec<usize>, columns: Vec<usize>, get_row_or_column: F, tolerance: f64) -> AdmissibleBlock
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
         let aca = ACA::new(tolerance, rows.len(), columns.len(), 
-        |i| get_row_or_column(vec![rows[i]], columns.clone()),
-        |j| get_row_or_column(rows.clone(), vec![columns[j]]));
+        &|i| get_row_or_column(vec![rows[i]], columns.clone()),
+        &|j| get_row_or_column(rows.clone(), vec![columns[j]]));
         AdmissibleBlock {
             rows: rows,
             columns: columns,
@@ -61,7 +61,7 @@ struct InadmissibleBlock {
     values: DMatrix::<Cplx>
 }
 impl InadmissibleBlock {
-    fn new<F>(rows: Vec<usize>, columns: Vec<usize>, get_row: F) -> InadmissibleBlock
+    fn new<F>(rows: Vec<usize>, columns: Vec<usize>, get_row: &F) -> InadmissibleBlock
     where F: Fn(usize) -> Vec::<Cplx> {
         let mut values = DMatrix::<Cplx>::from_element(rows.len(), columns.len(), Cplx::new(0.0,0.0));
         for (i, row_index) in rows.iter().enumerate() {
@@ -113,12 +113,13 @@ pub struct HMatrix {
 
 impl HMatrix {
     pub fn new_from<F>(n: usize, 
-                   get_row_or_column: F, 
+                   get_row_or_column: &F, 
                    nodes: &Vec<Node>, 
                    eqn_map: &HashMap::<usize, usize>,
                    leaf_cardinality: usize, 
                    tolerance: f64) -> HMatrix 
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
+        info!("  Building hierarchical matrix decomposition...");
         let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), leaf_cardinality, eqn_map));
         let block_tree = Block::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let mut mat = HMatrix {
@@ -127,7 +128,10 @@ impl HMatrix {
             admissible_blocks: Vec::new(),
             inadmissible_blocks: Vec::new()
         };
-        mat.load_from(&block_tree, &get_row_or_column, tolerance);
+        mat.load_from(&block_tree, get_row_or_column, tolerance);
+        info!("  Decomposed into {} blocks (Admissible: {}, Inadmissible: {})", 
+            mat.admissible_blocks.len() + mat.inadmissible_blocks.len(),
+            mat.admissible_blocks.len(), mat.inadmissible_blocks.len());
         mat.update_norm();
         return mat;
     }
@@ -151,7 +155,7 @@ impl HMatrix {
                 InadmissibleBlock::new(
                     block.get_row_indices().clone(),
                     block.get_column_indices().clone(),
-                    |i: usize| -> Vec<Cplx> {get_row_or_column(vec![i], block.get_column_indices().clone())}
+                    &|i: usize| -> Vec<Cplx> {get_row_or_column(vec![i], block.get_column_indices().clone())}
                 )
             );
         }
@@ -251,7 +255,7 @@ mod tests {
         let (nodes, hmap, a, b) = get_hyperbolic_matrix(10);
         let get_row_or_column = |i,j| get_row_or_column(&a, i, j);
         // build ACA of matrix and compare norms
-        let hm = h_matrix::HMatrix::new_from(b.len(), get_row_or_column, &nodes, &hmap, 32, 1e-4);
+        let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &nodes, &hmap, 20, 1e-4);
         let a_hm = hm.to_full();
         let eps = (a_hm - a.clone()).norm() / a.norm();
         approx::assert_relative_eq!(eps, 0.0, epsilon = 1.0e-6);
@@ -261,7 +265,7 @@ mod tests {
         let (nodes, hmap, a, b) = get_hyperbolic_matrix(20);
         let get_row_or_column = |i,j| get_row_or_column(&a, i, j);
         // build ACA of matrix and compare norms
-        let hm = h_matrix::HMatrix::new_from(b.len(), get_row_or_column, &nodes, &hmap, 32, 1e-4);
+        let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &nodes, &hmap, 20, 1e-4);
         // compare matrix multiplication against random vector for both
         let mut x1 = b.clone();
         x1.gemv(Cplx::new(1.0, 0.0), &a, &b, Cplx::new(0.0, 0.0));

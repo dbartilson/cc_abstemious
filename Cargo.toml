@@ -7,6 +7,9 @@ edition = "2021"
 name = "cc_abstemious"
 path = "src/lib.rs"
 
+[profile.release]
+debug = true
+
 [[bin]]
 name = "cc_abstemious"
 path = "src/main.rs"

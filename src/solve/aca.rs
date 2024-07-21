@@ -18,7 +18,7 @@ pub struct ACA
 
 impl ACA
 {
-    pub fn new<F,G>(tol: f64, m: usize, n: usize, get_row: F, get_column: G) -> ACA
+    pub fn new<F,G>(tol: f64, m: usize, n: usize, get_row: &F, get_column: &G) -> ACA
         where F: Fn(usize) -> Vec::<Cplx>,
               G: Fn(usize) -> Vec::<Cplx>  {
         let mut a = ACA {
@@ -31,7 +31,7 @@ impl ACA
     }
     fn get_max_rank(&self) -> usize { std::cmp::min(self.num_rows, self.num_columns) }
     /// Get the current residual for the given row
-    fn get_residual_row<F>(&self, get_row: F, i: usize) -> DVector::<Cplx>
+    fn get_residual_row<F>(&self, get_row: &F, i: usize) -> DVector::<Cplx>
     where F: Fn(usize) -> Vec::<Cplx> {
         let rv = get_row(i);
         let mut r = DVector::<Cplx>::from_column_slice(&rv);
@@ -41,7 +41,7 @@ impl ACA
         return r;
     }
     /// Get the current residual for the given column
-    fn get_residual_column<G>(&self, get_column: G, j: usize) -> DVector::<Cplx>
+    fn get_residual_column<G>(&self, get_column: &G, j: usize) -> DVector::<Cplx>
     where G: Fn(usize) -> Vec::<Cplx> {
         let rv = get_column(j);
         let mut r = DVector::<Cplx>::from_column_slice(&rv);
@@ -56,7 +56,7 @@ impl ACA
           G: Fn(usize) -> Vec::<Cplx> {
         // largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
         // also see https://doi.org/10.1007/s00607-004-0103-1
-        info!("  Assembling Adaptive Cross Approximation matrix...");
+        debug!("  Assembling Adaptive Cross Approximation matrix ({} x {})...", self.num_rows, self.num_columns);
         let n = self.get_max_rank();
         let mut rng = rand::rngs::StdRng::seed_from_u64(10);
         let drange = Uniform::new_inclusive(0, n-1);
@@ -108,7 +108,7 @@ impl ACA
 
             let norm_f2_k = self.update_norm_estimate(&mut norm_f2_total);
             let step_size = norm_f2_k.sqrt() / norm_f2_total.sqrt();
-            info!("   Step: {}, Row: {}, Column: {}, Step size: {}", k, istar, jstar, step_size);
+            debug!("   Step: {}, Row: {}, Column: {}, Step size: {}", k, istar, jstar, step_size);
             if step_size < tol { break; }
             // If pivoting occurred on reference row (iref == istar), get new random row
             if iref == istar {
@@ -235,7 +235,7 @@ mod tests {
         let get_row = |i: usize| -> Vec<Cplx> {a.clone().row(i).iter().cloned().collect()};
         let get_col = |i: usize| -> Vec<Cplx> {a.clone().column(i).iter().cloned().collect()};
         // build ACA of matrix and compare norms
-        let aca = ACA::new(1.0e-8, m, n, get_row, get_col);
+        let aca = ACA::new(1.0e-8, m, n, &get_row, &get_col);
         approx::assert_relative_eq!(aca.get_norm(), a.norm(), max_relative = 0.05);
         // compare matrix multiplication against random vector for both
         let mut x1 = DVector::<Cplx>::from_element(m, Cplx::new(0.0,0.0));

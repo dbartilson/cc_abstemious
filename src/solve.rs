@@ -82,7 +82,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
         info!(" Calculating RHS...");
         let get_row_or_column = |i: Vec<usize>, j: Vec<usize>| get_surface_row_or_column(predata, i, j, EqnSide::RHS);
         let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
-                                                           get_row_or_column, 
+                                                           &get_row_or_column, 
                                                            &predata.get_mesh().nodes, 
                                                            predata.get_eqn_map(),
                                                            32,
@@ -107,9 +107,10 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
             }
         }
     }
+    info!(" Calculating LHS...");
     let get_row_or_column = |i, j| get_surface_row_or_column(predata, i, j, EqnSide::LHS);
     let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
-                                                       get_row_or_column, 
+                                                       &get_row_or_column, 
                                                        &predata.get_mesh().nodes, 
                                                        predata.get_eqn_map(),
                                                        32,
