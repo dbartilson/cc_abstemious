@@ -15,7 +15,7 @@ pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, phi_inc: &DVector
         preprocess::input_data::SolverType::Iterative => {
             get_surface_dense(predata, phi_inc)
         }
-        preprocess::input_data::SolverType::ACA => {
+        preprocess::input_data::SolverType::Hierarchical=> {
             get_surface_hmatrix(predata, phi_inc)
         }
     }  

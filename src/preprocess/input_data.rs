@@ -14,7 +14,7 @@ pub enum ProblemType {
 pub enum SolverType {
     Direct,
     Iterative,
-    ACA
+    Hierarchical
 }
 
 #[derive(Deserialize)]

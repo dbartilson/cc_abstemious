@@ -131,11 +131,11 @@ impl Mesh {
             // Read CELL_TYPES data block
             else if first_word == Some("CELL_TYPES") {
                 let nelem: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                for i in 1..nelem+1 {
+                for i in 0..nelem {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
                     let etype: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                    elements[i-1].etype = match etype {
+                    elements[i].etype = match etype {
                         1 => ElementType::Point,
                         3 => ElementType::Line,
                         5 => ElementType::Tri,

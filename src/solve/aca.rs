@@ -26,7 +26,7 @@ impl ACA
             num_columns: n,
             uv: Vec::new(), 
             norm: 0.0};
-        a.get_uv(tol,  &get_row, &get_column);
+        a.get_uv(tol, &get_row, &get_column);
         return a
     }
     fn get_max_rank(&self) -> usize { std::cmp::min(self.num_rows, self.num_columns) }
@@ -77,10 +77,10 @@ impl ACA
         let max_vec = std::cmp::min(self.num_columns, self.num_rows);
         for k in 0..max_vec{
             // get column index of maximum value of row
-            let mut jstar = Self::index_max_exclude(&riref, &istar_list);
+            let mut jstar = Self::index_max_exclude(&riref, &jstar_list);
             let jstar_val = riref[jstar].abs();
             // get row index of maximum value of column
-            let mut istar = Self::index_max_exclude(&rjref, &jstar_list);
+            let mut istar = Self::index_max_exclude(&rjref, &istar_list);
             let istar_val = rjref[istar].abs();
             // choose whichever index set has larger value
             if istar_val > jstar_val {

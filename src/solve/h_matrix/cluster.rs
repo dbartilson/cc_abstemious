@@ -40,7 +40,6 @@ impl Cluster {
         // Example 2.1
         self.update_bounds(nodes);
         self.update_diameter();
-        self.map_nodes_to_eqns(eqn_map);
         if self.indices_contained.len() <= leaf_cardinality {
             // Once the cluster is finalized, map from node indices to eqn indices
             self.map_nodes_to_eqns(eqn_map);

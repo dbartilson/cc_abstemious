@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3, DVector};
@@ -164,16 +165,14 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
 
     let mesh = predata.get_mesh();
     let k = predata.get_wavenumber();
-
     let num_column = j.len();
-    let mesh_body = predata.get_mesh_body();
-
-    let mut el_list = Vec::<usize>::new();
+    let mut el_list = HashSet::<usize>::new();
     for jeqn in j {
         if let Some(node_index) = predata.get_node_map().get(jeqn) {
-            let node_id = mesh.nodes[*node_index].id;
-            let mut els = predata.get_revcon()[node_id].clone();
-            el_list.append(&mut els);
+            let els = &predata.get_revcon()[*node_index];
+            for el in els {
+                el_list.insert(*el);
+            }
         }
     }
     // find node index corresponding to equation j
@@ -185,9 +184,8 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
     let mut h = DVector::<Cplx>::from_element(num_column, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
     for e in el_list {
-        let e_id = &mesh_body.element_ids[e];
-        let e_eqns = &mesh.elements[*e_id].eqn_idx;
-        let element = NIElement::new(&mesh, *e_id);
+        let e_eqns = &mesh.elements[e].eqn_idx;
+        let element = NIElement::new(&mesh, e);
         let (he, ge) = element.influence_matrices_at(k, o);
         for k in 0..e_eqns.len() {
             if let Some(index) = j.iter().position(|&r| r == e_eqns[k]) {
@@ -212,10 +210,9 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
         -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let mesh = predata.get_mesh();
-    let eqn_map = predata.get_eqn_map();
     let k = predata.get_wavenumber();
 
-    let num_eqn = eqn_map.len();
+    let num_eqn = i.len();
 
     // find node index corresponding to equation j
     let jnode = match predata.get_node_map().get(j) {
