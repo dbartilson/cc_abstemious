@@ -9,7 +9,8 @@ use crate::influence_matrix::EqnSide;
 use crate::preprocess;
 use crate::Cplx;
 
-pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
+pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+    -> (DVector::<Cplx>, DVector::<Cplx>) {
     match predata.get_solver_type() {
         preprocess::input_data::SolverType::Direct |
         preprocess::input_data::SolverType::Iterative => {
@@ -21,12 +22,11 @@ pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, phi_inc: &DVector
     }  
 }
 
-fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
+fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+    -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let (h, g) = influence_matrix::get_dense_surface_matrices(predata);
-
     info!(" Solving system of equations...");
-
     let omega = predata.get_angular_frequency();
     let rho = predata.get_mass_density();
     let num_eqn = predata.get_num_eqn();
@@ -72,8 +72,8 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) -
 }
 
 
-fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) -> (DVector::<Cplx>, DVector::<Cplx>) {
-
+fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+    -> (DVector::<Cplx>, DVector::<Cplx>) {
     let num_eqn = predata.get_num_eqn();
     let mut phi = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     let mut vn = phi.clone();
@@ -81,13 +81,17 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
     {
         info!(" Calculating RHS...");
         let get_row_or_column = |i: Vec<usize>, j: Vec<usize>| get_surface_row_or_column(predata, i, j, EqnSide::RHS);
-        let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
-                                                           &get_row_or_column, 
-                                                           &predata.get_mesh().nodes, 
-                                                           predata.get_eqn_map(),
-                                                           32,
-                                                           1e-4);
         let sbc = predata.get_surface_bc();
+        let hmatrix = if sbc.value[0] == 0.0 && sbc.value[1] == 0.0 {
+            h_matrix::HMatrix::new()
+        } else {
+            h_matrix::HMatrix::new_from(num_eqn, 
+                &get_row_or_column, 
+                &predata.get_mesh().nodes, 
+                predata.get_eqn_map(),
+                32,
+                1e-4)
+        };
         match sbc.bc_type {
             preprocess::input_data::BCType::Pressure => {
                 let pressure_bc = Cplx::new(sbc.value[0], sbc.value[1]);

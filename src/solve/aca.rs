@@ -4,10 +4,12 @@ use na::{ComplexField, DMatrix, DVector};
 use rand::{distributions::{Distribution, Uniform}, SeedableRng, rngs::StdRng};
 use crate::Cplx;
 
+#[derive(Debug)]
 struct UV {
     u: DVector::<Cplx>,
     v: DVector::<Cplx>
 }
+#[derive(Debug)]
 pub struct ACA
 {
     num_rows: usize,

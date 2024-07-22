@@ -22,7 +22,7 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     let nelem = mesh_body.element_ids.len();
 
     let hdiag = predata.get_hdiag();
-    let num_threads = predata.get_num_threads();
+    let num_threads = preprocess::get_num_threads();
     // use a parallel pool of threads
     info!(" Using {} threads...", num_threads);
     let mut pool = Pool::new(num_threads as u32);

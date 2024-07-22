@@ -1,15 +1,17 @@
 mod cluster;
 mod block;
 
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc, sync::{Arc, Mutex}};
 use na::{DMatrix, DVector};
-use crate::{preprocess::mesh_data::Node, Cplx};
+use scoped_threadpool::Pool;
+use crate::{preprocess::{self, mesh_data::Node}, Cplx};
 use cluster::Cluster;
-use block::Block;
+use block::{BlockTree, BlockList};
 
 use super::aca::ACA;
 
 /// Can be represented in reduced format (e.g., ACA)
+#[derive(Debug)]
 struct AdmissibleBlock {
     rows: Vec<usize>,
     columns: Vec<usize>,
@@ -55,6 +57,7 @@ impl AdmissibleBlock {
 }
 
 /// Must be represented fully (in dense form)
+#[derive(Debug)]
 struct InadmissibleBlock {
     rows: Vec<usize>,
     columns: Vec<usize>,
@@ -112,23 +115,33 @@ pub struct HMatrix {
 }
 
 impl HMatrix {
+    /// Default 
+    pub fn new() -> HMatrix {
+        return HMatrix{
+            num_eqn: 0,
+            norm: 0.0,
+            admissible_blocks: Vec::new(),
+            inadmissible_blocks: Vec::new()
+        }
+    }
     pub fn new_from<F>(n: usize, 
                    get_row_or_column: &F, 
                    nodes: &Vec<Node>, 
                    eqn_map: &HashMap::<usize, usize>,
                    leaf_cardinality: usize, 
                    tolerance: f64) -> HMatrix 
-    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
+    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
         info!("  Building hierarchical matrix decomposition...");
         let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), leaf_cardinality, eqn_map));
-        let block_tree = Block::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
+        let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
+        let block_list = BlockList::new_from(&block_tree);
         let mut mat = HMatrix {
             num_eqn: n,
             norm: 0.0,
             admissible_blocks: Vec::new(),
             inadmissible_blocks: Vec::new()
         };
-        mat.load_from(&block_tree, get_row_or_column, tolerance);
+        mat.load_from(block_list, get_row_or_column, tolerance);
         info!("  Decomposed into {} blocks (Admissible: {}, Inadmissible: {})", 
             mat.admissible_blocks.len() + mat.inadmissible_blocks.len(),
             mat.admissible_blocks.len(), mat.inadmissible_blocks.len());
@@ -137,33 +150,43 @@ impl HMatrix {
     }
     pub fn get_num_eqn(&self) -> usize { self.num_eqn }
     pub fn get_norm(&self) -> f64 { self.norm }
-    /// Process block tree into flat vectors of admissible and inadmissible blocks
-    fn load_from<F>(&mut self, block: &Block, get_row_or_column: &F, tolerance: f64)
-    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
-        if block.is_admissible() {
-            self.admissible_blocks.push(
-                AdmissibleBlock::new(
-                    block.get_row_indices().clone(),
-                    block.get_column_indices().clone(),
-                    get_row_or_column,
-                    tolerance
-                )
-            );
-        }
-        else if block.get_children().is_empty() {
-            self.inadmissible_blocks.push(
-                InadmissibleBlock::new(
-                    block.get_row_indices().clone(),
-                    block.get_column_indices().clone(),
-                    &|i: usize| -> Vec<Cplx> {get_row_or_column(vec![i], block.get_column_indices().clone())}
-                )
-            );
-        }
-        else {
-            for child in block.get_children() {
-                self.load_from(child, get_row_or_column, tolerance);
+    /// Process block tree into admissible and inadmissible blocks
+    fn load_from<F>(&mut self, blocklist: BlockList, get_row_or_column: &F, tolerance: f64)
+    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
+        let num_threads = preprocess::get_num_threads();
+        // use a parallel pool of threads
+        info!(" Using {} threads...", num_threads);
+        let mut pool = Pool::new(num_threads as u32);
+        let ad = Arc::new(Mutex::new(Vec::<AdmissibleBlock>::new()));
+        let iad = Arc::new(Mutex::new(Vec::<InadmissibleBlock>::new()));
+        pool.scoped(|scope| {
+            for block in blocklist.get_list() {
+                scope.execute(|| {
+                    if block.is_admissible() {
+                        let a = AdmissibleBlock::new(
+                            block.get_row_indices().clone(),
+                            block.get_column_indices().clone(),
+                            get_row_or_column,
+                            tolerance
+                        );
+                        let mut ad = ad.lock().unwrap();
+                        ad.push(a);
+                    }
+                    else {
+                        let ia = InadmissibleBlock::new(
+                            block.get_row_indices().clone(),
+                            block.get_column_indices().clone(),
+                            &|i: usize| -> Vec<Cplx> {get_row_or_column(vec![i], 
+                                block.get_column_indices().clone())}
+                        );
+                        let mut iad = iad.lock().unwrap();
+                        iad.push(ia);
+                    }
+                });
             }
-        }
+        });
+        self.admissible_blocks = Arc::try_unwrap(ad).unwrap().into_inner().unwrap();
+        self.inadmissible_blocks = Arc::try_unwrap(iad).unwrap().into_inner().unwrap();
     }
     fn update_norm(&mut self) {
         for block in &self.inadmissible_blocks {
@@ -175,13 +198,14 @@ impl HMatrix {
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
-        if self.num_eqn != b.len() || self.num_eqn != x.len() {
-            error!("Dimension mismatch in H matrix gemv");
-        }
         if beta != Cplx::new(1.0,0.0) {
             for i in 0..b.len() {
                 b[i] *= beta;
             }
+        }
+        if self.inadmissible_blocks.is_empty() && self.admissible_blocks.is_empty() {return;}
+        if self.num_eqn != b.len() || self.num_eqn != x.len() {
+            error!("Dimension mismatch in H matrix gemv");
         }
         for block in &self.inadmissible_blocks {
             block.gemv(alpha, &x, Cplx::new(1.0, 0.0), b);
