@@ -142,10 +142,8 @@ impl HMatrix {
             inadmissible_blocks: Vec::new()
         };
         mat.load_from(block_list, get_row_or_column, tolerance);
-        info!("  Decomposed into {} blocks (Admissible: {}, Inadmissible: {})", 
-            mat.admissible_blocks.len() + mat.inadmissible_blocks.len(),
-            mat.admissible_blocks.len(), mat.inadmissible_blocks.len());
         mat.update_norm();
+        mat.print_stats();
         return mat;
     }
     pub fn get_num_eqn(&self) -> usize { self.num_eqn }
@@ -155,7 +153,7 @@ impl HMatrix {
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
         let num_threads = preprocess::get_num_threads();
         // use a parallel pool of threads
-        info!(" Using {} threads...", num_threads);
+        info!("  Using {} threads...", num_threads);
         let mut pool = Pool::new(num_threads as u32);
         let ad = Arc::new(Mutex::new(Vec::<AdmissibleBlock>::new()));
         let iad = Arc::new(Mutex::new(Vec::<InadmissibleBlock>::new()));
@@ -195,6 +193,26 @@ impl HMatrix {
         for block in &self.admissible_blocks {
             self.norm += block.values.get_norm();
         }
+    }
+    fn print_stats(&self) {
+        let adl = self.admissible_blocks.len();
+        let iadl = self.inadmissible_blocks.len();
+        let admissible_ratio = 100.0 * (adl as f64) / ((iadl + adl) as f64);
+        // calculate compression ratio
+        // equal to storage size for ACA + full blocks
+        // divided by total size of matrix in full form
+        let mut numerator: usize = 0;
+        let denominator = self.num_eqn * self.num_eqn;
+        for a in &self.admissible_blocks {
+            numerator += a.values.get_num_uv() * (a.columns.len() + a.rows.len());
+        }
+        for ia in &self.inadmissible_blocks {
+            numerator += ia.columns.len() * ia.rows.len();
+        }
+        let compression_ratio = 100.0 * (1.0 - (numerator as f64 / denominator as f64));
+        info!("  Decomposition info:");
+        info!("   Admissible block ratio: {:4.1}%, Compression ratio: {:4.1}%)", 
+            admissible_ratio, compression_ratio);
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {

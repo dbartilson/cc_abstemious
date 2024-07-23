@@ -52,6 +52,7 @@ impl ACA
         }
         return r;
     }
+    pub fn get_num_uv(&self) -> usize { return self.uv.len();}
     /// Calculate the Adaptive Cross Approximation for the given matrix
     fn get_uv<F,G>(&mut self, tol: f64, get_row: &F, get_column: &G) 
     where F: Fn(usize) -> Vec::<Cplx>,
