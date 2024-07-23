@@ -3,8 +3,8 @@ use na::{Complex, DVector, Vector3};
 use std::f64::consts::PI;
 type Cplx = Complex<f64>;
 
+/// return the incident fields (velocity potential) on the surface and at the field points
 pub fn get_incident_wave(predata: &preprocess::PreData) -> (DVector::<Cplx>, DVector::<Cplx>) {
-    // return the incident fields (velocity potential) on the surface and at the field points
     let mesh = predata.get_mesh();
     let eqn_map = predata.get_eqn_map();
     let k = predata.get_wavenumber();

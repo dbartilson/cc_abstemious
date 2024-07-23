@@ -13,7 +13,8 @@ pub enum ProblemType {
 #[derive(Deserialize)]
 pub enum SolverType {
     Direct,
-    Iterative
+    Iterative,
+    Hierarchical
 }
 
 #[derive(Deserialize)]

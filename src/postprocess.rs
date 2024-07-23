@@ -11,9 +11,9 @@ pub struct FPResult {
     pub radiated_power: f64 // not used yet
 }
 
+/// write scattered/total and incident field results to a csv file for all points at one frequency
 pub fn write_results_at_frequency(predata: &preprocess::PreData, result: &FPResult) 
     -> Result<(), Box<dyn Error>> {
-    // write scattered/total and incident field results to a csv file for all points at one frequency
     let mut wtr = Writer::from_path(predata.get_output_filename())?;
     let scatt = result.scattered.as_ref().unwrap();
     let inc = result.incident.as_ref().unwrap();
@@ -43,9 +43,9 @@ pub fn write_results_at_frequency(predata: &preprocess::PreData, result: &FPResu
     Ok(())
 }
 
+/// write scattered/total and incident field results to a csv file for one point at all frequencies
 pub fn write_results_at_point(predata: &preprocess::PreData, results: &Vec<FPResult>, index: usize) 
     -> Result<(), Box<dyn Error>> {
-    // write scattered/total and incident field results to a csv file for one point at all frequencies
     let mut wtr = Writer::from_path(predata.get_output_filename())?;
     let on = match predata.get_output_field() {
         preprocess::input_data::OutputField::Pressure => "pre",
@@ -66,8 +66,8 @@ pub fn write_results_at_point(predata: &preprocess::PreData, results: &Vec<FPRes
     Ok(())
 }
 
+/// convert all field results from velocity potential to pressure, if requested
 pub fn convert_results(predata: &preprocess::PreData, results: &mut Vec<FPResult>) {
-    // convert all field results from velocity potential to pressure, if requested
     if *predata.get_output_field() == preprocess::input_data::OutputField::Pressure {
         let rho = predata.get_mass_density();
         for result in results {
@@ -78,9 +78,9 @@ pub fn convert_results(predata: &preprocess::PreData, results: &mut Vec<FPResult
     }
 }
 
-pub fn convert_phi_to_pressure_vec(phi: &mut na::DVector<Cplx>, omega: f64, rho: f64) {
-    // convert velocity potential (phi) to pressure (p) using the formula
-    // p = (i omega rho) phi
+/// convert velocity potential (phi) to pressure (p) using the formula
+/// p = (i omega rho) phi
+fn convert_phi_to_pressure_vec(phi: &mut na::DVector<Cplx>, omega: f64, rho: f64) {
     let scale = Cplx::new(0.0, omega * rho);
     for i in 0..phi.len() {
         phi[i] *= scale;

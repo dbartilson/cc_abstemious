@@ -11,7 +11,7 @@ use crate::solve;
 use crate::postprocess;
 
 const VER_MAJOR: usize = 1;
-const VER_MINOR: usize = 0; 
+const VER_MINOR: usize = 1; 
 
 enum AnalysisState {
     Input,
@@ -28,7 +28,7 @@ pub struct Analysis {
     results: Vec<postprocess::FPResult>
 }
 
-impl Analysis {
+impl <'a>Analysis {
     pub fn new() -> Analysis {
         Analysis {
             temp_input: None,
@@ -54,7 +54,7 @@ impl Analysis {
         self.temp_input = Some(input);
         self.analysis_state = AnalysisState::Input;
     }
-    pub fn run(&mut self) {
+    pub fn run(&'a mut self) {
         
         if self.temp_input.is_none() {
             panic!("No input found");
@@ -91,13 +91,11 @@ impl Analysis {
             info!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);
             self.freq_index = i;
 
-            let (h, g) = influence_matrix::get_surface_influence_matrices(predata);
-        
             let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(predata);
-    
-            let (phi, vn) = solve::get_surface(predata, &h, &g, &phi_inc);
+
+            let (phi, vn) = solve::solve_for_surface(predata, &phi_inc);
         
-            let (m, l) = influence_matrix::get_field_influence_matrices(predata);
+            let (m, l) = influence_matrix::get_dense_field_matrices(predata);
             
             let phi_fp = solve::get_field(predata, &m, &l, &phi, &vn, &phi_inc_fp);
 

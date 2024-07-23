@@ -22,163 +22,157 @@ pub mod interpolation {
 }   
 
 use interpolation::*;
-use na::{Complex, DMatrix, Vector3};
-type Cplx = Complex<f64>;
-use crate::preprocess::mesh_data::{Coords, Mesh};
+use na::{DMatrix, Vector3};
+use crate::Cplx;
+use crate::preprocess::mesh_data::{Coords, ElementType, Mesh};
 
+/// Calculate the Green's function (g) and its derivative (h) for the given origin, destination (x),
+/// normal vector, and wavenumber (k)
 fn get_greens_functions(k: f64, origin: &Coords, x: &Coords, normal: &Vector3<f64>) -> (Cplx, Cplx) {
     let n = normal / normal.norm();
     let r = origin - x;
     let rdist = r.norm();
     let runit = r / rdist;
+    // g = e^(ikr) / (4 pi r)
     let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
+    // h = (1/r - ik) * g * (r dot n), where r and n are unit vectors -> (r dot n) is a direction cosine
     let h = g * Cplx::new(1.0 / rdist, -k) * runit.dot(&n);
     return (g, h)
 }
 
 // Methods for numerically-integrated elements
-pub trait NumIntElement {
-    fn shape_functions_at(gp: &Gp) -> Vec<f64>;
-    fn shape_derivatives_at(gp: &Gp) -> DMatrix<f64>;
+pub struct NIElement <'a> {
+    integration: Vec<Gp>,
+    mesh: &'a Mesh,
+    pub element_id: usize,
+    element_type: ElementType
+}
+impl NIElement <'_> {
+    pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> NIElement <'a> {
+        let etype = &meshdata.elements[element].etype;
+        let int = match etype.clone() {
+            ElementType::Tri => TRIGP3.to_vec(),
+            ElementType::Quad => QUADGP4.to_vec(),
+            _ => {error!("Invalid numerically integrated element"); Vec::new()}
+        };
+        NIElement{integration: int, 
+                  mesh: &meshdata, 
+                  element_id: element,
+                  element_type: etype.clone()}
+    }
+    #[inline]
+    fn get_num_nodes(&self) -> usize {
+        match self.element_type {
+            ElementType::Tri => 3,
+            ElementType::Quad => 4,
+            _ => 0
+        }
+    }
+    /// Get shape functions for this element at the given natural coordinates
+    fn shape_functions_at(&self, gp: &Gp) -> Vec<f64> {
+        let xi = &gp.coords[0];
+        let eta = &gp.coords[1];
+        match self.element_type {
+            ElementType::Tri => {
+                vec![1.0 - *xi - *eta,
+                *xi,
+                *eta]
+            },
+            ElementType::Quad => {
+                vec![0.25*(1.-*xi)*(1.-*eta),
+                     0.25*(1.+*xi)*(1.-*eta),
+                     0.25*(1.+*xi)*(1.+*eta),
+                     0.25*(1.-*xi)*(1.+*eta)]
+            },
+            _ => vec![0.0]
+        }
+    }
+    /// Get shape function derivatives for this element at the given natural coordinates
+    fn shape_derivatives_at(&self, _gp: &Gp) -> DMatrix<f64> {
+        match self.element_type {
+            ElementType::Tri => {
+                DMatrix::from_row_slice(3, 2,
+                    &[-1.0, -1.0,
+                            1.0, 0.0,
+                            0.0, 1.0])
+            },
+            ElementType::Quad => {
+                DMatrix::from_row_slice(4, 2,
+                    &[-0.25, -0.25,
+                            0.25, -0.25,
+                            0.25, 0.25,
+                           -0.25, 0.25])
+            },
+            _ => DMatrix::from_element(1, 1, 0.0)
+        }
+    }
+    /// Get physical coordinates at the given natural coordinates, using shape functions
     fn coordinates_at(&self, gp: &Gp) -> Coords {
-        let n = Self::shape_functions_at(gp);
+        let n = self.shape_functions_at(gp);
         let mut x = Coords::from_element(0.0);
-        let mesh = self.get_mesh();
-        let element = &mesh.elements[self.get_element_id()];
+        let element = &self.mesh.elements[self.element_id];
         for ni in 0..n.len() {
             let node_index = &element.node_ids[ni];
-            let icoord = &mesh.nodes[*node_index].coords;
+            let icoord = &self.mesh.nodes[*node_index].coords;
             x += n[ni] * icoord;
         }
         return x;
     }
+    /// Get normal vector (non-normalized) at the given natural coordinates
     fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
-        let dn = Self::shape_derivatives_at(gp);
-        let mut dndxi = Vector3::from_element(0.0);
-        let mut dndeta = dndxi.clone();
-        let mesh = self.get_mesh();
-        let element = &mesh.elements[self.get_element_id()];
-        for i in 0..self.get_num_nodes() {
-            let node_index = &element.node_ids[i];
-            let icoord = &mesh.nodes[*node_index].coords;
-            dndxi += dn[(i,0)] * icoord;
-            dndeta += dn[(i,1)] * icoord;
+        match self.element_type {
+            ElementType::Tri => {
+                let enodes = &self.mesh.elements[self.element_id].node_ids;
+                let e0 = &self.mesh.nodes[enodes[0]].coords;
+                let e1 = &self.mesh.nodes[enodes[1]].coords;
+                let e2 = &self.mesh.nodes[enodes[2]].coords;
+                let a = e1 - e0;
+                let b = e2 - e0;
+                a.cross(&b)
+            },
+            // for quads or higher, use shape functions to calculate the derivative dx / dxi,
+            // i.e., change in physical coordinates w.r.t. natural coordinates
+            _ => {
+                let dn = self.shape_derivatives_at(gp);
+                let mut dndxi = Vector3::from_element(0.0);
+                let mut dndeta = dndxi.clone();
+                let element = &self.mesh.elements[self.element_id];
+                for i in 0..self.get_num_nodes() {
+                    let node_index = &element.node_ids[i];
+                    let icoord = &self.mesh.nodes[*node_index].coords;
+                    dndxi += dn[(i,0)] * icoord;
+                    dndeta += dn[(i,1)] * icoord;
+                }
+                // normal vector is then the cross product of dx/dxi and dx/deta
+                dndxi.cross(&dndeta)
+            }
         }
-        return dndxi.cross(&dndeta)
     }
-    fn detj_at(&self, gp: &Gp) -> f64;
-    fn get_integration(&self) -> &Vec<Gp>;
-    fn get_mesh(&self) -> &Mesh;
-    fn get_element_id(&self) -> usize;
-    fn get_num_nodes(&self) -> usize;
-    fn influence_matrices_at(&self, k: f64, origin: &Coords, h: &mut Vec::<Cplx>, g: &mut Vec::<Cplx>) {
-        h.fill(Cplx::new(0.0, 0.0));
-        g.fill(Cplx::new(0.0, 0.0));
-        for gp in self.get_integration() {
+    /// Get the determinant of the transformation from natural to physical coordinates at the given 
+    /// natural coordinates
+    fn detj_at(&self, gp: &Gp) -> f64 {
+        // Calculate using the normal vector, since it is return un-scaled
+        match self.element_type {
+            ElementType::Tri => 0.5 * self.normal_vector_at(gp).norm(),
+            ElementType::Quad => 0.25 * self.normal_vector_at(gp).norm(),
+            _ => 0.0
+        }
+    }
+    /// Numerically integrate the influence matrices from this element to a given origin point
+    pub fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
+        let mut h = vec![Cplx::new(0.0, 0.0); self.get_num_nodes()];
+        let mut g = h.clone();
+        for gp in &self.integration {
             let normal = self.normal_vector_at(gp);
             let detj = self.detj_at(gp);
             let x = self.coordinates_at(gp);
             let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
-            let n = Self::shape_functions_at(gp);
+            let n = self.shape_functions_at(gp);
             for i in 0..n.len() {
                 h[i] += h_gp * n[i] * detj * gp.wt;
                 g[i] += g_gp * n[i] * detj * gp.wt;
             }
         }
+        return (h, g)
     }
-}
-
-pub struct Triangle <'a> {
-    pub integration: Vec<Gp>,
-    pub mesh: &'a Mesh,
-    pub element_id: usize,
-}
-impl Triangle <'_> {
-    pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> Triangle <'a> {
-        Triangle{integration: TRIGP3.to_vec(), mesh: &meshdata, element_id: element}
-    }
-}
-impl NumIntElement for Triangle <'_> {
-    fn shape_functions_at(gp: &Gp) -> Vec<f64> {
-        let xi = gp.coords[0];
-        let eta = gp.coords[1];
-        let n = vec![1.0 - xi - eta,
-                               xi,
-                               eta];
-        return n
-    }
-    fn shape_derivatives_at(_gp: &Gp) -> DMatrix<f64> {
-        let dn = DMatrix::from_row_slice(3, 2,
-            &[-1.0, -1.0,
-                    1.0, 0.0,
-                    0.0, 1.0]);
-        return dn
-    }
-    // use custom normal vector for triangle since it is unambiguous and faster
-    fn normal_vector_at(&self, _gp: &Gp) -> Vector3<f64> {
-        let enodes = &self.mesh.elements[self.element_id].node_ids;
-        let e0 = &self.mesh.nodes[enodes[0]].coords;
-        let e1 = &self.mesh.nodes[enodes[1]].coords;
-        let e2 = &self.mesh.nodes[enodes[2]].coords;
-        let a = e1 - e0;
-        let b = e2 - e0;
-        a.cross(&b)
-    }
-    fn detj_at(&self, gp: &Gp) -> f64 {
-        return self.normal_vector_at(gp).norm() * 0.5
-    }
-    fn get_integration(&self) -> &Vec<Gp> {&self.integration}
-    fn get_mesh(&self) -> &Mesh {&self.mesh}
-    fn get_element_id(&self) -> usize {self.element_id}
-    fn get_num_nodes(&self) -> usize {3}
-}
-
-pub struct Quad <'a> {
-    pub integration: Vec<Gp>,
-    pub mesh: &'a Mesh,
-    pub element_id: usize,
-}
-impl Quad <'_> {
-    pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> Quad <'a> {
-        Quad{integration: QUADGP4.to_vec(), mesh: &meshdata, element_id: element}
-    }
-}
-impl NumIntElement for Quad <'_> {
-    fn shape_functions_at(gp: &Gp) -> Vec<f64> {
-        let xi = gp.coords[0];
-        let eta = gp.coords[1];
-        let n = [0.25*(1.-xi)*(1.-eta),
-                            0.25*(1.+xi)*(1.-eta),
-                            0.25*(1.+xi)*(1.+eta),
-                            0.25*(1.-xi)*(1.+eta)];
-        return n.to_vec();
-    }
-    fn shape_derivatives_at(_gp: &Gp) -> DMatrix<f64> {
-        let dn = DMatrix::from_row_slice(4, 2,
-            &[-0.25, -0.25,
-                    0.25, -0.25,
-                    0.25, 0.25,
-                   -0.25, 0.25]);
-        return dn
-    }
-    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
-        let dn = Self::shape_derivatives_at(gp);
-        let mut dndxi = Vector3::from_element(0.0);
-        let mut dndeta = dndxi.clone();
-        let element = &self.mesh.elements[self.element_id];
-        for i in 0..4 {
-            let node_index = &element.node_ids[i];
-            let icoord = &self.mesh.nodes[*node_index].coords;
-            dndxi += dn[(i,0)] * icoord;
-            dndeta += dn[(i,1)] * icoord;
-        }
-        return dndxi.cross(&dndeta)
-    }
-    fn detj_at(&self, gp: &Gp) -> f64 {
-        return 0.25 * self.normal_vector_at(gp).norm()
-    }
-    fn get_integration(&self) -> &Vec<Gp> {&self.integration}
-    fn get_mesh(&self) -> &Mesh {&self.mesh}
-    fn get_element_id(&self) -> usize {self.element_id}
-    fn get_num_nodes(&self) -> usize {4}
 }
