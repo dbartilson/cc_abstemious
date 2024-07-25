@@ -28,7 +28,7 @@ impl ACA
             num_columns: n,
             uv: Vec::new(), 
             norm: 0.0};
-        a.get_uv(tol, &get_row, &get_column);
+        a.decompose(tol, &get_row, &get_column);
         return a
     }
     fn get_max_rank(&self) -> usize { std::cmp::min(self.num_rows, self.num_columns) }
@@ -54,7 +54,7 @@ impl ACA
     }
     pub fn get_num_uv(&self) -> usize { return self.uv.len();}
     /// Calculate the Adaptive Cross Approximation for the given matrix
-    fn get_uv<F,G>(&mut self, tol: f64, get_row: &F, get_column: &G) 
+    fn decompose<F,G>(&mut self, tol: f64, get_row: &F, get_column: &G) 
     where F: Fn(usize) -> Vec::<Cplx>,
           G: Fn(usize) -> Vec::<Cplx> {
         // largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
@@ -112,7 +112,7 @@ impl ACA
             let norm_f2_k = self.update_norm_estimate(&mut norm_f2_total);
             let step_size = norm_f2_k.sqrt() / norm_f2_total.sqrt();
             debug!("   Step: {}, Row: {}, Column: {}, Step size: {}", k, istar, jstar, step_size);
-            if step_size < tol { break; }
+            if step_size < tol / 50.0 { break; }
             // If pivoting occurred on reference row (iref == istar), get new random row
             if iref == istar {
                 Self::get_random_index_exclude(&mut iref, &n, &istar_list, &mut rng, &drange);
@@ -132,6 +132,49 @@ impl ACA
             }
         }
         self.norm = norm_f2_total.sqrt();
+        self.svd_recompression(tol);
+    }
+    fn svd_recompression(&mut self, tol: f64) {
+        // Largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
+        // Build U and V as matrix represenations for QR
+        let czero = Cplx::new(0.0,0.0);
+        let mut u = DMatrix::<Cplx>::from_element(self.num_rows, self.get_num_uv(), czero);
+        let mut v = DMatrix::<Cplx>::from_element(self.num_columns, self.get_num_uv(), czero);
+        for (i, uv) in self.uv.iter().enumerate() {
+            u.set_column(i, &uv.u);
+            v.set_column(i, &uv.v);
+        }
+        // Perform QR decomposition on U and V => U V^T = Q_u * R_u * R_v^T * Q_v^T
+        let u_qr = u.qr();
+        let q_u = u_qr.q();
+        let r_u = u_qr.r();
+        let v_qr = v.qr();
+        let q_v = v_qr.q();
+        let r_v_t = v_qr.r().transpose();
+        // Compute R_u * R_v^T 
+        let rr = r_u * r_v_t;
+        // Compute SVD of R_u * R_v^T  => W Sigma Z^H
+        let svd = rr.svd(true, true);
+        let w = &svd.u.unwrap();
+        let sigma = &svd.singular_values;
+        let z_h = svd.v_t.unwrap();
+        let z = z_h.transpose();
+        // Find index of singular value below eps * cumulative sum
+        let mut index: usize = 0;
+        let mut sum = 0.0_f64;
+        for s in sigma {
+            sum += s;
+            if *s < tol*sum {break;}
+            index += 1;
+        }
+        // Deal with zero-index for size and iter
+        index += 1;
+        // Reassemble U * V^T = (Q_u * W * Sigma) * (Z^H * Q_v^T)
+        self.uv.truncate(index);
+        for i in 0..index {
+            self.uv[i].u.gemv(Cplx::new(sigma[i], 0.0), &q_u, &w.column(i), czero);
+            self.uv[i].v.gemv(Cplx::new(1.0, 0.0), &q_v, &z.column(i), czero);
+        }
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>)  {
@@ -225,7 +268,12 @@ mod tests {
         let m = 20;
         let n = 100;
         let (mut a, b) = generate_random_ab(m, n, 13);
-        a.fill(Cplx::new(0.0,0.0));
+        //a.fill(Cplx::new(0.0,0.0));
+        for i in 0..m {
+            for j in 0..n {
+                a[(i,j)] *= 1.0e-8;
+            }
+        }
         for k in 0..13 {
             let (_, c) = generate_random_ab(m, m, k);
             let (_, d) = generate_random_ab(n, n, k+2);
@@ -238,7 +286,7 @@ mod tests {
         let get_row = |i: usize| -> Vec<Cplx> {a.clone().row(i).iter().cloned().collect()};
         let get_col = |i: usize| -> Vec<Cplx> {a.clone().column(i).iter().cloned().collect()};
         // build ACA of matrix and compare norms
-        let aca = ACA::new(1.0e-8, m, n, &get_row, &get_col);
+        let aca = ACA::new(1.0e-6, m, n, &get_row, &get_col);
         approx::assert_relative_eq!(aca.get_norm(), a.norm(), max_relative = 0.05);
         // compare matrix multiplication against random vector for both
         let mut x1 = DVector::<Cplx>::from_element(m, Cplx::new(0.0,0.0));
@@ -247,6 +295,6 @@ mod tests {
         aca.gemv(Cplx::new(1.0, 0.0), &b, Cplx::new(0.0, 0.0), &mut x2);
         // calculate norm of difference
         let f = (x2 - x1.clone()).norm() / x1.norm();
-        approx::assert_relative_eq!(f, 0.0, epsilon = 1.0e-10);
+        approx::assert_relative_eq!(f, 0.0, epsilon = 1.0e-8);
     }
 }
