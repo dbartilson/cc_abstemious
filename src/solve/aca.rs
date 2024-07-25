@@ -175,6 +175,7 @@ impl ACA
             self.uv[i].u.gemv(Cplx::new(sigma[i], 0.0), &q_u, &w.column(i), czero);
             self.uv[i].v.gemv(Cplx::new(1.0, 0.0), &q_v, &z.column(i), czero);
         }
+        self.calculate_norm_estimate();
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>)  {
@@ -207,6 +208,19 @@ impl ACA
     }
     /// Return the Frobenius norm estimate from the ACA approximation
     pub fn get_norm(&self) -> f64 { self.norm }
+    /// Calculate norm estimate ab initio
+    fn calculate_norm_estimate(&mut self) {
+        let mut norm_f2_total = 0.0;
+        for (i, uv) in self.uv.iter().enumerate() {
+            norm_f2_total += uv.u.norm_squared() * uv.v.norm_squared();
+            for j in 0..i {
+                let uvj = &self.uv[j];
+                norm_f2_total += 2.0 * uv.u.dot(&uvj.u).abs() * uv.v.dot(&uvj.v).abs();
+            }
+        }
+        self.norm = norm_f2_total.sqrt();
+    }
+    /// Update existing norm estimate using the most recent UV vectors
     fn update_norm_estimate(&self, norm_f2_total: &mut f64) -> f64 {
         // see Eq. 9 of https://doi.org/10.3970/cmes.2009.043.149 for Frobenius norm estimate
         match self.uv.last() {
@@ -215,11 +229,11 @@ impl ACA
                 let norm_f2_k = uv.u.norm_squared() * uv.v.norm_squared();
                 // add to total norm estimate
                 *norm_f2_total += norm_f2_k;
-                //let n = self.uv.len();
-                //for i in 0..n-1 {
-                //    let uvi = &self.uv[i];
-                //    *norm_f2_total += 2.0 * uvi.u.dot(&uv.u).abs() * uvi.u.dot(&uv.v).abs();
-                //}
+                let n = self.uv.len();
+                for i in 0..n-1 {
+                    let uvi = &self.uv[i];
+                    *norm_f2_total += 2.0 * uvi.u.dot(&uv.u).abs() * uvi.v.dot(&uv.v).abs();
+                }
                 return norm_f2_k;
             },
             None => {error!("UV last not found"); return 0.0}
