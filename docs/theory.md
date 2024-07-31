@@ -48,10 +48,18 @@ The incident sound sources (incident acoustic fields) can be defined similarly:
 \phi_I(\mathbf{x}) = A e^{ik(\mathbf{x} \cdot \mathbf{e}_d)}
 ```
 
+```math
+v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} = ik (\frac{\partial \mathbf{x}}{\partial n(\mathbf{x})}\cdot \mathbf{e}_d+\mathbf{x} \cdot \frac{\mathbf{e}_d}{n(\mathbf{x})}) \phi_I(\mathbf{x}) = ik (\mathbf{n}(\mathbf{x}) \cdot \mathbf{e}_d) \phi_I(\mathbf{x})
+```
+
 2. **Point source**: Also known as a volume source or spherical source. Has a defined amplitude $`A`$ and position vector $`\mathbf{x}_I`$:
 
 ```math
 \phi_I(\mathbf{x}) = \frac{A}{4 \pi r}e^{ikr}; \qquad r = \mathbf{x} - \mathbf{x}_I
+```
+
+```math
+v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} = (ik - \frac{1}{r}) (\mathbf{e}_r \cdot \mathbf{n}(\mathbf{x})) \phi_I(\mathbf{x})
 ```
 
 ## Integral solution

@@ -211,8 +211,8 @@ impl HMatrix {
         }
         let compression_ratio = 100.0 * (1.0 - (numerator as f64 / denominator as f64));
         info!("  Decomposition info:");
-        info!("   Admissible block ratio: {:4.1}%, Compression ratio: {:4.1}%)", 
-            admissible_ratio, compression_ratio);
+        info!("   Admissible block ratio: {:4.1}%", admissible_ratio);
+        info!("   Compression ratio: {:4.1}%", compression_ratio);
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {

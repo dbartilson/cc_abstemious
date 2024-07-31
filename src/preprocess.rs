@@ -26,13 +26,21 @@ pub struct PreData {
 impl PreData {
     pub fn set_frequency_index(&mut self, index: &usize) {self.ifreq = *index;}
 
+    #[inline]
     pub fn get_frequencies(&self) -> &Vec<f64> {return &self.input.frequency;}
+    #[inline]
     pub fn get_frequency(&self) -> f64 {return self.input.frequency[self.ifreq];}
+    #[inline]
     pub fn get_angular_frequency(&self) -> f64 {return 2.0 * PI * self.get_frequency();}
+    #[inline]
     pub fn get_wavenumber(&self) -> f64 {return self.get_angular_frequency() / self.get_sound_speed()}
+    #[inline]
     pub fn get_sound_speed(&self) -> f64 {return self.input.sound_speed;}
+    #[inline]
     pub fn get_mass_density(&self) -> f64 {return self.input.mass_density;}
+    #[inline]
     pub fn get_problem_type(&self) -> &input_data::ProblemType {return &self.input.problem_type;}
+    #[inline]
     pub fn get_hdiag(&self) -> Cplx {
         match self.get_problem_type() {
             // the H matrix has -1/2 added along the diagonal for exterior problems
@@ -50,7 +58,7 @@ impl PreData {
     pub fn get_eqn_map(&self) -> &HashMap<usize, usize> {return &self.eqn_map;}
     /// get map from equation index to node index
     pub fn get_node_map(&self) -> &HashMap<usize, usize> {return &self.node_map;}
-    /// get list of elements at each node (by node number, not index)
+    /// get list of elements at each node
     pub fn get_revcon(&self) -> &Vec<Vec<usize>> {return &self.revcon;}
     pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
     pub fn get_num_eqn(&self) -> usize {return self.eqn_map.len();}
