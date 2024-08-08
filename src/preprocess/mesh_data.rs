@@ -67,6 +67,7 @@ pub struct Body {
 pub struct Node {
     pub id: usize,
     pub coords: Coords,
+    pub normal: Vector3<f64>
 }
 
 pub struct Mesh {
@@ -102,7 +103,11 @@ impl Mesh {
                 for i in 0..npts {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
-                    let mut node_temp: Node = Node{id: i, coords:Coords::from_element(0.0)};
+                    let mut node_temp: Node = Node{
+                        id: i, 
+                        coords:Coords::from_element(0.0),
+                        normal: Vector3::from_element(0.0)
+                    };
                     for j in 0..3 {
                         node_temp.coords[j] = sline.next().as_ref().unwrap().parse().unwrap();
                     }

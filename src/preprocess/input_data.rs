@@ -11,6 +11,12 @@ pub enum ProblemType {
 }
 
 #[derive(Deserialize)]
+pub enum MethodType {
+    Classical,
+    BurtonMiller
+}
+
+#[derive(Deserialize)]
 pub enum SolverType {
     Direct,
     Iterative,
@@ -78,6 +84,7 @@ pub struct UserInput {
     pub sound_speed: f64,
     pub mass_density: f64,
     pub problem_type: ProblemType,
+    pub method_type: MethodType,
     pub solver: Solver,
     pub incident_wave: IncidentWaveInput,
     pub surface_bc: SurfaceBoundaryCondition,

@@ -14,8 +14,8 @@ const VER_MAJOR: usize = 1;
 const VER_MINOR: usize = 1; 
 
 enum AnalysisState {
-    Input,
-    Solve,
+    PostInput,
+    PostSolve,
     Null
 }
 
@@ -44,15 +44,15 @@ impl <'a>Analysis {
         let path = Path::new(input_path_str);
         self.log_file = path.file_stem().unwrap().to_str().unwrap().to_string();
         self.temp_input = Some(preprocess::input_data::read_input_json(input_path_str).unwrap());
-        self.analysis_state = AnalysisState::Input;
+        self.analysis_state = AnalysisState::PostInput;
     }
     pub fn input_from_string(&mut self, input_str: &str) {
         self.temp_input = Some(preprocess::input_data::read_input_string(input_str).unwrap());
-        self.analysis_state = AnalysisState::Input;
+        self.analysis_state = AnalysisState::PostInput;
     }
     pub fn set_input(&mut self, input: preprocess::input_data::UserInput) {
         self.temp_input = Some(input);
-        self.analysis_state = AnalysisState::Input;
+        self.analysis_state = AnalysisState::PostInput;
     }
     pub fn run(&'a mut self) {
         
@@ -110,7 +110,7 @@ impl <'a>Analysis {
 
         postprocess::convert_results(predata, &mut self.results);
 
-        self.analysis_state = AnalysisState::Solve;
+        self.analysis_state = AnalysisState::PostSolve;
 
         info!(" Complete!");
     }

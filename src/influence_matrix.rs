@@ -37,8 +37,7 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
                 let e_eqns = &mesh.elements[*e_id].eqn_idx;
                 let element = NIElement::new(&mesh, *e_id);
                 for (inode, ieqn) in eqn_map {
-                    let o = &mesh.nodes[*inode].coords;
-                    let (he, ge) = element.influence_matrices_at(k, o);
+                    let (he, ge) = element.influence_matrices_at(k, inode);
                     let mut hi = h_share.lock().unwrap();
                     let mut gi = g_share.lock().unwrap();
                     for j in 0..e_eqns.len() {
@@ -75,8 +74,8 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
         let e_eqns = &mesh.elements[*e_id].eqn_idx;
         let element = NIElement::new(&mesh, *e_id);
         for (i, fieldpt) in field_points.iter().enumerate()  {
-            let coord = Vector3::from_column_slice(fieldpt);
-            let (me, le) = element.influence_matrices_at(k, &coord);
+            let x = Vector3::from_column_slice(fieldpt);
+            let (me, le) = element.influence_matrices_at(k, &x);
             for j in 0..e_eqns.len() {
                 m[(i, e_eqns[j])] += me[j];
                 l[(i, e_eqns[j])] += le[j];
@@ -172,13 +171,13 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
         Some(node) => node,
         None => {error!("Node index not found for equation {}", i); &0}
     };
-    let o = &mesh.nodes[*inode].coords;
+    let x = &mesh.nodes[*inode].coords;
     let mut h = DVector::<Cplx>::from_element(num_column, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
     for e in el_list {
         let e_eqns = &mesh.elements[e].eqn_idx;
         let element = NIElement::new(&mesh, e);
-        let (he, ge) = element.influence_matrices_at(k, o);
+        let (he, ge) = element.influence_matrices_at(k, x);
         for k in 0..e_eqns.len() {
             if let Some(index) = j.iter().position(|&r| r == e_eqns[k]) {
                 h[index] += he[k];
@@ -224,8 +223,8 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
                 Some(node) => node,
                 None => {error!("Node index not found for equation {}", ieqn); &0}
             };
-            let o = &mesh.nodes[*inode].coords;
-            let (he, ge) = element.influence_matrices_at(k, o);
+            let x = &mesh.nodes[*inode].coords;
+            let (he, ge) = element.influence_matrices_at(k, x);
             h[eqn_index] += he[index];
             g[eqn_index] += ge[index];
         }

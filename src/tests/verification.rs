@@ -13,6 +13,7 @@ fn default_input() -> UserInput {
         sound_speed: 1.0,
         mass_density: 1.0,
         problem_type: ProblemType::Exterior,
+        method_type: MethodType::Classical,
         solver: Solver {
             s_type: SolverType::Direct,
             tolerance: 1.0e-5,

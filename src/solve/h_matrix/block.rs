@@ -108,7 +108,10 @@ mod tests {
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                nodes.push(Node { id: i, coords: Vector3::new(j as f64, k as f64, 0.0)});
+                nodes.push(Node { 
+                    id: i, 
+                    coords: Vector3::new(j as f64, k as f64, 0.0),
+                    normal: Vector3::from_element(0.0)});
                 hmap.insert(i, i);
                 i += 1;
             }
@@ -124,7 +127,10 @@ mod tests {
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                nodes.push(Node { id: i, coords: Vector3::new(j as f64, k as f64, 0.0)});
+                nodes.push(Node { 
+                    id: i, 
+                    coords: Vector3::new(j as f64, k as f64, 0.0),
+                    normal: Vector3::from_element(0.0)});
                 hmap.insert(i, i);
                 i += 1;
             }

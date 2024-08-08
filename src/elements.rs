@@ -1,9 +1,12 @@
 pub mod interpolation {
-    #[derive(Clone)]
+    #[derive(Clone, Copy)]
     pub struct Gp {
         pub coords: [f64; 2],
         pub wt: f64,
     }
+    pub static TRINODES: [Gp; 3] = [Gp{coords: [0.0, 0.0], wt: 1./3.}, 
+                                    Gp{coords: [1.0, 0.0], wt: 1./3.}, 
+                                    Gp{coords: [0.0, 1.0], wt: 1./3.}];
     pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
                                   Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
                                   Gp{coords: [2./3., 1./6.], wt: 1./3.}];
@@ -15,6 +18,10 @@ pub mod interpolation {
                                   Gp{coords: [0.445948490915965, 0.108103018168070], wt: 0.223381589678011},
                                   Gp{coords: [0.108103018168070, 0.445948490915965], wt: 0.223381589678011}];
     static ONEOVERSQRT3: f64 = 0.57735026919;
+    pub static QUADNODES: [Gp; 4] = [Gp{coords: [-1.0, -1.0], wt: 1.0}, 
+                                     Gp{coords: [ 1.0, -1.0], wt: 1.0}, 
+                                     Gp{coords: [ 1.0,  1.0], wt: 1.0},
+                                     Gp{coords: [-1.0,  1.0], wt: 1.0}];
     pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
@@ -26,18 +33,39 @@ use na::{DMatrix, Vector3};
 use crate::Cplx;
 use crate::preprocess::mesh_data::{Coords, ElementType, Mesh};
 
-/// Calculate the Green's function (g) and its derivative (h) for the given origin, destination (x),
-/// normal vector, and wavenumber (k)
-fn get_greens_functions(k: f64, origin: &Coords, x: &Coords, normal: &Vector3<f64>) -> (Cplx, Cplx) {
-    let n = normal / normal.norm();
-    let r = origin - x;
+/// Calculate the Green's function (g) and its derivative (h) for the given origin (x), destination (y),
+/// normal vector at y (non-normalized), and wavenumber (k)
+fn get_greens_functions(k: f64, x: &Coords, y: &Coords, n_y: &Vector3<f64>) -> (Cplx, Cplx) {
+    let e_ny = n_y / n_y.norm();
+    let r = x - y;
     let rdist = r.norm();
-    let runit = r / rdist;
+    let e_r = r / rdist;
     // g = e^(ikr) / (4 pi r)
     let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
     // h = (1/r - ik) * g * (r dot n), where r and n are unit vectors -> (r dot n) is a direction cosine
-    let h = g * Cplx::new(1.0 / rdist, -k) * runit.dot(&n);
+    let h = g * Cplx::new(1.0 / rdist, -k) * e_r.dot(&e_ny);
     return (g, h)
+}
+
+/// Calculate 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
+/// normal vector at y (non-normalized), and wavenumber (k)
+fn get_hs_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, y: &Coords, n_y: &Vector3<f64>) 
+    -> (Cplx, Cplx) {
+    let e_nx = n_x / n_x.norm();
+    let e_ny = n_y / n_y.norm();
+    let r = x - y;
+    let rdist = r.norm();
+    let e_r = r / rdist;
+    // g = e^(ikr) / (4 pi r)
+    let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
+    // dg = -(1/r - ik) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
+    let f1 = Cplx::new(1.0 / rdist, -k);
+    let rdotx = e_r.dot(&e_nx);
+    let rdoty = e_r.dot(&e_ny);
+    let dg = -g * f1 * rdotx;
+    // dh = {(1/r - ik) * (n_y dot n_x) + (k^2 * r - 3 * (1/r - ik)) * (r dot n_y) * (r dot n_x)} * g
+    let dh = g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
+    return (dg, dh)
 }
 
 // Methods for numerically-integrated elements
@@ -61,7 +89,7 @@ impl NIElement <'_> {
                   element_type: etype.clone()}
     }
     #[inline]
-    fn get_num_nodes(&self) -> usize {
+    pub fn get_num_nodes(&self) -> usize {
         match self.element_type {
             ElementType::Tri => 3,
             ElementType::Quad => 4,
@@ -118,8 +146,20 @@ impl NIElement <'_> {
         }
         return x;
     }
+    /// Get natural coordinates corresponding to node index
+    pub fn natural_coordinates_at_node(&self, i: usize) -> Gp {
+        match self.element_type {
+            ElementType::Tri => {
+                TRINODES[i]
+            },
+            ElementType::Quad => {
+                QUADNODES[i]
+            },
+            _ => Gp {coords: [0.0, 0.0], wt: 0.0}
+        }
+    }
     /// Get normal vector (non-normalized) at the given natural coordinates
-    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
+    pub fn normal_vector_at_gp(&self, gp: &Gp) -> Vector3<f64> {
         match self.element_type {
             ElementType::Tri => {
                 let enodes = &self.mesh.elements[self.element_id].node_ids;
@@ -153,20 +193,22 @@ impl NIElement <'_> {
     fn detj_at(&self, gp: &Gp) -> f64 {
         // Calculate using the normal vector, since it is return un-scaled
         match self.element_type {
-            ElementType::Tri => 0.5 * self.normal_vector_at(gp).norm(),
-            ElementType::Quad => 0.25 * self.normal_vector_at(gp).norm(),
+            ElementType::Tri => 0.5 * self.normal_vector_at_gp(gp).norm(),
+            ElementType::Quad => 0.25 * self.normal_vector_at_gp(gp).norm(),
             _ => 0.0
         }
     }
-    /// Numerically integrate the influence matrices from this element to a given origin point
-    pub fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
+    /// Numerically integrate the influence matrices from this element to a given origin point (x)
+    pub fn influence_matrices_at(&self, k: f64, xnode: &usize) -> (Vec::<Cplx>, Vec::<Cplx>) {
         let mut h = vec![Cplx::new(0.0, 0.0); self.get_num_nodes()];
         let mut g = h.clone();
+        let x = &self.mesh.nodes[*xnode].coords;
+        let n_x = &self.mesh.nodes[*xnode].normal;
         for gp in &self.integration {
-            let normal = self.normal_vector_at(gp);
+            let n_y = self.normal_vector_at_gp(gp);
             let detj = self.detj_at(gp);
-            let x = self.coordinates_at(gp);
-            let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
+            let y = self.coordinates_at(gp);
+            let (g_gp, h_gp) = get_greens_functions(k, x, &y, &n_y);
             let n = self.shape_functions_at(gp);
             for i in 0..n.len() {
                 h[i] += h_gp * n[i] * detj * gp.wt;

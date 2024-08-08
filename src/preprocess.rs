@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::path::Path;
 
+use crate::elements::NIElement;
 use crate::Cplx;
 
 pub fn get_num_threads() -> usize {
@@ -77,6 +78,8 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
 
     let body_id = &input.body_index;
 
+    process_node_normals(&mut mesh, *body_id);
+
     // preprocess to get node to eqn map
     let (eqn_map, node_map, revcon) = get_eqn_map(&mut mesh, *body_id);
 
@@ -89,17 +92,17 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
                    ifreq: 0};
 }
 
-fn get_eqn_map(meshdata: &mut mesh_data::Mesh, body_id: usize) 
+fn get_eqn_map(mesh: &mut mesh_data::Mesh, body_id: usize) 
     -> (HashMap::<usize, usize>, 
         HashMap::<usize, usize>, 
         Vec<Vec<usize>>) {
     // create a map from node index to eqn index
-    let nnode = meshdata.nodes.len();
-    let ibody = &meshdata.bodies[body_id-1];
+    let nnode = mesh.nodes.len();
+    let ibody = &mesh.bodies[body_id-1];
     let mut revcon = vec![Vec::<usize>::new(); nnode];
     // Push the elements that are at each node
     for element_id in &ibody.element_ids {
-        let element = &meshdata.elements[*element_id];
+        let element = &mesh.elements[*element_id];
         for node_id in &element.node_ids {
             revcon[*node_id].push(*element_id);
         }
@@ -117,7 +120,7 @@ fn get_eqn_map(meshdata: &mut mesh_data::Mesh, body_id: usize)
     }
     // Add equation numbers to elements
     for element_id in &ibody.element_ids {
-        let element = &mut meshdata.elements[*element_id];
+        let element = &mut mesh.elements[*element_id];
         for node_id in &element.node_ids { 
             if let Some(eqn) = eqn_map.get(node_id) {
                 element.eqn_idx.push(*eqn);
@@ -125,4 +128,26 @@ fn get_eqn_map(meshdata: &mut mesh_data::Mesh, body_id: usize)
         }
     }
     return (eqn_map, node_map, revcon);
+}
+
+/// Calculate node normals using surface elements
+fn process_node_normals(mesh: &mut mesh_data::Mesh, body_id: usize) {
+    let nnode = mesh.nodes.len();
+    let mut normals =  vec![na::Vector3::<f64>::new(0.0, 0.0, 0.0); nnode];
+    let ibody = &mesh.bodies[body_id-1];
+    for element_id in &ibody.element_ids {
+        let element = NIElement::new(&mesh, *element_id);
+        // get nodes at this element, sum the normal into the normal at each node
+        for i in 0..element.get_num_nodes() {
+            let inode = &mesh.elements[*element_id].node_ids[i];
+            let gp = element.natural_coordinates_at_node(i);
+            let normal = element.normal_vector_at_gp(&gp);
+            // sum together non-normalized normals, this will weight the average normal towards bigger elements
+            normals[*inode] += normal;
+        }
+    }
+    // save to mesh data, normalize now
+    for i in 0..nnode {
+        mesh.nodes[i].normal = normals[i].normalize();
+    }
 }
