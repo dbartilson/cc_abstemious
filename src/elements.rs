@@ -33,39 +33,32 @@ use na::{DMatrix, Vector3};
 use crate::Cplx;
 use crate::preprocess::mesh_data::{Coords, ElementType, Mesh};
 
-/// Calculate the Green's function (g) and its derivative (h) for the given origin (x), destination (y),
+/// Calculate classical and 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
 /// normal vector at y (non-normalized), and wavenumber (k)
-fn get_greens_functions(k: f64, x: &Coords, y: &Coords, n_y: &Vector3<f64>) -> (Cplx, Cplx) {
-    let e_ny = n_y / n_y.norm();
-    let r = x - y;
-    let rdist = r.norm();
-    let e_r = r / rdist;
-    // g = e^(ikr) / (4 pi r)
-    let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
-    // h = (1/r - ik) * g * (r dot n), where r and n are unit vectors -> (r dot n) is a direction cosine
-    let h = g * Cplx::new(1.0 / rdist, -k) * e_r.dot(&e_ny);
-    return (g, h)
-}
-
-/// Calculate 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
-/// normal vector at y (non-normalized), and wavenumber (k)
-fn get_hs_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, y: &Coords, n_y: &Vector3<f64>) 
-    -> (Cplx, Cplx) {
+fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, 
+                           y: &Coords, n_y: &Vector3<f64>, use_hypersingular: bool) -> (Cplx, Cplx) {
     let e_nx = n_x / n_x.norm();
     let e_ny = n_y / n_y.norm();
     let r = x - y;
     let rdist = r.norm();
     let e_r = r / rdist;
     // g = e^(ikr) / (4 pi r)
-    let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
-    // dg = -(1/r - ik) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
+    let mut g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
+    // h = (1/r - ik) * g * (r dot n_y), where r and n are unit vectors -> (r dot n) is a direction cosine
     let f1 = Cplx::new(1.0 / rdist, -k);
-    let rdotx = e_r.dot(&e_nx);
     let rdoty = e_r.dot(&e_ny);
-    let dg = -g * f1 * rdotx;
-    // dh = {(1/r - ik) * (n_y dot n_x) + (k^2 * r - 3 * (1/r - ik)) * (r dot n_y) * (r dot n_x)} * g
-    let dh = g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
-    return (dg, dh)
+    let mut h = g * Cplx::new(1.0 / rdist, -k) * e_r.dot(&e_ny);
+    if use_hypersingular {
+        // dg = -(1/r - ik) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
+        let rdotx = e_r.dot(&e_nx);
+        let dg = -g * f1 * rdotx;
+        // dh = {(1/r - ik) * (n_y dot n_x) + (k^2 * r - 3 * (1/r - ik)) * (r dot n_y) * (r dot n_x)} * g
+        let dh = g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
+        let gamma = Cplx::new(0.0, k);
+        g += gamma * dg;
+        h += gamma * dh;
+    }
+    return (g, h)
 }
 
 // Methods for numerically-integrated elements
@@ -199,16 +192,15 @@ impl NIElement <'_> {
         }
     }
     /// Numerically integrate the influence matrices from this element to a given origin point (x)
-    pub fn influence_matrices_at(&self, k: f64, xnode: &usize) -> (Vec::<Cplx>, Vec::<Cplx>) {
+    pub fn influence_matrices_at(&self, k: f64, x: &Coords, n_x: &Vector3<f64>, use_hypersingular: bool) 
+        -> (Vec::<Cplx>, Vec::<Cplx>) {
         let mut h = vec![Cplx::new(0.0, 0.0); self.get_num_nodes()];
         let mut g = h.clone();
-        let x = &self.mesh.nodes[*xnode].coords;
-        let n_x = &self.mesh.nodes[*xnode].normal;
         for gp in &self.integration {
             let n_y = self.normal_vector_at_gp(gp);
             let detj = self.detj_at(gp);
             let y = self.coordinates_at(gp);
-            let (g_gp, h_gp) = get_greens_functions(k, x, &y, &n_y);
+            let (g_gp, h_gp) = get_greens_functions(k, x, n_x, &y, &n_y, use_hypersingular);
             let n = self.shape_functions_at(gp);
             for i in 0..n.len() {
                 h[i] += h_gp * n[i] * detj * gp.wt;

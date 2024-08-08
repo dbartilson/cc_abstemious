@@ -135,6 +135,20 @@ For the three possible boundary conditions, this is solved as:
 \end{array}
 ```
 
+## Burton-Miller Method
+
+In its classical form, the boundary integral formulation suffers from problems where interior mode frequencies can be present in exterior analyses. The Burton-Miller method is one technique for avoiding this issue. First, consider the 'hypersingular' formulation of the boundary integral equation which is equal to the derivative of the classical formulation with respect to the normal vector at $`\mathbf{x}`$:
+
+```math
+\int_S \phi (\mathbf{y}) dh(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) dg(\mathbf{x}, \mathbf{y}) d\mathbf{y} = v_{n}(\mathbf{x})/2
+```
+
+where 
+```math
+dg(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{x})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{n}(\mathbf{x})) \\
+dh(\mathbf{x}, \mathbf{y}) = \frac{\partial h(\mathbf{x}, \mathbf{y}) }{\partial n(\mathbf{x})} = 
+```
+
 ## Field solution
 
 Once the velocity potential and normal velocity fields are known on the surface, the velocity potential for an arbitrary point $`\mathbf{x}`$ in the interior or exterior field can be found from the general solution via: 

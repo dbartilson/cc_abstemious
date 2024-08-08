@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3, DVector};
 
-use crate::preprocess;
+use crate::preprocess::{self, input_data};
 use crate::elements::*;
 use crate::Cplx;
 
@@ -23,6 +23,7 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
 
     let hdiag = predata.get_hdiag();
     let num_threads = preprocess::get_num_threads();
+    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
     // use a parallel pool of threads
     info!(" Using {} threads...", num_threads);
     let mut pool = Pool::new(num_threads as u32);
@@ -37,7 +38,9 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
                 let e_eqns = &mesh.elements[*e_id].eqn_idx;
                 let element = NIElement::new(&mesh, *e_id);
                 for (inode, ieqn) in eqn_map {
-                    let (he, ge) = element.influence_matrices_at(k, inode);
+                    let x = &mesh.nodes[*inode].coords;
+                    let n_x = &mesh.nodes[*inode].normal;
+                    let (he, ge) = element.influence_matrices_at(k, x, n_x, use_hypersingular);
                     let mut hi = h_share.lock().unwrap();
                     let mut gi = g_share.lock().unwrap();
                     for j in 0..e_eqns.len() {
@@ -69,13 +72,14 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
 
     let mut m = DMatrix::<Cplx>::from_element(nfp, num_eqn,  Cplx::new(0.,0.));
     let mut l = m.clone();
+    let n_x = Vector3::new(0.0, 0.0, 0.0); // dummy
     for e in 0..nelem {
         let e_id = &mesh_body.element_ids[e];
         let e_eqns = &mesh.elements[*e_id].eqn_idx;
         let element = NIElement::new(&mesh, *e_id);
         for (i, fieldpt) in field_points.iter().enumerate()  {
             let x = Vector3::from_column_slice(fieldpt);
-            let (me, le) = element.influence_matrices_at(k, &x);
+            let (me, le) = element.influence_matrices_at(k, &x, &n_x, false);
             for j in 0..e_eqns.len() {
                 m[(i, e_eqns[j])] += me[j];
                 l[(i, e_eqns[j])] += le[j];
@@ -157,6 +161,7 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
     let mesh = predata.get_mesh();
     let k = predata.get_wavenumber();
     let num_column = j.len();
+    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
     let mut el_list = HashSet::<usize>::new();
     for jeqn in j {
         if let Some(node_index) = predata.get_node_map().get(jeqn) {
@@ -172,12 +177,13 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
         None => {error!("Node index not found for equation {}", i); &0}
     };
     let x = &mesh.nodes[*inode].coords;
+    let n_x = &mesh.nodes[*inode].normal;
     let mut h = DVector::<Cplx>::from_element(num_column, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
     for e in el_list {
         let e_eqns = &mesh.elements[e].eqn_idx;
         let element = NIElement::new(&mesh, e);
-        let (he, ge) = element.influence_matrices_at(k, x);
+        let (he, ge) = element.influence_matrices_at(k, x, n_x, use_hypersingular);
         for k in 0..e_eqns.len() {
             if let Some(index) = j.iter().position(|&r| r == e_eqns[k]) {
                 h[index] += he[k];
@@ -197,7 +203,7 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
 
     let mesh = predata.get_mesh();
     let k = predata.get_wavenumber();
-
+    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
     let num_eqn = i.len();
 
     // find node index corresponding to equation j
@@ -224,7 +230,8 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
                 None => {error!("Node index not found for equation {}", ieqn); &0}
             };
             let x = &mesh.nodes[*inode].coords;
-            let (he, ge) = element.influence_matrices_at(k, x);
+            let n_x = &mesh.nodes[*inode].normal;
+            let (he, ge) = element.influence_matrices_at(k, x, n_x, use_hypersingular);
             h[eqn_index] += he[index];
             g[eqn_index] += ge[index];
         }

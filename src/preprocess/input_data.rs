@@ -10,7 +10,7 @@ pub enum ProblemType {
     Exterior
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq)]
 pub enum MethodType {
     Classical,
     BurtonMiller

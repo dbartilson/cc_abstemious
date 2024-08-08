@@ -42,6 +42,8 @@ impl PreData {
     #[inline]
     pub fn get_problem_type(&self) -> &input_data::ProblemType {return &self.input.problem_type;}
     #[inline]
+    pub fn get_method_type(&self) -> &input_data::MethodType {return &self.input.method_type;}
+    #[inline]
     pub fn get_hdiag(&self) -> Cplx {
         match self.get_problem_type() {
             // the H matrix has -1/2 added along the diagonal for exterior problems
@@ -49,23 +51,44 @@ impl PreData {
             input_data::ProblemType::Interior => Cplx::new(0.0, 0.0)
         }
     }
+    #[inline]
+    pub fn get_gdiag(&self) -> Cplx {
+        match self.get_method_type() {
+            // the G matrix has -1/2 added along the diagonal for Burton-Miller formulation
+            input_data::MethodType::Classical => Cplx::new(0.0, 0.0),
+            input_data::MethodType::BurtonMiller => Cplx::new(0.5, 0.0)
+        }
+    }
     pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}
+    #[inline]
     pub fn get_solver_type(&self) -> &input_data::SolverType {return &self.input.solver.s_type;}
+    #[inline]
     pub fn get_solver_tolerance(&self) -> f64 {return self.input.solver.tolerance;}
+    #[inline]
     pub fn get_solver_max_it(&self) -> usize {return self.input.solver.max_iterations;}
+    #[inline]
     pub fn get_incident_wave(&self) -> &input_data::IncidentWaveInput {return &self.input.incident_wave;}
+    #[inline]
     pub fn get_surface_bc(&self) -> &input_data::SurfaceBoundaryCondition {return &self.input.surface_bc;}
+    #[inline]
     /// get map from node index to equation index
     pub fn get_eqn_map(&self) -> &HashMap<usize, usize> {return &self.eqn_map;}
+    #[inline]
     /// get map from equation index to node index
     pub fn get_node_map(&self) -> &HashMap<usize, usize> {return &self.node_map;}
+    #[inline]
     /// get list of elements at each node
     pub fn get_revcon(&self) -> &Vec<Vec<usize>> {return &self.revcon;}
+    #[inline]
     pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
+    #[inline]
     pub fn get_num_eqn(&self) -> usize {return self.eqn_map.len();}
     pub fn get_output_filename(&self) -> &String {return &self.input.output.file;}
+    #[inline]
     pub fn get_output_field(&self) -> &input_data::OutputField {return &self.input.output.field;}
+    #[inline]
     pub fn get_output_type(&self) -> &input_data::OutputType {return &self.input.output.o_type;}
+    #[inline]
     pub fn get_field_points(&self) -> &Vec<[f64; 3]> {return &self.input.output.field_points;}
 }
 
