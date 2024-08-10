@@ -91,11 +91,13 @@ impl <'a>Analysis {
             info!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);
             self.freq_index = i;
 
-            let (phi_inc, phi_inc_fp) = incident_wave::get_incident_wave(predata);
+            let rhs_inc = incident_wave::get_incident_surface(predata);
 
-            let (phi, vn) = solve::solve_for_surface(predata, &phi_inc);
+            let (phi, vn) = solve::solve_for_surface(predata, &rhs_inc);
         
             let (m, l) = influence_matrix::get_dense_field_matrices(predata);
+
+            let phi_inc_fp = incident_wave::get_incident_field(predata);
             
             let phi_fp = solve::get_field(predata, &m, &l, &phi, &vn, &phi_inc_fp);
 

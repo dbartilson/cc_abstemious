@@ -198,3 +198,30 @@ fn rigid_sphere_plane_wave_hmatrix() {
     assert_relative_eq!(fpi.re, -0.000037691808364705085, epsilon = 1.0e-10, max_relative = 1.0);
     assert_relative_eq!(fpi.im, 0.00052593677314449229, epsilon = 1.0e-10, max_relative = 1.0);
 }
+
+#[test]
+fn rigid_sphere_plane_wave_burton_miller() {
+    let mut analysis = cc_abstemious::Analysis::new();
+    let mut input = default_input();
+    input.method_type = MethodType::BurtonMiller;
+    input.frequency = vec![100.0];
+    // water
+    input.sound_speed = 1500.0;
+    input.mass_density = 1000.0;
+    // incident wave
+    input.incident_wave.origin = [1.0, 0.0, 0.0];
+    input.incident_wave.wave_type = WaveType::PlaneWave;
+    input.incident_wave.amplitude = [1.0, 0.0];
+    let radius = 10.0;
+    let theta = 0.0;
+    let x = radius * f64::cos(theta);
+    let y = radius * f64::sin(theta);
+    input.output.field_points.push([x, y, 0.0]);
+
+    analysis.set_input(input);
+    analysis.run();
+    let fp = analysis.get_result();
+    let fpi = fp[0].scattered.as_ref().unwrap()[0];
+    assert_relative_eq!(fpi.re, -0.000037691808364705085, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00052593677314449229, epsilon = 1.0e-10);
+}

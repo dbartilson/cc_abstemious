@@ -9,20 +9,20 @@ use crate::influence_matrix::EqnSide;
 use crate::preprocess;
 use crate::Cplx;
 
-pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
     match predata.get_solver_type() {
         preprocess::input_data::SolverType::Direct |
         preprocess::input_data::SolverType::Iterative => {
-            get_surface_dense(predata, phi_inc)
+            get_surface_dense(predata, rhs_inc)
         }
         preprocess::input_data::SolverType::Hierarchical=> {
-            get_surface_hmatrix(predata, phi_inc)
+            get_surface_hmatrix(predata, rhs_inc)
         }
     }  
 }
 
-fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+fn get_surface_dense(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let (h, g) = influence_matrix::get_dense_surface_matrices(predata);
@@ -38,7 +38,7 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
         preprocess::input_data::BCType::Pressure => {
             let pressure_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             phi.fill(pressure_bc);
-            vn = phi_inc.clone();
+            vn = rhs_inc.clone();
             vn.gemv(Cplx::new(-1.0,0.0), &h, &phi, Cplx::new(1.0,0.0));
             //vn = phi_inc - h * phi; // rhs
             let lhs = g.clone();
@@ -47,7 +47,7 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
         preprocess::input_data::BCType::NormalVelocity => {
             let velocity_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             vn.fill(velocity_bc);
-            phi = phi_inc.clone();
+            phi = rhs_inc.clone();
             phi.gemv(Cplx::new(1.0,0.0), &g, &vn, Cplx::new(-1.0,0.0));
             //phi = g * vn - phi_inc; // rhs
             let lhs = h.clone();
@@ -62,7 +62,7 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
                     lhs[(i,j)] += factor * g[(i,j)];
                 }
             }
-            phi = -phi_inc.clone(); // rhs
+            phi = -rhs_inc.clone(); // rhs
             solve_dense(predata, &lhs, &mut phi);
             // back-compute for surface velocities
             vn.axpy(factor, &phi, Cplx::new(0.0,0.0));
@@ -72,12 +72,12 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
 }
 
 
-fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
     let num_eqn = predata.get_num_eqn();
     let mut phi = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     let mut vn = phi.clone();
-    let mut rhs = phi_inc.clone();
+    let mut rhs = rhs_inc.clone();
     {
         info!(" Calculating RHS...");
         let get_row_or_column = |i: Vec<usize>, j: Vec<usize>| get_surface_row_or_column(predata, i, j, EqnSide::RHS);
@@ -107,7 +107,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
             }
             preprocess::input_data::BCType::Impedance => {
                 // solve for phi, but need to post-process for vn later
-                rhs.axpy(Cplx::new(0.0, 0.0), &phi_inc, Cplx::new(-1.0, 0.0));
+                rhs.axpy(Cplx::new(0.0, 0.0), &rhs_inc, Cplx::new(-1.0, 0.0));
             }
         }
     }

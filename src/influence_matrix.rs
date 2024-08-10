@@ -22,13 +22,14 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     let nelem = mesh_body.element_ids.len();
 
     let hdiag = predata.get_hdiag();
+    let gdiag = predata.get_gdiag();
     let num_threads = preprocess::get_num_threads();
     let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
     // use a parallel pool of threads
     info!(" Using {} threads...", num_threads);
     let mut pool = Pool::new(num_threads as u32);
     let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
-    let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_element(num_eqn, num_eqn, Cplx::new(0.,0.))));
+    let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, gdiag)));
     pool.scoped(|scope| {
         for e in 0..nelem {
             let h_share = h_share.clone();
@@ -193,6 +194,7 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
     }
     if let Some(diag) = j.iter().position(|&r| r == *i) {
         h[diag] += predata.get_hdiag();
+        g[diag] += predata.get_gdiag();
     }
 
     return (h, g)
@@ -238,6 +240,7 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
     }
     if let Some(diag) = i.iter().position(|&r| r == *j) {
         h[diag] += predata.get_hdiag();
+        g[diag] += predata.get_gdiag();
     }
 
     return (h, g)

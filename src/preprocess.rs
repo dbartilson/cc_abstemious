@@ -51,12 +51,11 @@ impl PreData {
             input_data::ProblemType::Interior => Cplx::new(0.0, 0.0)
         }
     }
-    #[inline]
     pub fn get_gdiag(&self) -> Cplx {
         match self.get_method_type() {
-            // the G matrix has -1/2 added along the diagonal for Burton-Miller formulation
+            // the G matrix has 1/2 added along the diagonal for Burton-Miller formulation
             input_data::MethodType::Classical => Cplx::new(0.0, 0.0),
-            input_data::MethodType::BurtonMiller => Cplx::new(0.5, 0.0)
+            input_data::MethodType::BurtonMiller => Cplx::new(0.0 , 0.5 / self.get_wavenumber())
         }
     }
     pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}

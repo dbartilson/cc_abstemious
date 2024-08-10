@@ -47,16 +47,17 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
     // h = (1/r - ik) * g * (r dot n_y), where r and n are unit vectors -> (r dot n) is a direction cosine
     let f1 = Cplx::new(1.0 / rdist, -k);
     let rdoty = e_r.dot(&e_ny);
-    let mut h = g * Cplx::new(1.0 / rdist, -k) * e_r.dot(&e_ny);
+    let mut h = g * f1 * rdoty;
     if use_hypersingular {
         // dg = -(1/r - ik) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
         let rdotx = e_r.dot(&e_nx);
         let dg = -g * f1 * rdotx;
-        // dh = {(1/r - ik) * (n_y dot n_x) + (k^2 * r - 3 * (1/r - ik)) * (r dot n_y) * (r dot n_x)} * g
-        let dh = g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
-        let gamma = Cplx::new(0.0, k);
-        g += gamma * dg;
-        h += gamma * dh;
+        // dh = {(1/r - ik) * (n_y dot n_x) + (k^2 * r - 3 * (1/r - ik)) * (r dot n_y) * (r dot n_x)} * g / r
+        let dh = 1.0 / rdist * g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
+        // coupling parameter gamma = i/k
+        let beta = Cplx::new(0.0, 1.0 / k);
+        g += beta * dg;
+        h += beta * dh;
     }
     return (g, h)
 }
