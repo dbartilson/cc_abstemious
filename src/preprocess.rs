@@ -47,7 +47,7 @@ impl PreData {
     pub fn get_hdiag(&self) -> Cplx {
         match self.get_problem_type() {
             // the H matrix has -1/2 added along the diagonal for exterior problems
-            input_data::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
+            input_data::ProblemType::Exterior => Cplx::new(0.0, 0.0),
             input_data::ProblemType::Interior => Cplx::new(0.0, 0.0)
         }
     }

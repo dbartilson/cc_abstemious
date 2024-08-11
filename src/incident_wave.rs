@@ -32,7 +32,7 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                 let coord = &mesh.nodes[*inode].coords;
                 // phi_inc = A * exp(ik (x dot d))
                 let phi_inc = amp * Cplx::new(0., k * vec3.dot(coord)).exp();
-                rhs_inc[*ieqn] = phi_inc;
+                //rhs_inc[*ieqn] = phi_inc;
                 if is_burton_miller {
                     // vn_inc = phi_inc * ik * (e_n dot d)
                     let normal = &mesh.nodes[*inode].normal;

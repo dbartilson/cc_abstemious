@@ -56,6 +56,8 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
         let dh = 1.0 / rdist * g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
         // coupling parameter gamma = i/k
         let beta = Cplx::new(0.0, 1.0 / k);
+        g = Cplx::new(0.0, 0.0);
+        h = Cplx::new(0.0, 0.0);
         g += beta * dg;
         h += beta * dh;
     }
