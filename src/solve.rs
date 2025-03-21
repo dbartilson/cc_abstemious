@@ -195,13 +195,13 @@ mod tests {
 
         let mut rng = StdRng::seed_from_u64(seed);
         for ai in a.iter_mut() {
-            ai.re += rng.gen::<f64>();
-            ai.im += rng.gen::<f64>();
+            ai.re += rng.random::<f64>();
+            ai.im += rng.random::<f64>();
         }
         let mut b = na::DVector::<Cplx>::from_element(n, Cplx::new(0.0, 0.0));
         for bi in b.iter_mut() {
-            bi.re = rng.gen::<f64>();
-            bi.im = rng.gen::<f64>();
+            bi.re = rng.random::<f64>();
+            bi.im = rng.random::<f64>();
         }
         return (a, b)
     }
