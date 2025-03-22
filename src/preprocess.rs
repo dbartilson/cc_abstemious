@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::path::Path;
 
+use mesh_data::Mesh;
+
 use crate::elements::NIElement;
 use crate::Cplx;
 
@@ -81,7 +83,9 @@ impl PreData {
     #[inline]
     pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
     #[inline]
-    pub fn get_num_eqn(&self) -> usize {return self.eqn_map.len();}
+    pub fn get_cpts(&self) -> &Vec<mesh_data::CollocationPoint> {return &self.mesh.cpts}
+    #[inline]
+    pub fn get_num_eqn(&self) -> usize {return self.mesh.cpts.len();}
     pub fn get_output_filename(&self) -> &String {return &self.input.output.file;}
     #[inline]
     pub fn get_output_field(&self) -> &input_data::OutputField {return &self.input.output.field;}

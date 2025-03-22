@@ -5,13 +5,12 @@ type Cplx = Complex<f64>;
 
 /// return the incident velocity potential and normal velocity on the surface
 pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
-    let mesh = predata.get_mesh();
-    let eqn_map = predata.get_eqn_map();
+    let cpts = predata.get_cpts();
     let k = predata.get_wavenumber();
     let is_burton_miller = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
     let beta = Cplx::new(0.0, 1.0 / k);
 
-    let num_eqn = eqn_map.len();
+    let num_eqn = predata.get_num_eqn();
 
     // incident rhs can be 
     // phi_inc                  for classical method
@@ -28,33 +27,33 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
     vec3.normalize_mut();
     match inc_wave.wave_type {
         preprocess::input_data::WaveType::PlaneWave => {
-            for (inode, ieqn) in eqn_map {
-                let coord = &mesh.nodes[*inode].coords;
+            for cpt in cpts {
+                let coord = &cpt.coords;
                 // phi_inc = A * exp(ik (x dot d))
                 let phi_inc = amp * Cplx::new(0., k * vec3.dot(coord)).exp();
-                rhs_inc[*ieqn] = phi_inc;
+                rhs_inc[cpt.id] = phi_inc;
                 if is_burton_miller {
                     // vn_inc = phi_inc * ik * (e_n dot d)
-                    let normal = &mesh.nodes[*inode].normal;
+                    let normal = &cpt.normal;
                     let vn_inc = phi_inc * Cplx::new(0.0, k) * vec3.dot(normal);
-                    rhs_inc[*ieqn] += beta * vn_inc
+                    rhs_inc[cpt.id] += beta * vn_inc
                 }
             }
         }
         preprocess::input_data::WaveType::SphericalWave => {
-            for (inode, ieqn) in eqn_map {
-                let coord = &mesh.nodes[*inode].coords;
+            for cpt in cpts {
+                let coord = &cpt.coords;
                 let rvec = coord - vec3;
                 let r = rvec.magnitude();
                 let e_r = rvec / r;
                 // phi_inc = A / (4 pi r) * exp(ikr)
                 let phi_inc = amp * Cplx::new(0., k * r).exp() / (4.0 * PI * r);
-                rhs_inc[*ieqn] = phi_inc;
+                rhs_inc[cpt.id] = phi_inc;
                 if is_burton_miller {
                     // vn_inc = phi_inc * (ik - 1/r) * (e_n dot e_r)
-                    let normal = &mesh.nodes[*inode].normal;
+                    let normal = &cpt.normal;
                     let vn_inc = phi_inc * Cplx::new(-1.0 / r, k) * e_r.dot(normal);
-                    rhs_inc[*ieqn] += beta * vn_inc
+                    rhs_inc[cpt.id] += beta * vn_inc
                 }
             }
         }

@@ -105,6 +105,7 @@ impl GMRES{
         let mut h = DMatrix::<Cplx>::from_element(m+1, m, c_zero);
         let mut hk1 = DVector::<Cplx>::from_element(m+1, c_zero);
         for k in 0..m {
+            if error.is_nan() { error!("GMRES error is NaN!"); }
             info!("   Iteration: {}, Error: {:10.3e}", k, error);
             self.arnoldi(&q, k, &mut qk1, &mut hk1);
             Self::apply_givens_rotation(&mut hk1, &mut cs, &mut sn, k);

@@ -14,54 +14,6 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
 
     info!(" Assembling surface BEM influence matrices...");
     let mesh = predata.get_mesh();
-    let eqn_map = predata.get_eqn_map();
-    let k = predata.get_wavenumber();
-
-    let num_eqn = eqn_map.len();
-    let mesh_body = predata.get_mesh_body();
-    let nelem = mesh_body.element_ids.len();
-
-    let hdiag = predata.get_hdiag();
-    let gdiag = predata.get_gdiag();
-    let num_threads = preprocess::get_num_threads();
-    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
-    // use a parallel pool of threads
-    info!(" Using {} threads...", num_threads);
-    let mut pool = Pool::new(num_threads as u32);
-    let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
-    let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, gdiag)));
-    pool.scoped(|scope| {
-        for e in 0..nelem {
-            let h_share = h_share.clone();
-            let g_share = g_share.clone();
-            scope.execute(move|| {
-                let e_id = &mesh_body.element_ids[e];
-                let e_eqns = &mesh.elements[*e_id].eqn_idx;
-                let element = NIElement::new(&mesh, *e_id);
-                for (inode, ieqn) in eqn_map {
-                    let x = &mesh.nodes[*inode].coords;
-                    let n_x = &mesh.nodes[*inode].normal;
-                    let (he, ge) = element.influence_matrices_at(k, x, n_x, use_hypersingular);
-                    let mut hi = h_share.lock().unwrap();
-                    let mut gi = g_share.lock().unwrap();
-                    for j in 0..e_eqns.len() {
-                        hi[(*ieqn, e_eqns[j])] += he[j];
-                        gi[(*ieqn, e_eqns[j])] += ge[j];
-                    }
-                }
-            });
-        }
-    });
-    let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
-    let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
-    return (h, g)
-}
-
-pub fn get_dense_surface_matrices2(predata: &preprocess::PreData) 
-    -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
-
-    info!(" Assembling surface BEM influence matrices...");
-    let mesh = predata.get_mesh();
     let k = predata.get_wavenumber();
 
     let num_eqn = mesh.cpts.len();
@@ -80,11 +32,12 @@ pub fn get_dense_surface_matrices2(predata: &preprocess::PreData)
         for i in 0..ncpts {
             let cpti = &mesh.cpts[i];
             let y = &cpti.coords;
-            let n_y = &cpti.coords;
+            let n_y = &cpti.normal;
             let h_share = h_share.clone();
             let g_share = g_share.clone();
             scope.execute(move|| {
                 for j in 0..ncpts {
+                    if i == j { continue; } // omit singular points
                     let cptj = &mesh.cpts[j];
                     let x = &cptj.coords;
                     let n_x = &cptj.normal;
@@ -99,6 +52,11 @@ pub fn get_dense_surface_matrices2(predata: &preprocess::PreData)
     });
     let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
     let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
+    // for i in 0..10 {
+    //     for j in 0..10 {
+    //         info!("H({},{}) = {}", i, j, h[(i,j)]);
+    //     }
+    // }
     return (h, g)
 }
 
@@ -114,7 +72,7 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
     let nfp = field_points.len();
     let mesh_body = predata.get_mesh_body();
     let ncpts = mesh.cpts.len();
-    let num_eqn = eqn_map.len();
+    let num_eqn = predata.get_num_eqn();
 
     let mut m = DMatrix::<Cplx>::from_element(nfp, num_eqn,  Cplx::new(0.,0.));
     let mut l = m.clone();
@@ -126,8 +84,8 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
         for (i, fieldpt) in field_points.iter().enumerate()  {
             let x = Vector3::from_column_slice(fieldpt);
             let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, false);
-            m[(i, j)] += h_j;
-            l[(i, j)] += g_j;
+            m[(i, j)] += h_j * cptj.dw;
+            l[(i, j)] += g_j * cptj.dw;
         }
     }
     return (m, l);
