@@ -35,7 +35,7 @@ use crate::preprocess::mesh_data::{CollocationPoint, Coords, ElementType, Mesh};
 
 /// Calculate classical and 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
 /// normal vector at y (non-normalized), and wavenumber (k)
-fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, 
+pub fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, 
                            y: &Coords, n_y: &Vector3<f64>, use_hypersingular: bool) -> (Cplx, Cplx) {
     let e_nx = n_x / n_x.norm();
     let e_ny = n_y / n_y.norm();
@@ -91,6 +91,10 @@ impl NIElement <'_> {
             ElementType::Quad => 4,
             _ => 0
         }
+    }
+    #[inline]
+    pub fn get_num_cpts(&self) -> usize {
+        return self.integration.len();
     }
     /// Get shape functions for this element at the given natural coordinates
     fn shape_functions_at(&self, gp: &Gp) -> Vec<f64> {

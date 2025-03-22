@@ -57,6 +57,51 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     return (h, g)
 }
 
+pub fn get_dense_surface_matrices2(predata: &preprocess::PreData) 
+    -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
+
+    info!(" Assembling surface BEM influence matrices...");
+    let mesh = predata.get_mesh();
+    let k = predata.get_wavenumber();
+
+    let num_eqn = mesh.cpts.len();
+    let ncpts = mesh.cpts.len();
+
+    let hdiag = predata.get_hdiag();
+    let gdiag = predata.get_gdiag();
+    let num_threads = preprocess::get_num_threads();
+    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
+    // use a parallel pool of threads
+    info!(" Using {} threads...", num_threads);
+    let mut pool = Pool::new(num_threads as u32);
+    let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
+    let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, gdiag)));
+    pool.scoped(|scope| {
+        for i in 0..ncpts {
+            let cpti = &mesh.cpts[i];
+            let y = &cpti.coords;
+            let n_y = &cpti.coords;
+            let h_share = h_share.clone();
+            let g_share = g_share.clone();
+            scope.execute(move|| {
+                for j in 0..ncpts {
+                    let cptj = &mesh.cpts[j];
+                    let x = &cptj.coords;
+                    let n_x = &cptj.normal;
+                    let (g_j, h_j) = get_greens_functions(k, x, n_x, y, n_y, use_hypersingular);
+                    let mut hi = h_share.lock().unwrap();
+                    let mut gi = g_share.lock().unwrap();
+                    hi[(i, j)] += h_j * cptj.dw;
+                    gi[(i, j)] += g_j * cptj.dw;
+                }
+            });
+        }
+    });
+    let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
+    let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
+    return (h, g)
+}
+
 /// evaluate the field BEM influence matrices. These matrices are complex-valued, and typically rectangular
 pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
 
@@ -68,23 +113,21 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
     let field_points = predata.get_field_points();
     let nfp = field_points.len();
     let mesh_body = predata.get_mesh_body();
-    let nelem = mesh_body.element_ids.len();
+    let ncpts = mesh.cpts.len();
     let num_eqn = eqn_map.len();
 
     let mut m = DMatrix::<Cplx>::from_element(nfp, num_eqn,  Cplx::new(0.,0.));
     let mut l = m.clone();
     let n_x = Vector3::new(0.0, 0.0, 0.0); // dummy
-    for e in 0..nelem {
-        let e_id = &mesh_body.element_ids[e];
-        let e_eqns = &mesh.elements[*e_id].eqn_idx;
-        let element = NIElement::new(&mesh, *e_id);
+    for j in 0..ncpts {
+        let cptj = &mesh.cpts[j];
+        let y = &cptj.coords;
+        let n_y = &cptj.normal;
         for (i, fieldpt) in field_points.iter().enumerate()  {
             let x = Vector3::from_column_slice(fieldpt);
-            let (me, le) = element.influence_matrices_at(k, &x, &n_x, false);
-            for j in 0..e_eqns.len() {
-                m[(i, e_eqns[j])] += me[j];
-                l[(i, e_eqns[j])] += le[j];
-            }
+            let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, false);
+            m[(i, j)] += h_j;
+            l[(i, j)] += g_j;
         }
     }
     return (m, l);
