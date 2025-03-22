@@ -31,7 +31,7 @@ pub mod interpolation {
 use interpolation::*;
 use na::{DMatrix, Vector3};
 use crate::Cplx;
-use crate::preprocess::mesh_data::{Coords, ElementType, Mesh};
+use crate::preprocess::mesh_data::{CollocationPoint, Coords, ElementType, Mesh};
 
 /// Calculate classical and 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
 /// normal vector at y (non-normalized), and wavenumber (k)
@@ -211,5 +211,15 @@ impl NIElement <'_> {
             }
         }
         return (h, g)
+    }
+    pub fn get_integration_points_and_normals(&self) -> Vec<CollocationPoint> {
+        let mut result: Vec<CollocationPoint> = Vec::new();
+        for gp in &self.integration {
+            let y = self.coordinates_at(gp);
+            let n_y = self.normal_vector_at_gp(gp);
+            let dw = self.detj_at(gp) * gp.wt;
+            result.push(CollocationPoint { id: 0, coords: y, normal: n_y, dw: dw })
+        }
+        return result
     }
 }

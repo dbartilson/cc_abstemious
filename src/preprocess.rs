@@ -102,6 +102,8 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
 
     process_node_normals(&mut mesh, *body_id);
 
+    process_collocation_pts(&mut mesh, *body_id);
+
     // preprocess to get node to eqn map
     let (eqn_map, node_map, revcon) = get_eqn_map(&mut mesh, *body_id);
 
@@ -171,5 +173,22 @@ fn process_node_normals(mesh: &mut mesh_data::Mesh, body_id: usize) {
     // save to mesh data, normalize now
     for i in 0..nnode {
         mesh.nodes[i].normal = normals[i].normalize();
+    }
+}
+
+/// Calculate the collocation points and normals using surface elements
+fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) {
+    let ibody = &mesh.bodies[body_id-1];
+    let mut i: usize = 0;
+    for element_id in &ibody.element_ids {
+        let element = NIElement::new(&mesh, *element_id);
+        // get collocation points for this element
+        let ecpts= element.get_integration_points_and_normals();
+        // dump into global data
+        for mut ecpt in ecpts {
+            ecpt.id = i;
+            mesh.cpts.push(ecpt);
+            i += 1;
+        }
     }
 }

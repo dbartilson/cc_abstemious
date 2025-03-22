@@ -70,17 +70,26 @@ pub struct Node {
     pub normal: Vector3<f64>
 }
 
+pub struct CollocationPoint {
+    pub id: usize,
+    pub coords: Coords,
+    pub normal: Vector3<f64>,
+    pub dw: f64 // detj * wt at this point
+}
+
 pub struct Mesh {
     pub nodes: Vec<Node>,
     pub elements: Vec<Element>,
     pub bodies: Vec<Body>,
+    pub cpts: Vec<CollocationPoint>
 }
 impl Default for Mesh {
     fn default() -> Mesh {
         Mesh {
             nodes: Vec::new(),
             elements: Vec::new(),
-            bodies: Vec::new()
+            bodies: Vec::new(), 
+            cpts: Vec::new()
         }
     }
 }
