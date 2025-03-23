@@ -5,8 +5,6 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::path::Path;
 
-use mesh_data::Mesh;
-
 use crate::elements::NIElement;
 use crate::Cplx;
 

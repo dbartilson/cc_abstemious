@@ -7,6 +7,8 @@ pub mod interpolation {
     pub static TRINODES: [Gp; 3] = [Gp{coords: [0.0, 0.0], wt: 1./3.}, 
                                     Gp{coords: [1.0, 0.0], wt: 1./3.}, 
                                     Gp{coords: [0.0, 1.0], wt: 1./3.}];
+    pub static TRIGP1: [Gp; 1] = [Gp{coords: [1./3., 1./3.], wt: 1.0}];
+    #[allow(dead_code)]
     pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
                                   Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
                                   Gp{coords: [2./3., 1./6.], wt: 1./3.}];
@@ -22,6 +24,8 @@ pub mod interpolation {
                                      Gp{coords: [ 1.0, -1.0], wt: 1.0}, 
                                      Gp{coords: [ 1.0,  1.0], wt: 1.0},
                                      Gp{coords: [-1.0,  1.0], wt: 1.0}];
+    pub static QUADGP1: [Gp; 1] = [Gp{coords: [0., 0.], wt: 4.0}];
+    #[allow(dead_code)]
     pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
@@ -56,8 +60,8 @@ pub fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
         let dh = 1.0 / rdist * g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
         // coupling parameter gamma = i/k
         let beta = Cplx::new(0.0, 1.0 / k);
-        g = Cplx::new(0.0, 0.0);
-        h = Cplx::new(0.0, 0.0);
+        //g = Cplx::new(0.0, 0.0); // for testing HBIE
+        //h = Cplx::new(0.0, 0.0);
         g += beta * dg;
         h += beta * dh;
     }
@@ -75,8 +79,8 @@ impl NIElement <'_> {
     pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> NIElement <'a> {
         let etype = &meshdata.elements[element].etype;
         let int = match etype.clone() {
-            ElementType::Tri => TRIGP3.to_vec(),
-            ElementType::Quad => QUADGP4.to_vec(),
+            ElementType::Tri => TRIGP1.to_vec(),
+            ElementType::Quad => QUADGP1.to_vec(),
             _ => {error!("Invalid numerically integrated element"); Vec::new()}
         };
         NIElement{integration: int, 
@@ -91,10 +95,6 @@ impl NIElement <'_> {
             ElementType::Quad => 4,
             _ => 0
         }
-    }
-    #[inline]
-    pub fn get_num_cpts(&self) -> usize {
-        return self.integration.len();
     }
     /// Get shape functions for this element at the given natural coordinates
     fn shape_functions_at(&self, gp: &Gp) -> Vec<f64> {

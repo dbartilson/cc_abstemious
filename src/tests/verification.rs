@@ -141,8 +141,8 @@ fn rigid_sphere_plane_wave() {
     analysis.run();
     let fp = analysis.get_result();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000037691808364705085, epsilon = 1.0e-10, max_relative = 1.0);
-    assert_relative_eq!(fpi.im, 0.00052593677314449229, epsilon = 1.0e-10, max_relative = 1.0);
+    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
 }
 
 #[test]
@@ -168,8 +168,8 @@ fn rigid_sphere_plane_wave_iterative() {
     analysis.run();
     let fp = analysis.get_result();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000037691808364705085, epsilon = 1.0e-10, max_relative = 1.0);
-    assert_relative_eq!(fpi.im, 0.00052593677314449229, epsilon = 1.0e-10, max_relative = 1.0);
+    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-8);
+    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-8);
 }
 
 #[test]
@@ -195,8 +195,8 @@ fn rigid_sphere_plane_wave_hmatrix() {
     analysis.run();
     let fp = analysis.get_result();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000037691808364705085, epsilon = 1.0e-10, max_relative = 1.0);
-    assert_relative_eq!(fpi.im, 0.00052593677314449229, epsilon = 1.0e-10, max_relative = 1.0);
+    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
 }
 
 #[test]
@@ -222,6 +222,6 @@ fn rigid_sphere_plane_wave_burton_miller() {
     analysis.run();
     let fp = analysis.get_result();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000037691808364705085, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00052593677314449229, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
 }

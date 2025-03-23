@@ -52,11 +52,6 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     });
     let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
     let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
-    // for i in 0..10 {
-    //     for j in 0..10 {
-    //         info!("H({},{}) = {}", i, j, h[(i,j)]);
-    //     }
-    // }
     return (h, g)
 }
 
@@ -65,12 +60,10 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
 
     info!(" Calculating field results...");
     let mesh = predata.get_mesh();
-    let eqn_map = predata.get_eqn_map();
     let k = predata.get_wavenumber();
 
     let field_points = predata.get_field_points();
     let nfp = field_points.len();
-    let mesh_body = predata.get_mesh_body();
     let ncpts = mesh.cpts.len();
     let num_eqn = predata.get_num_eqn();
 
