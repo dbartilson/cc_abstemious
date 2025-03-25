@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3, DVector};
 
-use crate::preprocess::{self, input_data};
+use crate::preprocess;
 use crate::elements::*;
 use crate::Cplx;
 
@@ -25,7 +25,6 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
 
     info!(" Assembling surface BEM influence matrices...");
-    let k = predata.get_wavenumber();
 
     let num_eqn = predata.get_num_eqn();
     let ncpts = predata.get_cpts().len();
@@ -33,7 +32,6 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     let hdiag = predata.get_hdiag();
     let gdiag = predata.get_gdiag();
     let num_threads = preprocess::get_num_threads();
-    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
     // use a parallel pool of threads
     info!(" Using {} threads...", num_threads);
     let mut pool = Pool::new(num_threads as u32);

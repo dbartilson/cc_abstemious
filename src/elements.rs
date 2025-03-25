@@ -198,24 +198,6 @@ impl NIElement <'_> {
             _ => 0.0
         }
     }
-    /// Numerically integrate the influence matrices from this element to a given origin point (x)
-    pub fn influence_matrices_at(&self, k: f64, x: &Coords, n_x: &Vector3<f64>, use_hypersingular: bool) 
-        -> (Vec::<Cplx>, Vec::<Cplx>) {
-        let mut h = vec![Cplx::new(0.0, 0.0); self.get_num_nodes()];
-        let mut g = h.clone();
-        for gp in &self.integration {
-            let n_y = self.normal_vector_at_gp(gp);
-            let detj = self.detj_at(gp);
-            let y = self.coordinates_at(gp);
-            let (g_gp, h_gp) = get_greens_functions(k, x, n_x, &y, &n_y, use_hypersingular);
-            let n = self.shape_functions_at(gp);
-            for i in 0..n.len() {
-                h[i] += h_gp * n[i] * detj * gp.wt;
-                g[i] += g_gp * n[i] * detj * gp.wt;
-            }
-        }
-        return (h, g)
-    }
     pub fn get_integration_points_and_normals(&self) -> Vec<CollocationPoint> {
         let mut result: Vec<CollocationPoint> = Vec::new();
         for gp in &self.integration {

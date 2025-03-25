@@ -54,7 +54,7 @@ impl PreData {
     }
     pub fn get_gdiag(&self) -> Cplx {
         match self.get_method_type() {
-            // the G matrix has 1/2 added along the diagonal for Burton-Miller formulation
+            // the G matrix has 1/2 (ultimately beta/2, where beta = i/k) added along the diagonal for Burton-Miller formulation
             input_data::MethodType::Classical => Cplx::new(0.0, 0.0),
             input_data::MethodType::BurtonMiller => Cplx::new(0.0 , 0.5 / self.get_wavenumber())
         }
@@ -76,7 +76,6 @@ impl PreData {
     #[inline]
     /// get map from equation index to node index
     pub fn get_node_map(&self) -> &HashMap<usize, usize> {return &self.node_map;}
-    #[inline]
     #[inline]
     pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
     #[inline]
@@ -111,44 +110,6 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
                    eqn_map: eqn_map, 
                    node_map: node_map,
                    ifreq: 0};
-}
-
-fn get_eqn_map(mesh: &mut mesh_data::Mesh, body_id: usize) 
-    -> (HashMap::<usize, usize>, 
-        HashMap::<usize, usize>, 
-        Vec<Vec<usize>>) {
-    // create a map from node index to eqn index
-    let nnode = mesh.nodes.len();
-    let ibody = &mesh.bodies[body_id-1];
-    let mut revcon = vec![Vec::<usize>::new(); nnode];
-    // Push the elements that are at each node
-    for element_id in &ibody.element_ids {
-        let element = &mesh.elements[*element_id];
-        for node_id in &element.node_ids {
-            revcon[*node_id].push(*element_id);
-        }
-    }
-    // Scroll through all used eqns in order and put in map
-    let mut eqn_map = HashMap::<usize, usize>::new();
-    let mut node_map = HashMap::<usize, usize>::new();
-    let mut eqn_number: usize = 0;
-    for i in 0..revcon.len() {
-        if !revcon[i].is_empty() {
-            eqn_map.insert(i, eqn_number);
-            node_map.insert(eqn_number, i);
-            eqn_number += 1;
-        }
-    }
-    // Add equation numbers to elements
-    for element_id in &ibody.element_ids {
-        let element = &mut mesh.elements[*element_id];
-        for node_id in &element.node_ids { 
-            if let Some(eqn) = eqn_map.get(node_id) {
-                element.eqn_idx.push(*eqn);
-            }
-        }
-    }
-    return (eqn_map, node_map, revcon);
 }
 
 /// Calculate node normals using surface elements

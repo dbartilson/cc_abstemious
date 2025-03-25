@@ -4,7 +4,7 @@ mod block;
 use std::{collections::HashMap, rc::Rc, sync::{Arc, Mutex}};
 use na::{DMatrix, DVector};
 use scoped_threadpool::Pool;
-use crate::{preprocess::{self, mesh_data::{CollocationPoint, Node}}, Cplx};
+use crate::{preprocess::{self, mesh_data::CollocationPoint}, Cplx};
 use cluster::Cluster;
 use block::{BlockTree, BlockList};
 
