@@ -20,7 +20,6 @@ pub struct PreData {
     mesh: mesh_data::Mesh,
     eqn_map: HashMap<usize,usize>, 
     node_map: HashMap<usize,usize>,
-    revcon: Vec<Vec<usize>>,
     ifreq: usize // current frequency index
 }
 
@@ -43,6 +42,8 @@ impl PreData {
     pub fn get_problem_type(&self) -> &input_data::ProblemType {return &self.input.problem_type;}
     #[inline]
     pub fn get_method_type(&self) -> &input_data::MethodType {return &self.input.method_type;}
+    #[inline]
+    pub fn use_hypersingular(&self) -> bool {return self.input.method_type == input_data::MethodType::BurtonMiller;}
     #[inline]
     pub fn get_hdiag(&self) -> Cplx {
         match self.get_problem_type() {
@@ -76,8 +77,6 @@ impl PreData {
     /// get map from equation index to node index
     pub fn get_node_map(&self) -> &HashMap<usize, usize> {return &self.node_map;}
     #[inline]
-    /// get list of elements at each node
-    pub fn get_revcon(&self) -> &Vec<Vec<usize>> {return &self.revcon;}
     #[inline]
     pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
     #[inline]
@@ -104,17 +103,13 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
 
     process_node_normals(&mut mesh, *body_id);
 
-    process_collocation_pts(&mut mesh, *body_id);
-
-    // preprocess to get node to eqn map
-    let (eqn_map, node_map, revcon) = get_eqn_map(&mut mesh, *body_id);
+    let (eqn_map, node_map) = process_collocation_pts(&mut mesh, *body_id);
 
     // take ownership of input data
     return PreData{input, 
                    mesh: mesh, 
                    eqn_map: eqn_map, 
                    node_map: node_map,
-                   revcon: revcon,
                    ifreq: 0};
 }
 
@@ -179,7 +174,9 @@ fn process_node_normals(mesh: &mut mesh_data::Mesh, body_id: usize) {
 }
 
 /// Calculate the collocation points and normals using surface elements
-fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) {
+fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) -> 
+    (HashMap::<usize, usize>, 
+     HashMap::<usize, usize>) {
     let ibody = &mesh.bodies[body_id-1];
     let mut i: usize = 0;
     for element_id in &ibody.element_ids {
@@ -193,4 +190,15 @@ fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) {
             i += 1;
         }
     }
+
+    // Scroll through all used eqns in order and put in map
+    let mut eqn_map = HashMap::<usize, usize>::new();
+    let mut cpt_map = HashMap::<usize, usize>::new();
+    let mut eqn_number: usize = 0;
+    for i in 0..mesh.cpts.len() {
+        eqn_map.insert(i, eqn_number);
+        cpt_map.insert(eqn_number, i);
+        eqn_number += 1;
+    }
+    return (eqn_map, cpt_map)
 }

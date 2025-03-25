@@ -195,8 +195,8 @@ fn rigid_sphere_plane_wave_hmatrix() {
     analysis.run();
     let fp = analysis.get_result();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -3.9380308176032198e-05, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00047605563272935873, epsilon = 1.0e-10);
 }
 
 #[test]

@@ -168,7 +168,7 @@ impl ACA
             index += 1;
         }
         // Deal with zero-index for size and iter
-        index += 1;
+        index = std::cmp::max(1, std::cmp::min(sigma.len(), index+1));
         // Reassemble U * V^T = (Q_u * W * Sigma) * (Z^H * Q_v^T)
         self.uv.truncate(index);
         for i in 0..index {

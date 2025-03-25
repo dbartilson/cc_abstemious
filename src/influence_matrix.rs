@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3, DVector};
@@ -7,17 +6,29 @@ use crate::preprocess::{self, input_data};
 use crate::elements::*;
 use crate::Cplx;
 
+fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx, Cplx) {
+    if i == j { return (Cplx::new(0.0, 0.0), Cplx::new(0.0, 0.0)) }
+    
+    let cpti = &predata.get_cpts()[i];
+    let y = &cpti.coords;
+    let n_y = &cpti.normal;
+    let cptj = &predata.get_cpts()[j];
+    let x = &cptj.coords;
+    let n_x = &cptj.normal;
+    let (g, h) = get_greens_functions(predata.get_wavenumber(), x, n_x, y, n_y, predata.use_hypersingular());
+    return (g * cptj.dw, h * cptj.dw)
+}
+
 /// evaluate the surface BEM influence matrices. These matrices are complex-valued,
 /// square, and non-symmetric in general
 pub fn get_dense_surface_matrices(predata: &preprocess::PreData) 
     -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
 
     info!(" Assembling surface BEM influence matrices...");
-    let mesh = predata.get_mesh();
     let k = predata.get_wavenumber();
 
-    let num_eqn = mesh.cpts.len();
-    let ncpts = mesh.cpts.len();
+    let num_eqn = predata.get_num_eqn();
+    let ncpts = predata.get_cpts().len();
 
     let hdiag = predata.get_hdiag();
     let gdiag = predata.get_gdiag();
@@ -30,22 +41,15 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, gdiag)));
     pool.scoped(|scope| {
         for i in 0..ncpts {
-            let cpti = &mesh.cpts[i];
-            let y = &cpti.coords;
-            let n_y = &cpti.normal;
             let h_share = h_share.clone();
             let g_share = g_share.clone();
             scope.execute(move|| {
                 for j in 0..ncpts {
-                    if i == j { continue; } // omit singular points
-                    let cptj = &mesh.cpts[j];
-                    let x = &cptj.coords;
-                    let n_x = &cptj.normal;
-                    let (g_j, h_j) = get_greens_functions(k, x, n_x, y, n_y, use_hypersingular);
+                    let (g_j, h_j) = get_gh_functions(predata, i, j);
                     let mut hi = h_share.lock().unwrap();
                     let mut gi = g_share.lock().unwrap();
-                    hi[(i, j)] += h_j * cptj.dw;
-                    gi[(i, j)] += g_j * cptj.dw;
+                    hi[(i, j)] += h_j;
+                    gi[(i, j)] += g_j;
                 }
             });
         }
@@ -153,38 +157,13 @@ pub fn get_surface_row_or_column(predata: &preprocess::PreData,
 fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<usize>) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
 
-    let mesh = predata.get_mesh();
-    let k = predata.get_wavenumber();
     let num_column = j.len();
-    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
-    let mut el_list = HashSet::<usize>::new();
-    for jeqn in j {
-        if let Some(node_index) = predata.get_node_map().get(jeqn) {
-            let els = &predata.get_revcon()[*node_index];
-            for el in els {
-                el_list.insert(*el);
-            }
-        }
-    }
-    // find node index corresponding to equation j
-    let inode = match predata.get_node_map().get(i) {
-        Some(node) => node,
-        None => {error!("Node index not found for equation {}", i); &0}
-    };
-    let x = &mesh.nodes[*inode].coords;
-    let n_x = &mesh.nodes[*inode].normal;
     let mut h = DVector::<Cplx>::from_element(num_column, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
-    for e in el_list {
-        let e_eqns = &mesh.elements[e].eqn_idx;
-        let element = NIElement::new(&mesh, e);
-        let (he, ge) = element.influence_matrices_at(k, x, n_x, use_hypersingular);
-        for k in 0..e_eqns.len() {
-            if let Some(index) = j.iter().position(|&r| r == e_eqns[k]) {
-                h[index] += he[k];
-                g[index] += ge[k];
-            }
-        }
+    for (index, jeqn) in j.iter().enumerate() {
+        let (g_j, h_j) = get_gh_functions(&predata, *i, *jeqn);
+        h[index] += h_j;
+        g[index] += g_j;
     }
     if let Some(diag) = j.iter().position(|&r| r == *i) {
         h[diag] += predata.get_hdiag();
@@ -197,40 +176,13 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
 fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j: &usize) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
 
-    let mesh = predata.get_mesh();
-    let k = predata.get_wavenumber();
-    let use_hypersingular = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
-    let num_eqn = i.len();
-
-    // find node index corresponding to equation j
-    let jnode = match predata.get_node_map().get(j) {
-        Some(node) => node,
-        None => {error!("Node index not found for equation {}", j); &0}
-    };
-    // get list of elements at this node
-    let el_list = &predata.get_revcon()[*jnode];
-    if el_list.is_empty() {error!("Element list is empty for node {}",j);}
-    let mut h = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0.0, 0.0));
+    let num_row = i.len();
+    let mut h = DVector::<Cplx>::from_element(num_row, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
-    for e_id in el_list {
-        let enodes = &mesh.elements[*e_id].node_ids;
-        // find which node index of this element corresponds to this column
-        let index = match enodes.iter().position(|&r| r == *jnode) {
-            Some(found) => found,
-            None => {error!("Node not found for element"); 0}
-        };
-        let element = NIElement::new(&mesh, *e_id);
-        for (eqn_index, ieqn) in i.iter().enumerate() {
-            let inode = match predata.get_node_map().get(ieqn) {
-                Some(node) => node,
-                None => {error!("Node index not found for equation {}", ieqn); &0}
-            };
-            let x = &mesh.nodes[*inode].coords;
-            let n_x = &mesh.nodes[*inode].normal;
-            let (he, ge) = element.influence_matrices_at(k, x, n_x, use_hypersingular);
-            h[eqn_index] += he[index];
-            g[eqn_index] += ge[index];
-        }
+    for (index, ieqn) in i.iter().enumerate() {
+        let (g_j, h_j) = get_gh_functions(&predata, *ieqn, *j);
+        h[index] += h_j;
+        g[index] += g_j;
     }
     if let Some(diag) = i.iter().position(|&r| r == *j) {
         h[diag] += predata.get_hdiag();

@@ -4,7 +4,7 @@ mod block;
 use std::{collections::HashMap, rc::Rc, sync::{Arc, Mutex}};
 use na::{DMatrix, DVector};
 use scoped_threadpool::Pool;
-use crate::{preprocess::{self, mesh_data::Node}, Cplx};
+use crate::{preprocess::{self, mesh_data::{CollocationPoint, Node}}, Cplx};
 use cluster::Cluster;
 use block::{BlockTree, BlockList};
 
@@ -126,13 +126,13 @@ impl HMatrix {
     }
     pub fn new_from<F>(n: usize, 
                    get_row_or_column: &F, 
-                   nodes: &Vec<Node>, 
+                   cpts: &Vec<CollocationPoint>, 
                    eqn_map: &HashMap::<usize, usize>,
                    leaf_cardinality: usize, 
                    tolerance: f64) -> HMatrix 
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
         info!("  Building hierarchical matrix decomposition...");
-        let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), leaf_cardinality, eqn_map));
+        let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), leaf_cardinality, eqn_map));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let block_list = BlockList::new_from(&block_tree);
         let mut mat = HMatrix {
@@ -250,19 +250,20 @@ impl HMatrix {
 mod tests {
     use std::collections::HashMap;
     use na::{DMatrix, DVector, Vector3};
-    use crate::{preprocess::mesh_data::Node, solve::{h_matrix, tests::generate_random_ab}, Cplx};
+    use crate::{preprocess::mesh_data::CollocationPoint, solve::{h_matrix, tests::generate_random_ab}, Cplx};
 
-    fn get_hyperbolic_matrix(n: usize) -> (Vec::<Node>, HashMap::<usize, usize>,
+    fn get_hyperbolic_matrix(n: usize) -> (Vec::<CollocationPoint>, HashMap::<usize, usize>,
         DMatrix::<Cplx>, DVector::<Cplx>) {
         let mut hmap = HashMap::<usize, usize>::new();
-        let mut nodes = Vec::<Node>::new();
+        let mut nodes = Vec::<CollocationPoint>::new();
         let mut i = 0;
         for j in 0..n {
             for k in 0..n {
-                nodes.push(Node { 
+                nodes.push(CollocationPoint { 
                     id: i, 
                     coords: Vector3::new(j as f64 / n as f64, k as f64 / n as f64, 0.0),
-                    normal: Vector3::from_element(0.0)});
+                    normal: Vector3::from_element(0.0),
+                    dw: 0.0});
                 hmap.insert(i, i);
                 i += 1;
             }
@@ -297,20 +298,20 @@ mod tests {
     }
     #[test]
     fn get_hmatrix() {
-        let (nodes, hmap, a, b) = get_hyperbolic_matrix(10);
+        let (cpts, hmap, a, b) = get_hyperbolic_matrix(10);
         let get_row_or_column = |i,j| get_row_or_column(&a, i, j);
         // build ACA of matrix and compare norms
-        let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &nodes, &hmap, 20, 1e-4);
+        let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &cpts, &hmap, 20, 1e-4);
         let a_hm = hm.to_full();
         let eps = (a_hm - a.clone()).norm() / a.norm();
         approx::assert_relative_eq!(eps, 0.0, epsilon = 1.0e-6);
     }
     #[test]
     fn mult_hmatrix() {
-        let (nodes, hmap, a, b) = get_hyperbolic_matrix(20);
+        let (cpts, hmap, a, b) = get_hyperbolic_matrix(20);
         let get_row_or_column = |i,j| get_row_or_column(&a, i, j);
         // build ACA of matrix and compare norms
-        let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &nodes, &hmap, 20, 1e-4);
+        let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &cpts, &hmap, 20, 1e-4);
         // compare matrix multiplication against random vector for both
         let mut x1 = b.clone();
         x1.gemv(Cplx::new(1.0, 0.0), &a, &b, Cplx::new(0.0, 0.0));

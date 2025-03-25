@@ -99,43 +99,45 @@ impl BlockList {
 mod tests {
     use std::{collections::HashMap, rc::Rc};
     use na::Vector3;
-    use crate::{preprocess::mesh_data::Node, solve::h_matrix::{block::{BlockTree, BlockList}, cluster::Cluster}};
+    use crate::{preprocess::mesh_data::CollocationPoint, solve::h_matrix::{block::{BlockList, BlockTree}, cluster::Cluster}};
 
     #[test]
     fn build_block_tree() {
         let mut hmap = HashMap::<usize, usize>::new();
-        let mut nodes = Vec::<Node>::new();
+        let mut cpts = Vec::<CollocationPoint>::new();
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                nodes.push(Node { 
+                cpts.push(CollocationPoint { 
                     id: i, 
                     coords: Vector3::new(j as f64, k as f64, 0.0),
-                    normal: Vector3::from_element(0.0)});
+                    normal: Vector3::from_element(0.0),
+                    dw: 0.0});
                 hmap.insert(i, i);
                 i += 1;
             }
         }
-        let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), 32, &hmap));
+        let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), 32, &hmap));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         assert_eq!(block_tree.children[1].children[1].children[1].admissible, true)
     }
     #[test]
     fn flatten_block_tree() {
         let mut hmap = HashMap::<usize, usize>::new();
-        let mut nodes = Vec::<Node>::new();
+        let mut cpts = Vec::<CollocationPoint>::new();
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                nodes.push(Node { 
+                cpts.push(CollocationPoint { 
                     id: i, 
                     coords: Vector3::new(j as f64, k as f64, 0.0),
-                    normal: Vector3::from_element(0.0)});
+                    normal: Vector3::from_element(0.0),
+                    dw: 0.0});
                 hmap.insert(i, i);
                 i += 1;
             }
         }
-        let cluster_tree = Rc::new(Cluster::new_from(&nodes, (0..nodes.len()).collect(), 32, &hmap));
+        let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), 32, &hmap));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let block_list = BlockList::new_from(&block_tree);
         assert_eq!(block_list.list[5].admissible, true);
