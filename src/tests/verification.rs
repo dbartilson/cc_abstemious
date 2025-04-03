@@ -66,12 +66,12 @@ fn rigid_sphere_plane_wave_ring() {
     analysis.write_results_at_frequency(0);
 }
 
-#[allow(dead_code)]
-//#[test]
+//#[allow(dead_code)]
+#[test]
 fn rigid_sphere_plane_wave_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.mesh_file = "./src/tests/refined_sphere.vtk".to_string();
+    //input.mesh_file = "./src/tests/refined_sphere.vtk".to_string();
     input.method_type = MethodType::BurtonMiller;
     input.frequency = FrequencyInput::LinearSpaced { start: 10.0, end: 1000.0, number: 50 };
     // water
