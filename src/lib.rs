@@ -8,6 +8,7 @@ mod incident_wave;
 mod influence_matrix;
 mod solve;
 mod postprocess;
+mod tools;
 
 pub mod analysis;
 pub use analysis::Analysis as Analysis;

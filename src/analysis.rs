@@ -11,7 +11,7 @@ use crate::solve;
 use crate::postprocess;
 
 const VER_MAJOR: usize = 1;
-const VER_MINOR: usize = 1; 
+const VER_MINOR: usize = 2; 
 
 enum AnalysisState {
     PostInput,

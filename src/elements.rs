@@ -4,6 +4,7 @@ pub mod interpolation {
         pub coords: [f64; 2],
         pub wt: f64,
     }
+    #[allow(dead_code)]
     pub static TRINODES: [Gp; 3] = [Gp{coords: [0.0, 0.0], wt: 1./3.}, 
                                     Gp{coords: [1.0, 0.0], wt: 1./3.}, 
                                     Gp{coords: [0.0, 1.0], wt: 1./3.}];
@@ -20,6 +21,7 @@ pub mod interpolation {
                                   Gp{coords: [0.445948490915965, 0.108103018168070], wt: 0.223381589678011},
                                   Gp{coords: [0.108103018168070, 0.445948490915965], wt: 0.223381589678011}];
     static ONEOVERSQRT3: f64 = 0.57735026919;
+    #[allow(dead_code)]
     pub static QUADNODES: [Gp; 4] = [Gp{coords: [-1.0, -1.0], wt: 1.0}, 
                                      Gp{coords: [ 1.0, -1.0], wt: 1.0}, 
                                      Gp{coords: [ 1.0,  1.0], wt: 1.0},
@@ -115,6 +117,7 @@ impl NIElement <'_> {
         return x;
     }
     /// Get natural coordinates corresponding to node index
+    #[allow(dead_code)]
     pub fn natural_coordinates_at_node(&self, i: usize) -> Gp {
         match self.element_type {
             ElementType::Tri => {

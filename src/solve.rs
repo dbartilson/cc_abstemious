@@ -4,8 +4,7 @@ pub mod h_matrix;
 
 use na::{DMatrix, DVector};
 use crate::influence_matrix;
-use crate::influence_matrix::get_surface_row_or_column;
-use crate::influence_matrix::EqnSide;
+use crate::influence_matrix::{get_surface_row_or_column, EqnSide};
 use crate::preprocess;
 use crate::Cplx;
 
