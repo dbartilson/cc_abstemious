@@ -20,6 +20,7 @@ pub struct PreData {
     mesh: mesh_data::Mesh,
     eqn_map: HashMap<usize,usize>, 
     node_map: HashMap<usize,usize>,
+    frequency_list: Vec<f64>,
     ifreq: usize // current frequency index
 }
 
@@ -27,9 +28,9 @@ impl PreData {
     pub fn set_frequency_index(&mut self, index: &usize) {self.ifreq = *index;}
 
     #[inline]
-    pub fn get_frequencies(&self) -> &Vec<f64> {return &self.input.frequency;}
+    pub fn get_frequencies(&self) -> &Vec<f64> {return &self.frequency_list;}
     #[inline]
-    pub fn get_frequency(&self) -> f64 {return self.input.frequency[self.ifreq];}
+    pub fn get_frequency(&self) -> f64 {return self.frequency_list[self.ifreq];}
     #[inline]
     pub fn get_angular_frequency(&self) -> f64 {return 2.0 * PI * self.get_frequency();}
     #[inline]
@@ -45,6 +46,10 @@ impl PreData {
     #[inline]
     pub fn use_hypersingular(&self) -> bool {return self.input.method_type == input_data::MethodType::BurtonMiller;}
     #[inline]
+    pub fn get_burton_miller_coupling_factor(&self) -> Cplx {return if self.use_hypersingular() 
+            {Cplx::new(0.0, 1.0 / self.get_wavenumber())
+            } else {Cplx::new(0.0, 0.0)}}
+    #[inline]
     pub fn get_hdiag(&self) -> Cplx {
         match self.get_problem_type() {
             // the H matrix has -1/2 added along the diagonal for exterior problems
@@ -52,13 +57,15 @@ impl PreData {
             input_data::ProblemType::Interior => Cplx::new(0.0, 0.0)
         }
     }
+    #[inline]
     pub fn get_gdiag(&self) -> Cplx {
         match self.get_method_type() {
             // the G matrix has 1/2 (ultimately beta/2, where beta = i/k) added along the diagonal for Burton-Miller formulation
             input_data::MethodType::Classical => Cplx::new(0.0, 0.0),
-            input_data::MethodType::BurtonMiller => Cplx::new(0.0 , 0.5 / self.get_wavenumber())
+            input_data::MethodType::BurtonMiller => 0.5 * self.get_burton_miller_coupling_factor()
         }
     }
+    #[inline]
     pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}
     #[inline]
     pub fn get_solver_type(&self) -> &input_data::SolverType {return &self.input.solver.s_type;}
@@ -100,7 +107,7 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
 
     let body_id = &input.body_index;
 
-    process_node_normals(&mut mesh, *body_id);
+    let frequency_list = process_frequency_list(&input.frequency);
 
     let (eqn_map, node_map) = process_collocation_pts(&mut mesh, *body_id);
 
@@ -109,31 +116,9 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
                    mesh: mesh, 
                    eqn_map: eqn_map, 
                    node_map: node_map,
+                   frequency_list,
                    ifreq: 0};
 }
-
-/// Calculate node normals using surface elements
-fn process_node_normals(mesh: &mut mesh_data::Mesh, body_id: usize) {
-    let nnode = mesh.nodes.len();
-    let mut normals =  vec![na::Vector3::<f64>::new(0.0, 0.0, 0.0); nnode];
-    let ibody = &mesh.bodies[body_id-1];
-    for element_id in &ibody.element_ids {
-        let element = NIElement::new(&mesh, *element_id);
-        // get nodes at this element, sum the normal into the normal at each node
-        for i in 0..element.get_num_nodes() {
-            let inode = &mesh.elements[*element_id].node_ids[i];
-            let gp = element.natural_coordinates_at_node(i);
-            let normal = element.normal_vector_at_gp(&gp);
-            // sum together non-normalized normals, this will weight the average normal towards bigger elements
-            normals[*inode] += normal;
-        }
-    }
-    // save to mesh data, normalize now
-    for i in 0..nnode {
-        mesh.nodes[i].normal = normals[i].normalize();
-    }
-}
-
 /// Calculate the collocation points and normals using surface elements
 fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) -> 
     (HashMap::<usize, usize>, 
@@ -162,4 +147,45 @@ fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) ->
         eqn_number += 1;
     }
     return (eqn_map, cpt_map)
+}
+
+pub fn linspace(start: f64, end: f64, npts: usize) -> Vec<f64> {
+    // evenly-spaced npts between start and end
+    let dx = (end - start) / ((npts - 1) as f64);
+    let mut x = vec![start; npts];
+    for i in 1..(npts-1) {
+        x[i] = start + dx * (i as f64);
+    }
+    x[npts-1] = end;
+    return x;
+}
+
+pub fn logspace(start: f64, end: f64, npts: usize) -> Vec<f64> {
+    // evenly-spaced npts between start and end, evaluated 
+    // such that there are equal intervals between log(start)
+    // and log(end)
+    let start_log = start.log10();
+    let end_log = end.log10();
+    let x_log = linspace(start_log, end_log, npts);
+    let mut x = vec![start; npts];
+    x[npts-1] = end;
+    for i in 1..(npts-1) {
+        x[i] = 10.0_f64.powf(x_log[i]);
+    }
+    return x;
+}
+
+fn process_frequency_list(freq_input: &input_data::FrequencyInput) 
+    -> Vec<f64> {
+    match freq_input {
+        input_data::FrequencyInput::List {values} => {
+            return values.to_vec();
+        },
+        input_data::FrequencyInput::LinearSpaced { start, end, number } => {
+            return linspace(*start, *end, *number);
+        },
+        input_data::FrequencyInput::LogSpaced { start, end, number } => {
+            return logspace(*start, *end, *number);
+        }
+    }
 }

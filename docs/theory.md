@@ -79,7 +79,7 @@ where $`\phi_I`$ is the incident wave (free-field) velocity potential. $`g`$ and
 
 ```math
 g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r} \\
-h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{y})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}))
+h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{y})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (-\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}))
 ```
 
 with $`\mathbf{r} = \mathbf{x} - \mathbf{y}`$ as the vector pointing from $`\mathbf{y}`$ to $`\mathbf{x}`$ and $`r = || \mathbf{r} ||`$ as the magnitude (distance) and $`\mathbf{e}_r = \mathbf{r}/r`$ as the unit vector form.
@@ -142,7 +142,7 @@ In its classical form, the boundary integral formulation suffers from problems w
 
 where 
 ```math
-dg(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{x})} = -\left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x})) \\
+dg(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{x})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x})) \\
 \begin{align*}
 dh(\mathbf{x}, \mathbf{y}) = \frac{\partial h(\mathbf{x}, \mathbf{y}) }{\partial n(\mathbf{x})} = g(\mathbf{x}, \mathbf{y}) &\left[  -\left(ik - \frac{1}{r}\right)\left( \mathbf{e}_n(\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{y}) \right) \right. + \\
 &\left.  \left( k^2 r + 3 \left(ik - \frac{1}{r}\right) \right) \left( \mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x}) \right) \left( \mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}) \right) \right]

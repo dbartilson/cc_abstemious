@@ -8,7 +8,7 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
     let cpts = predata.get_cpts();
     let k = predata.get_wavenumber();
     let is_burton_miller = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
-    let beta = Cplx::new(0.0, 1.0 / k);
+    let beta = predata.get_burton_miller_coupling_factor();
 
     let num_eqn = predata.get_num_eqn();
 
@@ -23,8 +23,7 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
     // amplitude in velocity potential units (phi = p / (i omega rho))
     let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
     let vector = &inc_wave.origin;
-    let mut vec3 = Vector3::from_column_slice(vector);
-    vec3.normalize_mut();
+    let vec3 = Vector3::from_column_slice(vector).normalize();
     match inc_wave.wave_type {
         preprocess::input_data::WaveType::PlaneWave => {
             for cpt in cpts {
@@ -36,7 +35,7 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                     // vn_inc = phi_inc * ik * (e_n dot d)
                     let normal = &cpt.normal;
                     let vn_inc = phi_inc * Cplx::new(0.0, k) * vec3.dot(normal);
-                    rhs_inc[cpt.id] += beta * vn_inc
+                    rhs_inc[cpt.id] += beta * vn_inc;
                 }
             }
         }
@@ -53,7 +52,7 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                     // vn_inc = phi_inc * (ik - 1/r) * (e_n dot e_r)
                     let normal = &cpt.normal;
                     let vn_inc = phi_inc * Cplx::new(-1.0 / r, k) * e_r.dot(normal);
-                    rhs_inc[cpt.id] += beta * vn_inc
+                    rhs_inc[cpt.id] += beta * vn_inc;
                 }
             }
         }

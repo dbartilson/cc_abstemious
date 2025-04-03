@@ -34,39 +34,7 @@ pub mod interpolation {
 
 use interpolation::*;
 use na::{DMatrix, Vector3};
-use crate::Cplx;
 use crate::preprocess::mesh_data::{CollocationPoint, Coords, ElementType, Mesh};
-
-/// Calculate classical and 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
-/// normal vector at y (non-normalized), and wavenumber (k)
-pub fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, 
-                           y: &Coords, n_y: &Vector3<f64>, use_hypersingular: bool) -> (Cplx, Cplx) {
-    let e_nx = n_x / n_x.norm();
-    let e_ny = n_y / n_y.norm();
-    let r = x - y;
-    let rdist = r.norm();
-    let e_r = r / rdist;
-    // g = e^(ikr) / (4 pi r)
-    let mut g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
-    // h = (1/r - ik) * g * (r dot n_y), where r and n are unit vectors -> (r dot n) is a direction cosine
-    let f1 = Cplx::new(1.0 / rdist, -k);
-    let rdoty = e_r.dot(&e_ny);
-    let mut h = g * f1 * rdoty;
-    if use_hypersingular {
-        // dg = -(1/r - ik) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
-        let rdotx = e_r.dot(&e_nx);
-        let dg = -g * f1 * rdotx;
-        // dh = {(1/r - ik) * (n_y dot n_x) + (k^2 * r - 3 * (1/r - ik)) * (r dot n_y) * (r dot n_x)} * g / r
-        let dh = 1.0 / rdist * g * (f1 * e_ny.dot(&e_nx) + (k*k*rdist - 3.0*f1) * rdotx * rdoty);
-        // coupling parameter gamma = i/k
-        let beta = Cplx::new(0.0, 1.0 / k);
-        //g = Cplx::new(0.0, 0.0); // for testing HBIE
-        //h = Cplx::new(0.0, 0.0);
-        g += beta * dg;
-        h += beta * dh;
-    }
-    return (g, h)
-}
 
 // Methods for numerically-integrated elements
 pub struct NIElement <'a> {
@@ -203,8 +171,8 @@ impl NIElement <'_> {
         for gp in &self.integration {
             let y = self.coordinates_at(gp);
             let n_y = self.normal_vector_at_gp(gp);
-            let dw = self.detj_at(gp) * gp.wt;
-            result.push(CollocationPoint { id: 0, coords: y, normal: n_y, dw: dw })
+            let area = self.detj_at(gp);
+            result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area: area, wt: gp.wt })
         }
         return result
     }

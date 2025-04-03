@@ -5,6 +5,13 @@ use std::error::Error;
 use std::path::Path;
 
 #[derive(Deserialize)]
+pub enum FrequencyInput {
+    List { values: Vec<f64> },
+    LinearSpaced { start: f64, end: f64, number: usize },
+    LogSpaced { start: f64, end: f64, number: usize }
+}
+
+#[derive(Deserialize)]
 pub enum ProblemType {
     Interior,
     Exterior
@@ -80,7 +87,7 @@ pub struct Output {
 pub struct UserInput {
     pub mesh_file: String,
     pub body_index: usize,
-    pub frequency: Vec<f64>,
+    pub frequency: FrequencyInput,
     pub sound_speed: f64,
     pub mass_density: f64,
     pub problem_type: ProblemType,

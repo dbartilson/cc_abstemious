@@ -128,7 +128,8 @@ mod tests {
                     id: i, 
                     coords: Vector3::new(j as f64, k as f64, 0.0),
                     normal: Vector3::from_element(0.0),
-                    dw: 1.0 } );
+                    area: 0.0,
+                    wt: 1.0 } );
                 hmap.insert(i, i);
                 i += 1;
             }

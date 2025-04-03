@@ -66,15 +66,15 @@ pub struct Body {
 #[derive(Clone)]
 pub struct Node {
     pub id: usize,
-    pub coords: Coords,
-    pub normal: Vector3<f64>
+    pub coords: Coords
 }
 
 pub struct CollocationPoint {
     pub id: usize,
     pub coords: Coords,
     pub normal: Vector3<f64>,
-    pub dw: f64 // detj * wt at this point
+    pub area: f64,
+    pub wt: f64 // detj * wt at this point
 }
 
 pub struct Mesh {
@@ -114,8 +114,7 @@ impl Mesh {
                     sline = buffer.split_whitespace();
                     let mut node_temp: Node = Node{
                         id: i, 
-                        coords:Coords::from_element(0.0),
-                        normal: Vector3::from_element(0.0)
+                        coords:Coords::from_element(0.0)
                     };
                     for j in 0..3 {
                         node_temp.coords[j] = sline.next().as_ref().unwrap().parse().unwrap();

@@ -9,7 +9,7 @@ fn default_input() -> UserInput {
     UserInput {
         mesh_file: "./src/tests/sphere.vtk".to_string(),
         body_index: 3,
-        frequency: Vec::new(),
+        frequency: FrequencyInput::List { values: vec![100.0] },
         sound_speed: 1.0,
         mass_density: 1.0,
         problem_type: ProblemType::Exterior,
@@ -37,38 +37,11 @@ fn default_input() -> UserInput {
     }
 }
 
-fn linspace(start: f64, end: f64, npts: usize) -> Vec<f64> {
-    // evenly-spaced npts between start and end
-    let dx = (end - start) / ((npts - 1) as f64);
-    let mut x = vec![start; npts];
-    for i in 1..(npts-1) {
-        x[i] = start + dx * (i as f64);
-    }
-    x[npts-1] = end;
-    return x;
-}
-
-#[allow(dead_code)]
-fn logspace(start: f64, end: f64, npts: usize) -> Vec<f64> {
-    // evenly-spaced npts between start and end, evaluated 
-    // such that there are equal intervals between log(start)
-    // and log(end)
-    let start_log = start.log10();
-    let end_log = end.log10();
-    let x_log = linspace(start_log, end_log, npts);
-    let mut x = vec![start; npts];
-    x[npts-1] = end;
-    for i in 1..(npts-1) {
-        x[i] = 10.0_f64.powf(x_log[i]);
-    }
-    return x;
-}
-
 #[allow(dead_code)]
 fn rigid_sphere_plane_wave_ring() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = vec![10.0];
+    input.frequency = FrequencyInput::List { values: vec![10.0] };
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
@@ -94,10 +67,13 @@ fn rigid_sphere_plane_wave_ring() {
 }
 
 #[allow(dead_code)]
+//#[test]
 fn rigid_sphere_plane_wave_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = linspace(10.0, 1000.0, 50);
+    input.mesh_file = "./src/tests/refined_sphere.vtk".to_string();
+    input.method_type = MethodType::BurtonMiller;
+    input.frequency = FrequencyInput::LinearSpaced { start: 10.0, end: 1000.0, number: 50 };
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
@@ -123,7 +99,7 @@ fn rigid_sphere_plane_wave_sweep() {
 fn rigid_sphere_plane_wave() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = vec![100.0];
+    input.frequency = FrequencyInput::List { values: vec![100.0] };
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
@@ -149,7 +125,7 @@ fn rigid_sphere_plane_wave() {
 fn rigid_sphere_plane_wave_iterative() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = vec![100.0];
+    input.frequency = FrequencyInput::List { values: vec![100.0] };
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
@@ -176,7 +152,7 @@ fn rigid_sphere_plane_wave_iterative() {
 fn rigid_sphere_plane_wave_hmatrix() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = vec![100.0];
+    input.frequency = FrequencyInput::List { values: vec![100.0] };
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
@@ -204,7 +180,7 @@ fn rigid_sphere_plane_wave_burton_miller() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.method_type = MethodType::BurtonMiller;
-    input.frequency = vec![100.0];
+    input.frequency = FrequencyInput::List { values: vec![100.0] };
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
