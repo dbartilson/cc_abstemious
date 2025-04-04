@@ -69,11 +69,7 @@ impl PreData {
     #[inline]
     pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}
     #[inline]
-    pub fn get_solver_type(&self) -> &input_data::SolverType {return &self.input.solver.s_type;}
-    #[inline]
-    pub fn get_solver_tolerance(&self) -> f64 {return self.input.solver.tolerance;}
-    #[inline]
-    pub fn get_solver_max_it(&self) -> usize {return self.input.solver.max_iterations;}
+    pub fn get_solver(&self) -> &input_data::Solver {return &self.input.solver}
     #[inline]
     pub fn get_incident_wave(&self) -> &input_data::IncidentWaveInput {return &self.input.incident_wave;}
     #[inline]

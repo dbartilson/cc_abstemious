@@ -24,17 +24,10 @@ pub enum MethodType {
 }
 
 #[derive(Deserialize)]
-pub enum SolverType {
-    Direct,
-    Iterative,
-    Hierarchical
-}
-
-#[derive(Deserialize)]
-pub struct Solver {
-    pub s_type: SolverType,
-    pub tolerance: f64,
-    pub max_iterations: usize
+pub enum Solver {
+    Direct {},
+    Iterative { tolerance: f64, max_iterations: usize},
+    Hierarchical { tolerance: f64, max_iterations: usize}
 }
 
 #[derive(Deserialize)]

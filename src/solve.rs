@@ -5,17 +5,17 @@ pub mod h_matrix;
 use na::{DMatrix, DVector};
 use crate::influence_matrix;
 use crate::influence_matrix::{get_surface_row_or_column, EqnSide};
-use crate::preprocess;
+use crate::preprocess::{self, input_data};
 use crate::Cplx;
 
 pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
-    match predata.get_solver_type() {
-        preprocess::input_data::SolverType::Direct |
-        preprocess::input_data::SolverType::Iterative => {
+    match predata.get_solver() {
+        preprocess::input_data::Solver::Direct {  } |
+        preprocess::input_data::Solver::Iterative { .. } => {
             get_surface_dense(predata, rhs_inc)
         }
-        preprocess::input_data::SolverType::Hierarchical=> {
+        preprocess::input_data::Solver::Hierarchical { .. } => {
             get_surface_hmatrix(predata, rhs_inc)
         }
     }  
@@ -118,11 +118,14 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
                                                        predata.get_eqn_map(),
                                                        32,
                                                        1e-4);
-    let mut gm = gmres::GMRES::new(predata.get_solver_max_it(), predata.get_solver_tolerance());
-    gm.hmatrix = Some(hmatrix);
-    info!(" Solving system of equations...");
-    gm.solve(&mut rhs);
-
+    if let input_data::Solver::Hierarchical { tolerance, max_iterations } = predata.get_solver() {
+        let max_it = max_iterations;
+        let tol = tolerance;
+        let mut gm = gmres::GMRES::new(*max_it, *tol);
+        gm.hmatrix = Some(hmatrix);
+        info!(" Solving system of equations...");
+        gm.solve(&mut rhs);
+    }
     let sbc = predata.get_surface_bc();
     match sbc.bc_type {
         preprocess::input_data::BCType::Pressure => {
@@ -148,10 +151,10 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
 
 /// Solve the system of equations for dense cases (direct or iterative)
 fn solve_dense(predata: &preprocess::PreData, a: &DMatrix<Cplx>, x: &mut DVector<Cplx>) {
-    match predata.get_solver_type() {
-        preprocess::input_data::SolverType::Direct => solve_lu(a, x),
-        preprocess::input_data::SolverType::Iterative => {
-            let mut gm = gmres::GMRES::new(predata.get_solver_max_it(), predata.get_solver_tolerance());
+    match predata.get_solver() {
+        preprocess::input_data::Solver::Direct { } => solve_lu(a, x),
+        preprocess::input_data::Solver::Iterative { tolerance, max_iterations } => {
+            let mut gm = gmres::GMRES::new(*max_iterations, *tolerance);
             gm.a = Some(a.clone());
             gm.solve(x);
         },

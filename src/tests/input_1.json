@@ -11,9 +11,7 @@
     "problem_type": "Exterior",
     "method_type": "Classical",
     "solver": {
-        "s_type": "Iterative",
-        "tolerance": 0.0,
-        "max_iterations": 0
+        "Direct": {}
     },
     "incident_wave": {
         "origin": [

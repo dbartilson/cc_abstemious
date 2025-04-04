@@ -14,11 +14,7 @@ fn default_input() -> UserInput {
         mass_density: 1.0,
         problem_type: ProblemType::Exterior,
         method_type: MethodType::Classical,
-        solver: Solver {
-            s_type: SolverType::Direct,
-            tolerance: 1.0e-5,
-            max_iterations: 1000
-        },
+        solver: Solver::Direct {  },
         incident_wave: IncidentWaveInput {
             origin: [0.0, 0.0, 0.0],
             wave_type: WaveType::SphericalWave,
@@ -133,7 +129,7 @@ fn rigid_sphere_plane_wave_iterative() {
     input.incident_wave.origin = [1.0, 0.0, 0.0];
     input.incident_wave.wave_type = WaveType::PlaneWave;
     input.incident_wave.amplitude = [1.0, 0.0];
-    input.solver.s_type = SolverType::Iterative;
+    input.solver = Solver::Iterative { max_iterations: 1000, tolerance: 1.0e-5 };
     let radius = 10.0;
     let theta = 0.0;
     let x = radius * f64::cos(theta);
@@ -160,7 +156,7 @@ fn rigid_sphere_plane_wave_hmatrix() {
     input.incident_wave.origin = [1.0, 0.0, 0.0];
     input.incident_wave.wave_type = WaveType::PlaneWave;
     input.incident_wave.amplitude = [1.0, 0.0];
-    input.solver.s_type = SolverType::Hierarchical;
+    input.solver = Solver::Hierarchical { max_iterations: 1000, tolerance: 1.0e-5 };
     let radius = 10.0;
     let theta = 0.0;
     let x = radius * f64::cos(theta);
