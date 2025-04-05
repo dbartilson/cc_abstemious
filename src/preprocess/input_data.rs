@@ -31,16 +31,15 @@ pub enum Solver {
 }
 
 #[derive(Deserialize)]
-pub enum WaveType {
-    PlaneWave,
-    SphericalWave,
-}
-
-#[derive(Deserialize)]
-pub struct IncidentWaveInput {
-    pub origin: [f64;3],
-    pub wave_type: WaveType,
-    pub amplitude: [f64;2]
+pub enum IncidentWaveInput {
+    PlaneWave {
+        direction: [f64;3],
+        amplitude: [f64;2]    
+    },
+    SphericalWave {
+        origin: [f64;3],
+        amplitude: [f64;2]    
+    }
 }
 
 #[derive(Deserialize)]

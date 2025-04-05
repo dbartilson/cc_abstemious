@@ -17,32 +17,35 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
     // phi_inc + beta * vn_inc  for Burton-Miller method
     let mut rhs_inc = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     
-    let inc_wave = predata.get_incident_wave();
-    // amplitude in pressure units
-    let p_amp = Cplx::new(inc_wave.amplitude[0], inc_wave.amplitude[1]);
-    // amplitude in velocity potential units (phi = p / (i omega rho))
-    let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
-    let vector = &inc_wave.origin;
-    let vec3 = Vector3::from_column_slice(vector).normalize();
-    match inc_wave.wave_type {
-        preprocess::input_data::WaveType::PlaneWave => {
+    match predata.get_incident_wave() {
+        &preprocess::input_data::IncidentWaveInput::PlaneWave { direction, amplitude } => {
+            // amplitude in pressure units
+            let p_amp = Cplx::new(amplitude[0], amplitude[1]);
+            // amplitude in velocity potential units (phi = p / (i omega rho))
+            let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+            let dir3 = Vector3::from_column_slice(&direction).normalize();
             for cpt in cpts {
                 let coord = &cpt.coords;
                 // phi_inc = A * exp(ik (x dot d))
-                let phi_inc = amp * Cplx::new(0., k * vec3.dot(coord)).exp();
+                let phi_inc = amp * Cplx::new(0., k * dir3.dot(coord)).exp();
                 rhs_inc[cpt.id] = phi_inc;
                 if is_burton_miller {
                     // vn_inc = phi_inc * ik * (e_n dot d)
                     let normal = &cpt.normal;
-                    let vn_inc = phi_inc * Cplx::new(0.0, k) * vec3.dot(normal);
+                    let vn_inc = phi_inc * Cplx::new(0.0, k) * dir3.dot(normal);
                     rhs_inc[cpt.id] += beta * vn_inc;
                 }
             }
         }
-        preprocess::input_data::WaveType::SphericalWave => {
+        &preprocess::input_data::IncidentWaveInput::SphericalWave { origin, amplitude } => {
+            // amplitude in pressure units
+            let p_amp = Cplx::new(amplitude[0], amplitude[1]);
+            // amplitude in velocity potential units (phi = p / (i omega rho))
+            let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+            let origin3 = Vector3::from_column_slice(&origin).normalize();
             for cpt in cpts {
                 let coord = &cpt.coords;
-                let rvec = coord - vec3;
+                let rvec = coord - origin3;
                 let r = rvec.magnitude();
                 let e_r = rvec / r;
                 // phi_inc = A / (4 pi r) * exp(ikr)
@@ -69,25 +72,27 @@ pub fn get_incident_field(predata: &preprocess::PreData) -> DVector::<Cplx> {
 
     let mut phi_inc_fp = DVector::<Cplx>::from_element(num_fp, Cplx::new(0., 0.));
     
-    let inc_wave = predata.get_incident_wave();
-    // amplitude in pressure units
-    let p_amp = Cplx::new(inc_wave.amplitude[0], inc_wave.amplitude[1]);
-    // amplitude in velocity potential units (phi = p / (i omega rho))
-    let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
-    let vector = &inc_wave.origin;
-    let mut vec3 = Vector3::from_column_slice(vector);
-    vec3 /= vec3.magnitude();
-    match inc_wave.wave_type {
-        preprocess::input_data::WaveType::PlaneWave => {
+    match predata.get_incident_wave() {
+        &preprocess::input_data::IncidentWaveInput::PlaneWave { direction, amplitude } => {
+            // amplitude in pressure units
+            let p_amp = Cplx::new(amplitude[0], amplitude[1]);
+            // amplitude in velocity potential units (phi = p / (i omega rho))
+            let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+            let dir3 = Vector3::from_column_slice(&direction).normalize();
             for (i, fp) in field_points.iter().enumerate() {
                 let coord = Vector3::from_column_slice(fp);
-                phi_inc_fp[i] = amp * Cplx::new(0., k * vec3.dot(&coord)).exp();
+                phi_inc_fp[i] = amp * Cplx::new(0., k * dir3.dot(&coord)).exp();
             }
         }
-        preprocess::input_data::WaveType::SphericalWave => {
+        &preprocess::input_data::IncidentWaveInput::SphericalWave { origin, amplitude } => {
+            // amplitude in pressure units
+            let p_amp = Cplx::new(amplitude[0], amplitude[1]);
+            // amplitude in velocity potential units (phi = p / (i omega rho))
+            let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+            let origin3 = Vector3::from_column_slice(&origin).normalize();
             for (i, fp) in field_points.iter().enumerate() {
                 let coord = Vector3::from_column_slice(fp);
-                let r = (coord - vec3).magnitude();
+                let r = (coord - origin3).magnitude();
                 phi_inc_fp[i] = amp * Cplx::new(0., k * r).exp() / (4.0 * PI * r);
             }
         }

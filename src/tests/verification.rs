@@ -15,9 +15,8 @@ fn default_input() -> UserInput {
         problem_type: ProblemType::Exterior,
         method_type: MethodType::Classical,
         solver: Solver::Direct {  },
-        incident_wave: IncidentWaveInput {
+        incident_wave: IncidentWaveInput::SphericalWave {
             origin: [0.0, 0.0, 0.0],
-            wave_type: WaveType::SphericalWave,
             amplitude: [0.0, 0.0]
         },
         surface_bc: SurfaceBoundaryCondition {
@@ -42,9 +41,10 @@ fn rigid_sphere_plane_wave_ring() {
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave.origin = [1.0, 0.0, 0.0];
-    input.incident_wave.wave_type = WaveType::PlaneWave;
-    input.incident_wave.amplitude = [1.0, 0.0];
+    input.incident_wave = IncidentWaveInput::PlaneWave {
+        direction: [1.0, 0.0, 0.0],
+        amplitude: [1.0, 0.0]
+    };
     // output fule
     input.output.file = "./src/tests/rigid_sphere_plane_wave_bem.csv".to_string();
     // set up field points (ring in XY plane)
@@ -74,9 +74,10 @@ fn rigid_sphere_plane_wave_sweep() {
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave.origin = [1.0, 0.0, 0.0];
-    input.incident_wave.wave_type = WaveType::PlaneWave;
-    input.incident_wave.amplitude = [1.0, 0.0];
+    input.incident_wave = IncidentWaveInput::PlaneWave {
+        direction: [1.0, 0.0, 0.0],
+        amplitude: [1.0, 0.0]
+    };
     // output fule
     input.output.file = "./src/tests/rigid_sphere_plane_wave_bem.csv".to_string();
     let radius = 10.0;
@@ -99,10 +100,10 @@ fn rigid_sphere_plane_wave() {
     // water
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
-    // incident wave
-    input.incident_wave.origin = [1.0, 0.0, 0.0];
-    input.incident_wave.wave_type = WaveType::PlaneWave;
-    input.incident_wave.amplitude = [1.0, 0.0];
+    input.incident_wave = IncidentWaveInput::PlaneWave {
+        direction: [1.0, 0.0, 0.0],
+        amplitude: [1.0, 0.0]
+    };
     let radius = 10.0;
     let theta = 0.0;
     let x = radius * f64::cos(theta);
@@ -126,9 +127,10 @@ fn rigid_sphere_plane_wave_iterative() {
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave.origin = [1.0, 0.0, 0.0];
-    input.incident_wave.wave_type = WaveType::PlaneWave;
-    input.incident_wave.amplitude = [1.0, 0.0];
+    input.incident_wave = IncidentWaveInput::PlaneWave {
+        direction: [1.0, 0.0, 0.0],
+        amplitude: [1.0, 0.0]
+    };
     input.solver = Solver::Iterative { max_iterations: 1000, tolerance: 1.0e-5 };
     let radius = 10.0;
     let theta = 0.0;
@@ -153,9 +155,10 @@ fn rigid_sphere_plane_wave_hmatrix() {
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave.origin = [1.0, 0.0, 0.0];
-    input.incident_wave.wave_type = WaveType::PlaneWave;
-    input.incident_wave.amplitude = [1.0, 0.0];
+    input.incident_wave = IncidentWaveInput::PlaneWave {
+        direction: [1.0, 0.0, 0.0],
+        amplitude: [1.0, 0.0]
+    };
     input.solver = Solver::Hierarchical { max_iterations: 1000, tolerance: 1.0e-5 };
     let radius = 10.0;
     let theta = 0.0;
@@ -181,9 +184,10 @@ fn rigid_sphere_plane_wave_burton_miller() {
     input.sound_speed = 1500.0;
     input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave.origin = [1.0, 0.0, 0.0];
-    input.incident_wave.wave_type = WaveType::PlaneWave;
-    input.incident_wave.amplitude = [1.0, 0.0];
+    input.incident_wave = IncidentWaveInput::PlaneWave {
+        direction: [1.0, 0.0, 0.0],
+        amplitude: [1.0, 0.0]
+    };
     let radius = 10.0;
     let theta = 0.0;
     let x = radius * f64::cos(theta);
