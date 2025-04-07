@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use na::{ComplexField, DMatrix, DVector};
-use rand::{distributions::{Distribution, Uniform}, SeedableRng, rngs::StdRng};
+use rand::{distr::{Distribution, Uniform}, SeedableRng, rngs::StdRng};
 use crate::Cplx;
 
 #[derive(Debug)]
@@ -62,7 +62,7 @@ impl ACA
         debug!("  Assembling Adaptive Cross Approximation matrix ({} x {})...", self.num_rows, self.num_columns);
         let n = self.get_max_rank();
         let mut rng = rand::rngs::StdRng::seed_from_u64(10);
-        let drange = Uniform::new_inclusive(0, n-1);
+        let drange = Uniform::new_inclusive(0, n-1).expect("failed to create rand distr");
         // get randomized starting row/col
         let mut iref = drange.sample(&mut rng);
         let mut jref = drange.sample(&mut rng);
@@ -168,7 +168,7 @@ impl ACA
             index += 1;
         }
         // Deal with zero-index for size and iter
-        index += 1;
+        index = std::cmp::max(1, std::cmp::min(sigma.len(), index+1));
         // Reassemble U * V^T = (Q_u * W * Sigma) * (Z^H * Q_v^T)
         self.uv.truncate(index);
         for i in 0..index {

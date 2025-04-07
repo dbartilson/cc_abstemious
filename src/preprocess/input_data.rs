@@ -5,36 +5,41 @@ use std::error::Error;
 use std::path::Path;
 
 #[derive(Deserialize)]
+pub enum FrequencyInput {
+    List { values: Vec<f64> },
+    LinearSpaced { start: f64, end: f64, number: usize },
+    LogSpaced { start: f64, end: f64, number: usize }
+}
+
+#[derive(Deserialize)]
 pub enum ProblemType {
     Interior,
     Exterior
 }
 
-#[derive(Deserialize)]
-pub enum SolverType {
-    Direct,
-    Iterative,
-    Hierarchical
+#[derive(Deserialize, PartialEq)]
+pub enum MethodType {
+    Classical,
+    BurtonMiller
 }
 
 #[derive(Deserialize)]
-pub struct Solver {
-    pub s_type: SolverType,
-    pub tolerance: f64,
-    pub max_iterations: usize
+pub enum Solver {
+    Direct {},
+    Iterative { tolerance: f64, max_iterations: usize},
+    Hierarchical { tolerance: f64, max_iterations: usize}
 }
 
 #[derive(Deserialize)]
-pub enum WaveType {
-    PlaneWave,
-    SphericalWave,
-}
-
-#[derive(Deserialize)]
-pub struct IncidentWaveInput {
-    pub origin: [f64;3],
-    pub wave_type: WaveType,
-    pub amplitude: [f64;2]
+pub enum IncidentWaveInput {
+    PlaneWave {
+        direction: [f64;3],
+        amplitude: [f64;2]    
+    },
+    SphericalWave {
+        origin: [f64;3],
+        amplitude: [f64;2]    
+    }
 }
 
 #[derive(Deserialize)]
@@ -74,10 +79,11 @@ pub struct Output {
 pub struct UserInput {
     pub mesh_file: String,
     pub body_index: usize,
-    pub frequency: Vec<f64>,
+    pub frequency: FrequencyInput,
     pub sound_speed: f64,
     pub mass_density: f64,
     pub problem_type: ProblemType,
+    pub method_type: MethodType,
     pub solver: Solver,
     pub incident_wave: IncidentWaveInput,
     pub surface_bc: SurfaceBoundaryCondition,

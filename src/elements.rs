@@ -1,9 +1,15 @@
 pub mod interpolation {
-    #[derive(Clone)]
+    #[derive(Clone, Copy)]
     pub struct Gp {
         pub coords: [f64; 2],
         pub wt: f64,
     }
+    #[allow(dead_code)]
+    pub static TRINODES: [Gp; 3] = [Gp{coords: [0.0, 0.0], wt: 1./3.}, 
+                                    Gp{coords: [1.0, 0.0], wt: 1./3.}, 
+                                    Gp{coords: [0.0, 1.0], wt: 1./3.}];
+    pub static TRIGP1: [Gp; 1] = [Gp{coords: [1./3., 1./3.], wt: 1.0}];
+    #[allow(dead_code)]
     pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
                                   Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
                                   Gp{coords: [2./3., 1./6.], wt: 1./3.}];
@@ -15,6 +21,13 @@ pub mod interpolation {
                                   Gp{coords: [0.445948490915965, 0.108103018168070], wt: 0.223381589678011},
                                   Gp{coords: [0.108103018168070, 0.445948490915965], wt: 0.223381589678011}];
     static ONEOVERSQRT3: f64 = 0.57735026919;
+    #[allow(dead_code)]
+    pub static QUADNODES: [Gp; 4] = [Gp{coords: [-1.0, -1.0], wt: 1.0}, 
+                                     Gp{coords: [ 1.0, -1.0], wt: 1.0}, 
+                                     Gp{coords: [ 1.0,  1.0], wt: 1.0},
+                                     Gp{coords: [-1.0,  1.0], wt: 1.0}];
+    pub static QUADGP1: [Gp; 1] = [Gp{coords: [0., 0.], wt: 4.0}];
+    #[allow(dead_code)]
     pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
@@ -23,22 +36,7 @@ pub mod interpolation {
 
 use interpolation::*;
 use na::{DMatrix, Vector3};
-use crate::Cplx;
-use crate::preprocess::mesh_data::{Coords, ElementType, Mesh};
-
-/// Calculate the Green's function (g) and its derivative (h) for the given origin, destination (x),
-/// normal vector, and wavenumber (k)
-fn get_greens_functions(k: f64, origin: &Coords, x: &Coords, normal: &Vector3<f64>) -> (Cplx, Cplx) {
-    let n = normal / normal.norm();
-    let r = origin - x;
-    let rdist = r.norm();
-    let runit = r / rdist;
-    // g = e^(ikr) / (4 pi r)
-    let g = Cplx::new(0.0, k*rdist).exp() / (4.0 * std::f64::consts::PI * rdist);
-    // h = (1/r - ik) * g * (r dot n), where r and n are unit vectors -> (r dot n) is a direction cosine
-    let h = g * Cplx::new(1.0 / rdist, -k) * runit.dot(&n);
-    return (g, h)
-}
+use crate::preprocess::mesh_data::{CollocationPoint, Coords, ElementType, Mesh};
 
 // Methods for numerically-integrated elements
 pub struct NIElement <'a> {
@@ -51,8 +49,8 @@ impl NIElement <'_> {
     pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> NIElement <'a> {
         let etype = &meshdata.elements[element].etype;
         let int = match etype.clone() {
-            ElementType::Tri => TRIGP3.to_vec(),
-            ElementType::Quad => QUADGP4.to_vec(),
+            ElementType::Tri => TRIGP1.to_vec(),
+            ElementType::Quad => QUADGP1.to_vec(),
             _ => {error!("Invalid numerically integrated element"); Vec::new()}
         };
         NIElement{integration: int, 
@@ -61,7 +59,7 @@ impl NIElement <'_> {
                   element_type: etype.clone()}
     }
     #[inline]
-    fn get_num_nodes(&self) -> usize {
+    pub fn get_num_nodes(&self) -> usize {
         match self.element_type {
             ElementType::Tri => 3,
             ElementType::Quad => 4,
@@ -118,8 +116,21 @@ impl NIElement <'_> {
         }
         return x;
     }
+    /// Get natural coordinates corresponding to node index
+    #[allow(dead_code)]
+    pub fn natural_coordinates_at_node(&self, i: usize) -> Gp {
+        match self.element_type {
+            ElementType::Tri => {
+                TRINODES[i]
+            },
+            ElementType::Quad => {
+                QUADNODES[i]
+            },
+            _ => Gp {coords: [0.0, 0.0], wt: 0.0}
+        }
+    }
     /// Get normal vector (non-normalized) at the given natural coordinates
-    fn normal_vector_at(&self, gp: &Gp) -> Vector3<f64> {
+    pub fn normal_vector_at_gp(&self, gp: &Gp) -> Vector3<f64> {
         match self.element_type {
             ElementType::Tri => {
                 let enodes = &self.mesh.elements[self.element_id].node_ids;
@@ -153,26 +164,19 @@ impl NIElement <'_> {
     fn detj_at(&self, gp: &Gp) -> f64 {
         // Calculate using the normal vector, since it is return un-scaled
         match self.element_type {
-            ElementType::Tri => 0.5 * self.normal_vector_at(gp).norm(),
-            ElementType::Quad => 0.25 * self.normal_vector_at(gp).norm(),
+            ElementType::Tri => 0.5 * self.normal_vector_at_gp(gp).norm(),
+            ElementType::Quad => 0.25 * self.normal_vector_at_gp(gp).norm(),
             _ => 0.0
         }
     }
-    /// Numerically integrate the influence matrices from this element to a given origin point
-    pub fn influence_matrices_at(&self, k: f64, origin: &Coords) -> (Vec::<Cplx>, Vec::<Cplx>) {
-        let mut h = vec![Cplx::new(0.0, 0.0); self.get_num_nodes()];
-        let mut g = h.clone();
+    pub fn get_integration_points_and_normals(&self) -> Vec<CollocationPoint> {
+        let mut result: Vec<CollocationPoint> = Vec::new();
         for gp in &self.integration {
-            let normal = self.normal_vector_at(gp);
-            let detj = self.detj_at(gp);
-            let x = self.coordinates_at(gp);
-            let (g_gp, h_gp) = get_greens_functions(k, origin, &x, &normal);
-            let n = self.shape_functions_at(gp);
-            for i in 0..n.len() {
-                h[i] += h_gp * n[i] * detj * gp.wt;
-                g[i] += g_gp * n[i] * detj * gp.wt;
-            }
+            let y = self.coordinates_at(gp);
+            let n_y = self.normal_vector_at_gp(gp);
+            let area = self.detj_at(gp);
+            result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area: area, wt: gp.wt })
         }
-        return (h, g)
+        return result
     }
 }

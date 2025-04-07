@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use crate::preprocess::mesh_data::Node;
+use crate::preprocess::mesh_data::CollocationPoint;
 
 /// Cluster Tree, used to partition the surface in space until
 /// they contain fewer nodes than the 'cardinality' parameter of the tree
@@ -16,7 +16,7 @@ pub struct Cluster {
 impl Cluster {
     /// Build cluster tree from nodal data
     /// Leaf cardinality is the approximate minimum size of clusters
-    pub fn new_from(nodes: &Vec<Node>, 
+    pub fn new_from(cpts: &Vec<CollocationPoint>, 
                     indices_contained: Vec<usize>, 
                     leaf_cardinality: usize, 
                     eqn_map: &HashMap::<usize, usize>) -> Cluster {
@@ -27,13 +27,13 @@ impl Cluster {
             indices_contained: indices_contained,
             sons: Vec::new()
         };
-        cluster.process_cluster(nodes, leaf_cardinality, eqn_map);
+        cluster.process_cluster(cpts, leaf_cardinality, eqn_map);
         return cluster;
     }
     /// Can be called recursively to process current cluster, split if applicable,
     /// then process those clusters
     fn process_cluster(&mut self, 
-                       nodes: &Vec<Node>, 
+                       nodes: &Vec<CollocationPoint>, 
                        leaf_cardinality: usize, 
                        eqn_map: &HashMap::<usize, usize>) {
         // Largely adapted from https://doi.org/10.1016/S0955-7997(02)00152-2
@@ -42,7 +42,7 @@ impl Cluster {
         self.update_diameter();
         if self.indices_contained.len() <= leaf_cardinality {
             // Once the cluster is finalized, map from node indices to eqn indices
-            self.map_nodes_to_eqns(eqn_map);
+            self.map_cpts_to_eqns(eqn_map);
             return;
         }
         // Determine which direction to split the cluster
@@ -74,13 +74,13 @@ impl Cluster {
     pub fn get_indices(&self) -> &Vec<usize> {return &self.indices_contained;}
     pub fn get_diameter(&self) -> f64 { return self.diameter;}
     pub fn get_sons(&self) -> &Vec<Rc<Cluster>> { return &self.sons;}
-    fn update_bounds(&mut self, nodes: &Vec<Node>) {
+    fn update_bounds(&mut self, cpts: &Vec<CollocationPoint>) {
         let alpha = &mut self.l_bound;
         let beta = &mut self.u_bound;
         for index in &self.indices_contained {
             for j in 0_usize..3 {
-                alpha[j] = f64::min(nodes[*index].coords[j], alpha[j]);
-                beta[j] = f64::max(nodes[*index].coords[j], beta[j]);
+                alpha[j] = f64::min(cpts[*index].coords[j], alpha[j]);
+                beta[j] = f64::max(cpts[*index].coords[j], beta[j]);
             }
         }
     }
@@ -103,7 +103,7 @@ impl Cluster {
         }
         return dist.sqrt();
     }
-    fn map_nodes_to_eqns(&mut self, eqn_map: &HashMap::<usize, usize>) {
+    fn map_cpts_to_eqns(&mut self, eqn_map: &HashMap::<usize, usize>) {
         for idx in &mut self.indices_contained {
             if let Some(new_idx) = eqn_map.get(idx) {*idx = *new_idx;}
         }
@@ -115,21 +115,26 @@ mod tests {
     use std::collections::HashMap;
     use na::Vector3;
 
-    use crate::{preprocess::mesh_data::Node, solve::h_matrix::cluster::Cluster};
+    use crate::{preprocess::mesh_data::CollocationPoint, solve::h_matrix::cluster::Cluster};
 
     #[test]
     fn build_cluster_tree() {
         let mut hmap = HashMap::<usize, usize>::new();
-        let mut nodes = Vec::<Node>::new();
+        let mut cpts = Vec::<CollocationPoint>::new();
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                nodes.push(Node { id: i, coords: Vector3::new(j as f64, k as f64, 0.0)});
+                cpts.push(CollocationPoint { 
+                    id: i, 
+                    coords: Vector3::new(j as f64, k as f64, 0.0),
+                    normal: Vector3::from_element(0.0),
+                    area: 0.0,
+                    wt: 1.0 } );
                 hmap.insert(i, i);
                 i += 1;
             }
         }
-        let tree = Cluster::new_from(&nodes, (0..nodes.len()).collect(), 32, &hmap);
+        let tree = Cluster::new_from(&cpts, (0..cpts.len()).collect(), 32, &hmap);
         approx::assert_relative_eq!(tree.get_diameter(), 33.94, epsilon = 1e-2);
     }
 }

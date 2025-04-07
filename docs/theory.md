@@ -25,10 +25,8 @@ The harmonic form of the Helmholtz equation for the fluid is then
 where $`k=\omega / c`$ is the wavenumber. The directional derivative, along a specified normal direction, will also be important. This is expressed as
 
 ```math
-v_n(\mathbf{x}) = \nabla \phi (\mathbf{x}) \cdot \mathbf{n}(\mathbf{x}) = \frac{\partial \phi(\mathbf{x})}{\partial n(\mathbf{x})}
+v_n(\mathbf{x}) = \nabla \phi (\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{x}) = \frac{\partial \phi(\mathbf{x})}{\partial n(\mathbf{x})}
 ```
-
-
 
 ## Boundary conditions and source (incident field) terms
 
@@ -48,10 +46,18 @@ The incident sound sources (incident acoustic fields) can be defined similarly:
 \phi_I(\mathbf{x}) = A e^{ik(\mathbf{x} \cdot \mathbf{e}_d)}
 ```
 
+```math
+v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} = ik \left(\frac{\partial \mathbf{x}}{\partial n(\mathbf{x})}\cdot \mathbf{e}_d+\mathbf{x} \cdot \frac{\partial \mathbf{e}_d}{\partial n(\mathbf{x})} \right) \phi_I(\mathbf{x}) = ik (\mathbf{e}_n(\mathbf{x}) \cdot \mathbf{e}_d) \phi_I(\mathbf{x})
+```
+
 2. **Point source**: Also known as a volume source or spherical source. Has a defined amplitude $`A`$ and position vector $`\mathbf{x}_I`$:
 
 ```math
 \phi_I(\mathbf{x}) = \frac{A}{4 \pi r}e^{ikr}; \qquad r = \mathbf{x} - \mathbf{x}_I
+```
+
+```math
+v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} = (ik - \frac{1}{r}) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x})) \phi_I(\mathbf{x})
 ```
 
 ## Integral solution
@@ -62,7 +68,7 @@ The integral solution to the Helmholtz equation is written as
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) g(\mathbf{x}, \mathbf{y}) d\mathbf{y} =
 \left\lbrace 
 \begin{array}{l l}
-\phi(\mathbf{x})-\phi_I(\mathbf{x}) & \text{at field point, $`{\mathbf{x}}$}\\
+\phi(\mathbf{x})-\phi_I(\mathbf{x}) & \text{at field point, ${\mathbf{x}}'$}\\
 \phi(\mathbf{x})/2-\phi_I(\mathbf{x}) & \text{on surface for exterior problem}  \\
 -\phi_I(\mathbf{x}) & \text{on surface for interior problem}
 \end{array}
@@ -73,7 +79,7 @@ where $`\phi_I`$ is the incident wave (free-field) velocity potential. $`g`$ and
 
 ```math
 g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r} \\
-h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{y})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{n}(\mathbf{y}))
+h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{y})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (-\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}))
 ```
 
 with $`\mathbf{r} = \mathbf{x} - \mathbf{y}`$ as the vector pointing from $`\mathbf{y}`$ to $`\mathbf{x}`$ and $`r = || \mathbf{r} ||`$ as the magnitude (distance) and $`\mathbf{e}_r = \mathbf{r}/r`$ as the unit vector form.
@@ -100,8 +106,7 @@ The integral form can be discretized over the surface this way as
 \right.
 ```
 
-
-Examining the $`\mathbf{H}\mathbf{\phi}`$ term, each row $`i`$ of $`\mathbf{H}`$ corresponds to the contribution (influence) of the velocity potentials at all surface points to the velocity potential at node $`i$, which can be split into an integral over the elements: 
+Examining the $`\mathbf{H}\mathbf{\phi}`$ term, each row $`i`$ of $`\mathbf{H}`$ corresponds to the contribution (influence) of the velocity potentials at all surface points to the velocity potential at node $`i`$, which can be split into an integral over the elements: 
 
 ```math
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) d\mathbf{y} \approx
@@ -126,6 +131,34 @@ For the three possible boundary conditions, this is solved as:
 \left[\mathbf{H} - \frac{1}{2} \mathbf{I} - \frac{i \omega \rho}{Z} \mathbf{G}\right] \mathbf{\phi} = -\mathbf{\phi}_I  & \text{impedance B.C.}
 \end{array}
 ```
+
+## Burton-Miller Method
+
+In its classical form, the boundary integral formulation suffers from problems where interior mode frequencies can be present in exterior analyses. The Burton-Miller method is one technique for avoiding this issue. First, consider the 'hypersingular' formulation of the boundary integral equation which is equal to the derivative of the classical formulation with respect to the normal vector at $`\mathbf{x}`$:
+
+```math
+\int_S \phi (\mathbf{y}) dh(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) dg(\mathbf{x}, \mathbf{y}) d\mathbf{y} = v_{n}(\mathbf{x})/2 - v_{nI}(\mathbf{x})
+```
+
+where 
+```math
+dg(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{x})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x})) \\
+\begin{align*}
+dh(\mathbf{x}, \mathbf{y}) = \frac{\partial h(\mathbf{x}, \mathbf{y}) }{\partial n(\mathbf{x})} = \frac{g(\mathbf{x}, \mathbf{y})}{r} &\left[  -\left(ik - \frac{1}{r}\right)\left( \mathbf{e}_n(\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{y}) \right) \right. - \\
+&\left.  \left( k^2 r + 3 \left(ik - \frac{1}{r}\right) \right) \left( \mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x}) \right) \left( \mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}) \right) \right]
+\end{align*}
+```
+
+Discretized over the elements and assembled into matrix form, similar to the classical formulation, yields:
+```math
+[d\mathbf{H}] \mathbf{\phi} = \left[[d\mathbf{G}] + \frac{1}{2} \mathbf{I} \right]\mathbf{v}_n - \mathbf{v}_{nI}
+```
+Summing together the classical and hypersingular equations using a coupling factor $`\beta`$ yields the following form:
+
+```math
+\left[\mathbf{H} + \beta [d\mathbf{H}] - \frac{1}{2} \mathbf{I}\right] \mathbf{\phi} = \left[\mathbf{G} + \beta[d\mathbf{G}] + \frac{\beta}{2} \mathbf{I} \right]\mathbf{v}_n - \mathbf{\phi}_I - \beta\mathbf{v}_{nI}
+```
+where $`\beta`$ is traditionally set to $`i/k`$.
 
 ## Field solution
 

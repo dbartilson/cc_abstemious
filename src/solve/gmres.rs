@@ -13,6 +13,7 @@ pub struct GMRES{
     max_it: usize,
     max_it_per_restart: usize,
     thresh: f64,
+    num_mv: usize,
     pub a: Option<DMatrix::<Cplx>>,
     pub hmatrix: Option<h_matrix::HMatrix>
 }
@@ -23,6 +24,7 @@ impl GMRES{
             max_it: max_it,
             max_it_per_restart: 0,
             thresh: thresh,
+            num_mv: 0,
             a: None,
             hmatrix: None
         }
@@ -53,13 +55,15 @@ impl GMRES{
                 _ => {}
             }
         }
+        info!("  Number of matrix-vector products: {}", self.num_mv);
     }
     /*
     Set up gemv, get_num_eqn, and get_norm as methods which can access either the 
     full (dense) representation or the approximate (ACA) representation
     */
-    fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
+    fn gemv(&mut self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
         // Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
+        self.num_mv += 1; // keep track of number of matrix-vector products
         if self.a.is_some() {b.gemv(alpha, &self.a.as_ref().unwrap(), x, beta); return}
         if self.hmatrix.is_some() {self.hmatrix.as_ref().unwrap().gemv(alpha, x, beta, b); return}
     }
@@ -73,7 +77,7 @@ impl GMRES{
         if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_norm()} else {}
         return 0.0
     }
-    fn gmres(&self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {
+    fn gmres(&mut self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {
         // see the example code at 
         // https://en.wikipedia.org/wiki/Generalized_minimal_residual_method#Regular_GMRES_(MATLAB_/_GNU_Octave)
         let mut flag = ExitFlag::Error;
@@ -101,6 +105,7 @@ impl GMRES{
         let mut h = DMatrix::<Cplx>::from_element(m+1, m, c_zero);
         let mut hk1 = DVector::<Cplx>::from_element(m+1, c_zero);
         for k in 0..m {
+            if error.is_nan() { error!("GMRES error is NaN!"); }
             info!("   Iteration: {}, Error: {:10.3e}", k, error);
             self.arnoldi(&q, k, &mut qk1, &mut hk1);
             Self::apply_givens_rotation(&mut hk1, &mut cs, &mut sn, k);
@@ -150,7 +155,7 @@ impl GMRES{
         x.gemv(c_one, &q.columns(0,k), y.as_ref().unwrap(), c_one);
     }
     ///
-    fn arnoldi(&self, q: &DMatrix<Cplx>, k: usize, 
+    fn arnoldi(&mut self, q: &DMatrix<Cplx>, k: usize, 
             qk1: &mut DVector<Cplx>, hk1: &mut DVector<Cplx>)  {
         let c_zero = Cplx::new(0.0, 0.0);
         let c_one = Cplx::new(1.0, 0.0);

@@ -4,25 +4,24 @@ pub mod h_matrix;
 
 use na::{DMatrix, DVector};
 use crate::influence_matrix;
-use crate::influence_matrix::get_surface_row_or_column;
-use crate::influence_matrix::EqnSide;
-use crate::preprocess;
+use crate::influence_matrix::{get_surface_row_or_column, EqnSide};
+use crate::preprocess::{self, input_data};
 use crate::Cplx;
 
-pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
-    match predata.get_solver_type() {
-        preprocess::input_data::SolverType::Direct |
-        preprocess::input_data::SolverType::Iterative => {
-            get_surface_dense(predata, phi_inc)
+    match predata.get_solver() {
+        preprocess::input_data::Solver::Direct {  } |
+        preprocess::input_data::Solver::Iterative { .. } => {
+            get_surface_dense(predata, rhs_inc)
         }
-        preprocess::input_data::SolverType::Hierarchical=> {
-            get_surface_hmatrix(predata, phi_inc)
+        preprocess::input_data::Solver::Hierarchical { .. } => {
+            get_surface_hmatrix(predata, rhs_inc)
         }
     }  
 }
 
-fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+fn get_surface_dense(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let (h, g) = influence_matrix::get_dense_surface_matrices(predata);
@@ -38,7 +37,7 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
         preprocess::input_data::BCType::Pressure => {
             let pressure_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             phi.fill(pressure_bc);
-            vn = phi_inc.clone();
+            vn = rhs_inc.clone();
             vn.gemv(Cplx::new(-1.0,0.0), &h, &phi, Cplx::new(1.0,0.0));
             //vn = phi_inc - h * phi; // rhs
             let lhs = g.clone();
@@ -47,7 +46,7 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
         preprocess::input_data::BCType::NormalVelocity => {
             let velocity_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             vn.fill(velocity_bc);
-            phi = phi_inc.clone();
+            phi = rhs_inc.clone();
             phi.gemv(Cplx::new(1.0,0.0), &g, &vn, Cplx::new(-1.0,0.0));
             //phi = g * vn - phi_inc; // rhs
             let lhs = h.clone();
@@ -62,7 +61,7 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
                     lhs[(i,j)] += factor * g[(i,j)];
                 }
             }
-            phi = -phi_inc.clone(); // rhs
+            phi = -rhs_inc.clone(); // rhs
             solve_dense(predata, &lhs, &mut phi);
             // back-compute for surface velocities
             vn.axpy(factor, &phi, Cplx::new(0.0,0.0));
@@ -72,12 +71,12 @@ fn get_surface_dense(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
 }
 
 
-fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>) 
+fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
     let num_eqn = predata.get_num_eqn();
     let mut phi = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     let mut vn = phi.clone();
-    let mut rhs = phi_inc.clone();
+    let mut rhs = rhs_inc.clone();
     {
         info!(" Calculating RHS...");
         let get_row_or_column = |i: Vec<usize>, j: Vec<usize>| get_surface_row_or_column(predata, i, j, EqnSide::RHS);
@@ -87,7 +86,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
         } else {
             h_matrix::HMatrix::new_from(num_eqn, 
                 &get_row_or_column, 
-                &predata.get_mesh().nodes, 
+                &predata.get_cpts(), 
                 predata.get_eqn_map(),
                 32,
                 1e-4)
@@ -107,7 +106,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
             }
             preprocess::input_data::BCType::Impedance => {
                 // solve for phi, but need to post-process for vn later
-                rhs.axpy(Cplx::new(0.0, 0.0), &phi_inc, Cplx::new(-1.0, 0.0));
+                rhs.axpy(Cplx::new(0.0, 0.0), &rhs_inc, Cplx::new(-1.0, 0.0));
             }
         }
     }
@@ -115,15 +114,18 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
     let get_row_or_column = |i, j| get_surface_row_or_column(predata, i, j, EqnSide::LHS);
     let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
                                                        &get_row_or_column, 
-                                                       &predata.get_mesh().nodes, 
+                                                       &predata.get_cpts(), 
                                                        predata.get_eqn_map(),
                                                        32,
                                                        1e-4);
-    let mut gm = gmres::GMRES::new(predata.get_solver_max_it(), predata.get_solver_tolerance());
-    gm.hmatrix = Some(hmatrix);
-    info!(" Solving system of equations...");
-    gm.solve(&mut rhs);
-
+    if let input_data::Solver::Hierarchical { tolerance, max_iterations } = predata.get_solver() {
+        let max_it = max_iterations;
+        let tol = tolerance;
+        let mut gm = gmres::GMRES::new(*max_it, *tol);
+        gm.hmatrix = Some(hmatrix);
+        info!(" Solving system of equations...");
+        gm.solve(&mut rhs);
+    }
     let sbc = predata.get_surface_bc();
     match sbc.bc_type {
         preprocess::input_data::BCType::Pressure => {
@@ -149,10 +151,10 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, phi_inc: &DVector::<Cplx>)
 
 /// Solve the system of equations for dense cases (direct or iterative)
 fn solve_dense(predata: &preprocess::PreData, a: &DMatrix<Cplx>, x: &mut DVector<Cplx>) {
-    match predata.get_solver_type() {
-        preprocess::input_data::SolverType::Direct => solve_lu(a, x),
-        preprocess::input_data::SolverType::Iterative => {
-            let mut gm = gmres::GMRES::new(predata.get_solver_max_it(), predata.get_solver_tolerance());
+    match predata.get_solver() {
+        preprocess::input_data::Solver::Direct { } => solve_lu(a, x),
+        preprocess::input_data::Solver::Iterative { tolerance, max_iterations } => {
+            let mut gm = gmres::GMRES::new(*max_iterations, *tolerance);
             gm.a = Some(a.clone());
             gm.solve(x);
         },
@@ -195,13 +197,13 @@ mod tests {
 
         let mut rng = StdRng::seed_from_u64(seed);
         for ai in a.iter_mut() {
-            ai.re += rng.gen::<f64>();
-            ai.im += rng.gen::<f64>();
+            ai.re += rng.random::<f64>();
+            ai.im += rng.random::<f64>();
         }
         let mut b = na::DVector::<Cplx>::from_element(n, Cplx::new(0.0, 0.0));
         for bi in b.iter_mut() {
-            bi.re = rng.gen::<f64>();
-            bi.im = rng.gen::<f64>();
+            bi.re = rng.random::<f64>();
+            bi.im = rng.random::<f64>();
         }
         return (a, b)
     }

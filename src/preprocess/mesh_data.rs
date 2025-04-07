@@ -66,20 +66,30 @@ pub struct Body {
 #[derive(Clone)]
 pub struct Node {
     pub id: usize,
+    pub coords: Coords
+}
+
+pub struct CollocationPoint {
+    pub id: usize,
     pub coords: Coords,
+    pub normal: Vector3<f64>,
+    pub area: f64,
+    pub wt: f64 // detj * wt at this point
 }
 
 pub struct Mesh {
     pub nodes: Vec<Node>,
     pub elements: Vec<Element>,
     pub bodies: Vec<Body>,
+    pub cpts: Vec<CollocationPoint>
 }
 impl Default for Mesh {
     fn default() -> Mesh {
         Mesh {
             nodes: Vec::new(),
             elements: Vec::new(),
-            bodies: Vec::new()
+            bodies: Vec::new(), 
+            cpts: Vec::new()
         }
     }
 }
@@ -102,7 +112,10 @@ impl Mesh {
                 for i in 0..npts {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
-                    let mut node_temp: Node = Node{id: i, coords:Coords::from_element(0.0)};
+                    let mut node_temp: Node = Node{
+                        id: i, 
+                        coords:Coords::from_element(0.0)
+                    };
                     for j in 0..3 {
                         node_temp.coords[j] = sline.next().as_ref().unwrap().parse().unwrap();
                     }

@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb",
+            "type": "msvc",
             "request": "launch",
             "name": "Debug executable 'cc_abstemious'",
             "cargo": {
@@ -22,7 +22,7 @@
             "cwd": "${workspaceFolder}"
         },
         {
-            "type": "lldb",
+            "type": "msvc",
             "request": "launch",
             "name": "Debug unit tests in executable 'cc_abstemious'",
             "cargo": {
