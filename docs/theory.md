@@ -144,7 +144,7 @@ where
 ```math
 dg(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{x})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x})) \\
 \begin{align*}
-dh(\mathbf{x}, \mathbf{y}) = \frac{\partial h(\mathbf{x}, \mathbf{y}) }{\partial n(\mathbf{x})} = g(\mathbf{x}, \mathbf{y}) &\left[  -\left(ik - \frac{1}{r}\right)\left( \mathbf{e}_n(\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{y}) \right) \right. + \\
+dh(\mathbf{x}, \mathbf{y}) = \frac{\partial h(\mathbf{x}, \mathbf{y}) }{\partial n(\mathbf{x})} = \frac{g(\mathbf{x}, \mathbf{y})}{r} &\left[  -\left(ik - \frac{1}{r}\right)\left( \mathbf{e}_n(\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{y}) \right) \right. - \\
 &\left.  \left( k^2 r + 3 \left(ik - \frac{1}{r}\right) \right) \left( \mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x}) \right) \left( \mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}) \right) \right]
 \end{align*}
 ```

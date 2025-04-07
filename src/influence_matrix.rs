@@ -26,8 +26,8 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
         // dg = (ik - 1/r) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
         let rdotx = e_r.dot(&e_nx);
         let dg = g * f1 * rdotx;
-        // dh = {-(ik - 1/r) * (n_y dot n_x) + (k^2 * r + 3 * (ik - 1/r)) * (r dot n_y) * (r dot n_x)} * g / r
-        let dh = 1.0 / rdist * g * (-f1 * e_ny.dot(&e_nx) + (k.powi(2)*rdist + 3.0*f1) * rdotx * rdoty);
+        // dh = {-(ik - 1/r) * (n_y dot n_x) - (k^2 * r + 3 * (ik - 1/r)) * (r dot n_y) * (r dot n_x)} * g / r
+        let dh = 1.0 / rdist * g * (-f1 * e_ny.dot(&e_nx) - (k.powi(2)*rdist + 3.0*f1) * rdotx * rdoty);
         // coupling parameter gamma = i/k
         let beta = &hypersingular.factor;
         g += *beta * dg;
