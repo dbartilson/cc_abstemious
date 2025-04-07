@@ -1,4 +1,4 @@
-use crate::preprocess::{self, input_data};
+use crate::preprocess;
 use na::{Complex, DVector, Vector3};
 use std::f64::consts::PI;
 type Cplx = Complex<f64>;
@@ -7,8 +7,7 @@ type Cplx = Complex<f64>;
 pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
     let cpts = predata.get_cpts();
     let k = predata.get_wavenumber();
-    let is_burton_miller = *predata.get_method_type() == input_data::MethodType::BurtonMiller;
-    let beta = predata.get_burton_miller_coupling_factor();
+    let hypersingular = predata.get_hypersingular();
 
     let num_eqn = predata.get_num_eqn();
 
@@ -29,11 +28,11 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                 // phi_inc = A * exp(ik (x dot d))
                 let phi_inc = amp * Cplx::new(0., k * dir3.dot(coord)).exp();
                 rhs_inc[cpt.id] = phi_inc;
-                if is_burton_miller {
+                if hypersingular.is {
                     // vn_inc = phi_inc * ik * (e_n dot d)
                     let normal = &cpt.normal;
                     let vn_inc = phi_inc * Cplx::new(0.0, k) * dir3.dot(normal);
-                    rhs_inc[cpt.id] += beta * vn_inc;
+                    rhs_inc[cpt.id] += hypersingular.factor * vn_inc;
                 }
             }
         }
@@ -51,11 +50,11 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                 // phi_inc = A / (4 pi r) * exp(ikr)
                 let phi_inc = amp * Cplx::new(0., k * r).exp() / (4.0 * PI * r);
                 rhs_inc[cpt.id] = phi_inc;
-                if is_burton_miller {
+                if hypersingular.is {
                     // vn_inc = phi_inc * (ik - 1/r) * (e_n dot e_r)
                     let normal = &cpt.normal;
                     let vn_inc = phi_inc * Cplx::new(-1.0 / r, k) * e_r.dot(normal);
-                    rhs_inc[cpt.id] += beta * vn_inc;
+                    rhs_inc[cpt.id] += hypersingular.factor * vn_inc;
                 }
             }
         }

@@ -16,6 +16,11 @@ pub fn get_num_threads() -> usize {
     }
 }
 
+pub struct Hypersingular {
+    pub is: bool,
+    pub factor: Cplx
+}
+
 pub struct PreData {
     input: input_data::UserInput,
     mesh: mesh_data::Mesh,
@@ -45,11 +50,12 @@ impl PreData {
     #[inline]
     pub fn get_method_type(&self) -> &input_data::MethodType {return &self.input.method_type;}
     #[inline]
-    pub fn use_hypersingular(&self) -> bool {return self.input.method_type == input_data::MethodType::BurtonMiller;}
+    pub fn get_hypersingular(&self) -> Hypersingular {
+        return Hypersingular { is: self.use_hypersingular(), factor: self.get_burton_miller_coupling_factor()} }
     #[inline]
-    pub fn get_burton_miller_coupling_factor(&self) -> Cplx {return if self.use_hypersingular() 
-            {Cplx::new(0.0, 1.0 / self.get_wavenumber())
-            } else {Cplx::new(0.0, 0.0)}}
+    fn use_hypersingular(&self) -> bool {return self.input.method_type == input_data::MethodType::BurtonMiller;}
+    #[inline]
+    fn get_burton_miller_coupling_factor(&self) -> Cplx {return Cplx::new(0.0, 1.0 / self.get_wavenumber())}
     #[inline]
     pub fn get_hdiag(&self) -> Cplx {
         match self.get_problem_type() {

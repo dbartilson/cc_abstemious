@@ -14,16 +14,10 @@
         "Direct": {}
     },
     "incident_wave": {
-        "origin": [
-            0.0,
-            1.0,
-            0.0
-        ],
-        "wave_type": "PlaneWave",
-        "amplitude": [
-            1.0,
-            0.0
-        ]
+        "PlaneWave": {
+            "direction": [0.0, 1.0, 0.0],
+            "amplitude": [ 1.0, 0.0 ]
+        }
     },
     "surface_bc": {
         "bc_type": "NormalVelocity",

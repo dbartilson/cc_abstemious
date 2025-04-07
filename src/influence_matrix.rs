@@ -3,14 +3,14 @@ use std::sync::{Arc, Mutex};
 use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3, DVector};
 
-use crate::preprocess;
+use crate::preprocess::{self, Hypersingular};
 use crate::Cplx;
 use crate::preprocess::mesh_data::Coords;
 
 /// Calculate classical and 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
 /// normal vector at y (non-normalized), and wavenumber (k)
 fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, 
-    y: &Coords, n_y: &Vector3<f64>, use_hypersingular: bool) -> (Cplx, Cplx) {
+    y: &Coords, n_y: &Vector3<f64>, hypersingular: &Hypersingular) -> (Cplx, Cplx) {
     let e_nx = n_x / n_x.norm();
     let e_ny = n_y / n_y.norm();
     let r = x - y;
@@ -22,29 +22,30 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
     let f1 = Cplx::new(-1.0 / rdist, k);
     let rdoty = e_r.dot(&e_ny);
     let mut h = g * f1 * -rdoty;
-    if use_hypersingular {
+    if hypersingular.is {
         // dg = (ik - 1/r) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
         let rdotx = e_r.dot(&e_nx);
         let dg = g * f1 * rdotx;
         // dh = {-(ik - 1/r) * (n_y dot n_x) + (k^2 * r + 3 * (ik - 1/r)) * (r dot n_y) * (r dot n_x)} * g / r
         let dh = 1.0 / rdist * g * (-f1 * e_ny.dot(&e_nx) + (k.powi(2)*rdist + 3.0*f1) * rdotx * rdoty);
         // coupling parameter gamma = i/k
-        let beta = Cplx::new(0.0, 1.0 / k);
-        g += beta * dg;
-        h += beta * dh;
+        let beta = &hypersingular.factor;
+        g += *beta * dg;
+        h += *beta * dh;
     }
     return (g, h)
 }
 
 fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx, Cplx) {
+    let hypersingular = predata.get_hypersingular();
+    
     if i == j { 
         let cptj = &predata.get_cpts()[j];
         let area = cptj.area;
         let b = (area / PI).sqrt();
-        let beta = predata.get_burton_miller_coupling_factor();
         let g = Cplx::new(1.0 / (2.0 * PI * b), 0.0);
         let mut h = Cplx::new(0.0, 0.0); // proportional to curvature, assume zero
-        h += beta * Cplx::new(-1.0 / (2.0 * PI * b.powi(3)), 0.0);
+        if hypersingular.is {h += hypersingular.factor * Cplx::new(-1.0 / (2.0 * PI * b.powi(3)), 0.0)};
         return (g * cptj.wt * area, h * cptj.wt * area)
     }
     
@@ -54,7 +55,7 @@ fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx,
     let cptj = &predata.get_cpts()[j];
     let x = &cptj.coords;
     let n_x = &cptj.normal;
-    let (g, h) = get_greens_functions(predata.get_wavenumber(), x, n_x, y, n_y, predata.use_hypersingular());
+    let (g, h) = get_greens_functions(predata.get_wavenumber(), x, n_x, y, n_y, &hypersingular);
     return (g * cptj.wt * cptj.area, h * cptj.wt * cptj.area)
 }
 
@@ -117,7 +118,7 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
         let n_y = &cptj.normal;
         for (i, fieldpt) in field_points.iter().enumerate()  {
             let x = Vector3::from_column_slice(fieldpt);
-            let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, false);
+            let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, &Hypersingular { is: false, factor: Cplx::new(0.0, 0.0) });
             m[(i, j)] += h_j * cptj.wt * cptj.area;
             l[(i, j)] += g_j * cptj.wt * cptj.area;
         }
