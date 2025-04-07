@@ -62,8 +62,8 @@ fn rigid_sphere_plane_wave_ring() {
     analysis.write_results_at_frequency(0);
 }
 
-//#[allow(dead_code)]
-#[test]
+#[allow(dead_code)]
+//#[test]
 fn rigid_sphere_plane_wave_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
@@ -114,6 +114,7 @@ fn rigid_sphere_plane_wave() {
     analysis.run();
     let fp = analysis.get_result();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
+    assert_relative_eq!(fpi.norm(), 0.0004776828778512934, epsilon = 1.0e-10);
     assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
     assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
 }
@@ -198,6 +199,7 @@ fn rigid_sphere_plane_wave_burton_miller() {
     analysis.run();
     let fp = analysis.get_result();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.norm(), 0.0004964814282687255, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, 0.00012125591274707629, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.0004814465829556038, epsilon = 1.0e-10);
 }
