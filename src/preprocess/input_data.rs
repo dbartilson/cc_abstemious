@@ -1,36 +1,37 @@
+use schemars::JsonSchema;
 use serde::Deserialize;
 use std::fs::File;
 use std::io::{BufReader, Write};
 use std::error::Error;
 use std::path::Path;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub enum FrequencyInput {
     List { values: Vec<f64> },
     LinearSpaced { start: f64, end: f64, number: usize },
     LogSpaced { start: f64, end: f64, number: usize }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub enum ProblemType {
     Interior,
     Exterior
 }
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Deserialize, PartialEq, JsonSchema)]
 pub enum MethodType {
     Classical,
     BurtonMiller
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub enum Solver {
     Direct {},
     Iterative { tolerance: f64, max_iterations: usize},
     Hierarchical { tolerance: f64, max_iterations: usize}
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub enum IncidentWaveInput {
     PlaneWave {
         direction: [f64;3],
@@ -42,32 +43,32 @@ pub enum IncidentWaveInput {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub enum BCType {
     Pressure,
     NormalVelocity,
     Impedance
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct SurfaceBoundaryCondition {
     pub bc_type: BCType,
     pub value: [f64; 2]
 }
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Deserialize, PartialEq, JsonSchema)]
 pub enum OutputType {
     Total,
     Scattered
 }
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Deserialize, PartialEq, JsonSchema)]
 pub enum OutputField {
     Pressure,
     VelocityPotential
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct Output {
     pub o_type: OutputType,
     pub field: OutputField,
@@ -75,7 +76,7 @@ pub struct Output {
     pub field_points: Vec<[f64;3]>
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct UserInput {
     pub mesh_file: String,
     pub body_index: usize,
@@ -109,11 +110,23 @@ pub fn read_input_string(str: &str) -> Result<UserInput, Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
+    use schemars::schema_for;
+    use crate::preprocess::input_data;
+    use std::{fs::File, io::Write};
+
     #[test]
     fn json_reader() {
         use std::path::Path;
         // test json reader capability
-        let u = crate::preprocess::input_data::read_input_json(Path::new("./src/tests/input_1.json")).unwrap();
+        let u = input_data::read_input_json(Path::new("./src/tests/input_1.json")).unwrap();
         assert_eq!(u.body_index, 3);
+    }
+
+    #[test]
+    fn write_schema() {
+        let schema = schema_for!(input_data::UserInput);
+        let mut file = File::create("input_schema.json").unwrap();
+        let res= file.write_all(serde_json::to_string_pretty(&schema).unwrap().as_bytes());
+        assert!(res.is_ok())
     }
 }
