@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 use std::fs::File;
-use std::io::{BufReader, Write};
+use std::io::BufReader;
 use std::error::Error;
 use std::path::Path;
 
@@ -94,7 +94,6 @@ pub struct UserInput {
 pub fn read_input_json<P: AsRef<Path>>(path: P) -> Result<UserInput, Box<dyn Error>> {
     // Open the file in read-only mode with buffer.
     info!(" Reading json file '{}' ...", path.as_ref().display().to_string());
-    std::io::stdout().flush().unwrap();
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
