@@ -28,8 +28,6 @@ jobs:
       url: https://dbartilson.github.io/cc-abstemious
     runs-on: ubuntu-latest
     steps:
-    - name: Echos
-      run: echo ${GITHUB_WORKSPACE}
     - name: Checkout
       uses: actions/checkout@v4
     - name: Build
@@ -43,7 +41,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: '${GITHUB_WORKSPACE}/target/doc/cc_abstemious'
+        path: './target/doc/cc_abstemious'
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
