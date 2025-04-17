@@ -28,7 +28,10 @@ jobs:
       url: https://github.com/dbartilson/github.io.git
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Echos
+      run: echo ${GITHUB_WORKSPACE}
+    - name: Checkout
+      uses: actions/checkout@v4
     - name: Build
       run: cargo build --verbose
     - name: Run tests
@@ -40,8 +43,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        # Upload entire repository
-        path: '${GITHUB_WORKSPACE}/target/doc'
+        path: './target/doc'
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
