@@ -29,8 +29,7 @@ mod text_reader {
     }
 }
 
-use std::path::Path;
-use std::io::Write;
+use std::path::{self, Path};
 use na::Vector3;
 
 pub type Coords = Vector3<f64>;
@@ -95,9 +94,11 @@ impl Default for Mesh {
 }
 impl Mesh {
     pub fn read_from_vtk(&mut self, path: &Path) -> std::io::Result<()> {
+        if !path.exists() { 
+            error!("Mesh file not found at specified path: {}", path::absolute(path).unwrap().display().to_string())
+        }
         // read mesh from VTK (ASCII) format
         info!(" Reading VTK (ASCII) file '{}' ...", path.display().to_string());
-        std::io::stdout().flush().unwrap();
         let mut reader = text_reader::BufReader::open(path)?;
         let mut buffer = String::new();
 

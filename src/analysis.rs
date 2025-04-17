@@ -68,7 +68,7 @@ impl <'a>Analysis {
             let logfile = File::create(format!("{}{}",self.log_file,".log")).unwrap();
             let _ = CombinedLogger::init(
                 vec![
-                    TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
+                    TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
                     WriteLogger::new(LevelFilter::Info, Config::default(), logfile),
                 ]
             );

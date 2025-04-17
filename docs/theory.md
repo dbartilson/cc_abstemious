@@ -68,7 +68,7 @@ The integral solution to the Helmholtz equation is written as
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) g(\mathbf{x}, \mathbf{y}) d\mathbf{y} =
 \left\lbrace 
 \begin{array}{l l}
-\phi(\mathbf{x})-\phi_I(\mathbf{x}) & \text{at field point, ${\mathbf{x}}'$}\\
+\phi(\mathbf{x})-\phi_I(\mathbf{x}) & \text{at field point, ${x}'$}\\
 \phi(\mathbf{x})/2-\phi_I(\mathbf{x}) & \text{on surface for exterior problem}  \\
 -\phi_I(\mathbf{x}) & \text{on surface for interior problem}
 \end{array}

@@ -38,7 +38,7 @@ cc_abstemious(.exe) my_input.json
 
 ### Input file format
 
-An example input file is available in the `tests` directory. 
+An example input file is available in the `src/tests` directory. 
 
 The input file includes:
 * The path to the mesh file, in `.vtk` format (ASCII) [^1][^2][^3]
