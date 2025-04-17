@@ -25,7 +25,7 @@ jobs:
   build_and_deploy:
     environment:
       name: github-pages
-      url: https://github.com/dbartilson/github.io.git
+      url: https://dbartilson.github.io/cc-abstemious
     runs-on: ubuntu-latest
     steps:
     - name: Echos
@@ -43,7 +43,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: './target/doc'
+        path: '${GITHUB_WORKSPACE}/target/doc/cc_abstemious'
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
