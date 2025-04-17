@@ -38,6 +38,8 @@ jobs:
       run: cargo doc --no-deps
     - name: Setup Pages
       uses: actions/configure-pages@v5
+    - name: Add in index.html for redirect
+      run: cp ./docs/index.html ./target/doc
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
