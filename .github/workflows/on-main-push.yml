@@ -36,6 +36,7 @@ jobs:
       run: cargo doc --no-deps
   # Single deploy job since we're just deploying
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: https://github.com/dbartilson/github.io.git
