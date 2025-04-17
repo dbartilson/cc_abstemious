@@ -38,7 +38,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: https://github.com/dbartilson/github.io.git
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
