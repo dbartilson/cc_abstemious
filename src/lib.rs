@@ -33,7 +33,7 @@
 ## Usage
 
 `cc_abstemious` supports JSON input files. This describes an analysis that is run in the typical command line way: 
-```
+```shell
 cc_abstemious(.exe) my_input.json
 ```
 
