@@ -1,4 +1,6 @@
-extern crate simplelog;
+/*!
+Defines the analysis object (struct) and analysis states
+*/
 
 use simplelog::*;
 use std::fs::File;
@@ -10,15 +12,20 @@ use crate::influence_matrix;
 use crate::solve;
 use crate::postprocess;
 
-const VER_MAJOR: usize = 1;
-const VER_MINOR: usize = 2; 
-
+/// Enumerate the analysis states for tracking 
 enum AnalysisState {
     PostInput,
     PostSolve,
     Null
 }
 
+///This contains all data related to the analysis and the main wrapper functions
+/// 
+/// Methods:
+/// - create an Analysis
+/// - input
+/// - run
+/// - get/write results
 pub struct Analysis {
     temp_input: Option<preprocess::input_data::UserInput>,
     log_file: String,
@@ -39,6 +46,7 @@ impl <'a>Analysis {
             results: Vec::new()
         }
     }
+    /// Input from path (string)
     pub fn input_from_file(&mut self, input_path_str: &String) {
         println!(" Attempting to read input file: {}", input_path_str);
         let path = Path::new(input_path_str);
@@ -46,14 +54,23 @@ impl <'a>Analysis {
         self.temp_input = Some(preprocess::input_data::read_input_json(input_path_str).unwrap());
         self.analysis_state = AnalysisState::PostInput;
     }
+    /// Input from json string (mostly for tests)
     pub fn input_from_string(&mut self, input_str: &str) {
         self.temp_input = Some(preprocess::input_data::read_input_string(input_str).unwrap());
         self.analysis_state = AnalysisState::PostInput;
     }
+    /// Directly set an input_data (mostly for tests)
     pub fn set_input(&mut self, input: preprocess::input_data::UserInput) {
         self.temp_input = Some(input);
         self.analysis_state = AnalysisState::PostInput;
     }
+    /// Run the analysis, writing out to the log file if created
+    /// 
+    /// Analysis stages:
+    ///     - Preamble
+    ///     - Loop over frequencies
+    ///         - Solve for surface and field results
+    ///         - Save results internally
     pub fn run(&'a mut self) {
         
         if self.temp_input.is_none() {
@@ -75,7 +92,7 @@ impl <'a>Analysis {
         }
 
         info!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
-        info!("Ver. {}.{}", VER_MAJOR, VER_MINOR);
+        info!("Ver. {}.{}", crate::VER_MAJOR, crate::VER_MINOR);
         info!(" Current directory: {}", std::env::current_dir().unwrap().display());
         info!(" Starting analysis... (see log file: {}{})", self.log_file,".log");
 
@@ -116,12 +133,15 @@ impl <'a>Analysis {
 
         info!(" Complete!");
     }
+    /// Return ref to field results from analysis
     pub fn get_result(&self) -> &Vec<postprocess::FPResult> {
         return &self.results;
     }
+    /// Write results to output file at one frequency for all field points
     pub fn write_results_at_frequency(&self, ifreq: usize) {
         let _u = postprocess::write_results_at_frequency(self.predata.as_ref().unwrap(), &self.results[ifreq]);
     }
+    /// Write results to output file for all field points at one frequency
     pub fn write_results_at_point(&self, index: usize) {
         let _u = postprocess::write_results_at_point(self.predata.as_ref().unwrap(), &self.results, index);
     }

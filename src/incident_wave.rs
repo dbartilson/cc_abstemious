@@ -1,9 +1,17 @@
+/*!
+Defines the incident wave on the surface (RHS) and field responses
+*/
+
 use crate::preprocess;
 use na::{Complex, DVector, Vector3};
 use std::f64::consts::PI;
 type Cplx = Complex<f64>;
 
-/// return the incident velocity potential and normal velocity on the surface
+/// return a vector of incident velocity potential and normal velocity on the surface
+/// 
+/// incident rhs can be 
+/// phi_inc                  for classical method
+/// phi_inc + beta * vn_inc  for Burton-Miller method
 pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
     let cpts = predata.get_cpts();
     let k = predata.get_wavenumber();
@@ -11,9 +19,6 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
 
     let num_eqn = predata.get_num_eqn();
 
-    // incident rhs can be 
-    // phi_inc                  for classical method
-    // phi_inc + beta * vn_inc  for Burton-Miller method
     let mut rhs_inc = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     
     match predata.get_incident_wave() {

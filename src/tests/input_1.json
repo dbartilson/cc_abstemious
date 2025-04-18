@@ -1,5 +1,5 @@
 {
-    "mesh_file": "./src/tests/sphere_refined_2.vtk",
+    "mesh_file": "./src/tests/sphere_refined_3.vtk",
     "body_index": 3,
     "frequency": {
         "List": {
@@ -11,7 +11,10 @@
     "problem_type": "Exterior",
     "method_type": "Classical",
     "solver": {
-        "Direct": {}
+        "Hierarchical": {
+            "max_iterations": 1000,
+            "tolerance": 1e-3
+        }
     },
     "incident_wave": {
         "PlaneWave": {

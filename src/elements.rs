@@ -1,18 +1,30 @@
+/*!
+Defines the surface elements and interpolation schemes
+*/
+
+/// Defines the interpolation schemes used in the numerically-integrated elements
 pub mod interpolation {
+    /// Gauss point, includes natural coordinates (2D) and weight
     #[derive(Clone, Copy)]
     pub struct Gp {
-        pub coords: [f64; 2],
+        /// Natural coordinates
+        pub coords: [f64; 2], 
+        /// Integration weight
         pub wt: f64,
     }
+    /// Natural coordinates and weights at the triangle nodes
     #[allow(dead_code)]
     pub static TRINODES: [Gp; 3] = [Gp{coords: [0.0, 0.0], wt: 1./3.}, 
                                     Gp{coords: [1.0, 0.0], wt: 1./3.}, 
                                     Gp{coords: [0.0, 1.0], wt: 1./3.}];
+    /// Integration scheme for 1 point triangle
     pub static TRIGP1: [Gp; 1] = [Gp{coords: [1./3., 1./3.], wt: 1.0}];
+    /// Integration scheme for 3 point triangle
     #[allow(dead_code)]
     pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
                                   Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
                                   Gp{coords: [2./3., 1./6.], wt: 1./3.}];
+    /// Integration scheme for 6 point triangle
     #[allow(dead_code)]
     pub static TRIGP6: [Gp; 6] = [Gp{coords: [0.091576213509771, 0.091576213509771], wt: 0.109951743655322},
                                   Gp{coords: [0.816847572980459, 0.091576213509771], wt: 0.109951743655322},
@@ -21,12 +33,15 @@ pub mod interpolation {
                                   Gp{coords: [0.445948490915965, 0.108103018168070], wt: 0.223381589678011},
                                   Gp{coords: [0.108103018168070, 0.445948490915965], wt: 0.223381589678011}];
     static ONEOVERSQRT3: f64 = 0.57735026919;
+    /// Natural coordinates and weights at the quadrilateral nodes
     #[allow(dead_code)]
     pub static QUADNODES: [Gp; 4] = [Gp{coords: [-1.0, -1.0], wt: 1.0}, 
                                      Gp{coords: [ 1.0, -1.0], wt: 1.0}, 
                                      Gp{coords: [ 1.0,  1.0], wt: 1.0},
                                      Gp{coords: [-1.0,  1.0], wt: 1.0}];
+    /// Integration scheme for 1 point quad
     pub static QUADGP1: [Gp; 1] = [Gp{coords: [0., 0.], wt: 4.0}];
+    /// Integration scheme for 4 point quad
     #[allow(dead_code)]
     pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
@@ -38,8 +53,11 @@ use interpolation::*;
 use na::{DMatrix, Vector3};
 use crate::preprocess::mesh_data::{CollocationPoint, Coords, ElementType, Mesh};
 
-// Methods for numerically-integrated elements
+/// Numerically integrated elements
+/// 
+/// Contains reference to the mesh and a copy of the integration scheme
 pub struct NIElement <'a> {
+    /// Vector of Gauss Points (integration scheme)
     integration: Vec<Gp>,
     mesh: &'a Mesh,
     pub element_id: usize,
@@ -58,6 +76,7 @@ impl NIElement <'_> {
                   element_id: element,
                   element_type: etype.clone()}
     }
+    /// Get number of nodes for element
     #[inline]
     pub fn get_num_nodes(&self) -> usize {
         match self.element_type {
@@ -169,6 +188,9 @@ impl NIElement <'_> {
             _ => 0.0
         }
     }
+    /// Define a set of collocation points corresponding to the integration scheme of the element
+    /// 
+    /// Sets up physical coordinates, normal vector, area (detj), and weight from the natural coordinates
     pub fn get_integration_points_and_normals(&self) -> Vec<CollocationPoint> {
         let mut result: Vec<CollocationPoint> = Vec::new();
         for gp in &self.integration {

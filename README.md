@@ -1,4 +1,6 @@
-# cc_abstemious <=> BEM-ACOUSTICS
+# cc_abstemious 
+
+`cc_abstemious` is an anagram of BEM-Acoustics.
 
 `cc_abstemious` is a numerical acoustics simulation software based on the boundary element method. The main features are:
 
@@ -10,6 +12,8 @@
    * Dense matrix, iteratative (GMRES)
    * Hierarchical matrix decomposition (ACA) with iterative solver
 * Parallel processing of surface influence matrix (dense) and hierarchical decompositions
+
+More information on the theory behind `cc_abstemious` is available [here](./docs/theory.md).
 
 **License:** MIT
 
@@ -38,7 +42,7 @@ cc_abstemious(.exe) my_input.json
 
 ### Input file format
 
-An example input file is available in the `src/tests` directory. 
+An example input file is available in the `tests` directory. 
 
 The input file includes:
 * The path to the mesh file, in `.vtk` format (ASCII) [^1][^2][^3]
@@ -62,6 +66,3 @@ A file (`input_schema.json`) describing the input file JSON schema is automatica
 [^4]: Only one body supported per analysis 
 [^5]: Only one surface boundary condition may be utilized, i.e., the pressure, normal velocity, or impedance B.C. must be applied to the whole surface
 [^6]: There is no explicit check of whether a field point is interior to the body for interior problems, and similar for exterior problems
-
-
-
