@@ -1,14 +1,29 @@
+/*!
+Post-processing steps and writing outputs
+*/
+
 use std::error::Error;
 use csv::Writer;
 
 use crate::preprocess;
 use crate::Cplx;
 
+/// Total radiated and incident power 
+pub struct Power {
+    pub radiated: f64,
+    pub incident: f64
+}
+
+/// Field results at a given frequency
 pub struct FPResult {
+    /// Drive frequency
     pub frequency: f64,
-    pub scattered: Option<na::DVector<Cplx>>, // may be total field, if requested
+    /// default: scattered output; may be total field, if requested
+    pub scattered: Option<na::DVector<Cplx>>, 
+    /// incident wave field 
     pub incident: Option<na::DVector<Cplx>>,
-    pub radiated_power: f64 // not used yet
+    /// radiated and incident power
+    pub power: Power
 }
 
 /// write scattered/total and incident field results to a csv file for all points at one frequency
@@ -22,8 +37,8 @@ pub fn write_results_at_frequency(predata: &preprocess::PreData, result: &FPResu
         panic!("Error while writing results: pressure array and field point array not equal length!")
     }
     let on = match predata.get_output_field() {
-        preprocess::input_data::OutputField::Pressure => "pre",
-        preprocess::input_data::OutputField::VelocityPotential => "vpo"
+        preprocess::input::OutputField::Pressure => "pre",
+        preprocess::input::OutputField::VelocityPotential => "vpo"
     };
     let _ = wtr.write_record(&["index","x","y","z",
                                &format!("{}{}",on,"_re"),
@@ -48,8 +63,8 @@ pub fn write_results_at_point(predata: &preprocess::PreData, results: &Vec<FPRes
     -> Result<(), Box<dyn Error>> {
     let mut wtr = Writer::from_path(predata.get_output_filename())?;
     let on = match predata.get_output_field() {
-        preprocess::input_data::OutputField::Pressure => "pre",
-        preprocess::input_data::OutputField::VelocityPotential => "vpo"
+        preprocess::input::OutputField::Pressure => "pre",
+        preprocess::input::OutputField::VelocityPotential => "vpo"
     };
     let _ = wtr.write_record(&["freq",
                                &format!("{}{}",on,"_re"),
@@ -68,7 +83,7 @@ pub fn write_results_at_point(predata: &preprocess::PreData, results: &Vec<FPRes
 
 /// convert all field results from velocity potential to pressure, if requested
 pub fn convert_results(predata: &preprocess::PreData, results: &mut Vec<FPResult>) {
-    if *predata.get_output_field() == preprocess::input_data::OutputField::Pressure {
+    if *predata.get_output_field() == preprocess::input::OutputField::Pressure {
         let rho = predata.get_mass_density();
         for result in results {
             let omega = 2.0 * std::f64::consts::PI * result.frequency;

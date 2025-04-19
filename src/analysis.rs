@@ -27,7 +27,7 @@ enum AnalysisState {
 /// - run
 /// - get/write results
 pub struct Analysis {
-    temp_input: Option<preprocess::input_data::UserInput>,
+    temp_input: Option<preprocess::input::UserInput>,
     log_file: String,
     predata: Option<preprocess::PreData>,
     analysis_state: AnalysisState,
@@ -46,21 +46,21 @@ impl <'a>Analysis {
             results: Vec::new()
         }
     }
-    /// Input from path (string)
+    /// Input from json file at path (string)
     pub fn input_from_file(&mut self, input_path_str: &String) {
         println!(" Attempting to read input file: {}", input_path_str);
         let path = Path::new(input_path_str);
         self.log_file = path.file_stem().unwrap().to_str().unwrap().to_string();
-        self.temp_input = Some(preprocess::input_data::read_input_json(input_path_str).unwrap());
+        self.temp_input = Some(preprocess::input::read_input_json(input_path_str).unwrap());
         self.analysis_state = AnalysisState::PostInput;
     }
     /// Input from json string (mostly for tests)
     pub fn input_from_string(&mut self, input_str: &str) {
-        self.temp_input = Some(preprocess::input_data::read_input_string(input_str).unwrap());
+        self.temp_input = Some(preprocess::input::read_input_string(input_str).unwrap());
         self.analysis_state = AnalysisState::PostInput;
     }
     /// Directly set an input_data (mostly for tests)
-    pub fn set_input(&mut self, input: preprocess::input_data::UserInput) {
+    pub fn set_input(&mut self, input: preprocess::input::UserInput) {
         self.temp_input = Some(input);
         self.analysis_state = AnalysisState::PostInput;
     }
@@ -92,7 +92,7 @@ impl <'a>Analysis {
         }
 
         info!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
-        info!("Ver. {}.{}", crate::VER_MAJOR, crate::VER_MINOR);
+        info!("Ver. {}.{}.{}", crate::VER_MAJOR, crate::VER_MINOR, crate::VER_SUBMINOR);
         info!(" Current directory: {}", std::env::current_dir().unwrap().display());
         info!(" Starting analysis... (see log file: {}{})", self.log_file,".log");
 
@@ -122,7 +122,10 @@ impl <'a>Analysis {
                 frequency: freq,
                 scattered: Some(phi_fp),
                 incident: Some(phi_inc_fp),
-                radiated_power: 0.0
+                power: postprocess::Power {
+                    radiated: 0.0,
+                    incident: 0.0
+                }
             };
             self.results.push(result);
         }

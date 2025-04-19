@@ -4,11 +4,11 @@
 `cc_abstemious` is an anagram of BEM-Acoustics.
 
 `cc_abstemious` is a numerical acoustics simulation software based on the boundary element method. 
-
 */
 
 pub const VER_MAJOR: usize = 1;
 pub const VER_MINOR: usize = 2; 
+pub const VER_SUBMINOR: usize = 1; 
 
 extern crate simplelog;
 extern crate nalgebra as na;

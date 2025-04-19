@@ -1,7 +1,10 @@
+/*!
+GMRES(k) iterative solver
+*/
+
 use na::{DMatrix, DVector, Normed};
 use crate::Cplx;
-
-use super::h_matrix;
+use crate::solve::h_matrix;
 
 enum ExitFlag {
     Error,
@@ -9,12 +12,15 @@ enum ExitFlag {
     Iterations
 }
 
+/// GMRES solver information, can use dense matrix or Hmatrix
 pub struct GMRES{
     max_it: usize,
     max_it_per_restart: usize,
     thresh: f64,
     num_mv: usize,
+    /// Dense matrix
     pub a: Option<DMatrix::<Cplx>>,
+    /// Hierarchical matrix
     pub hmatrix: Option<h_matrix::HMatrix>
 }
 
@@ -57,10 +63,8 @@ impl GMRES{
         }
         info!("  Number of matrix-vector products: {}", self.num_mv);
     }
-    /*
-    Set up gemv, get_num_eqn, and get_norm as methods which can access either the 
-    full (dense) representation or the approximate (ACA) representation
-    */
+    ///Set up gemv, get_num_eqn, and get_norm as methods which can access either the 
+    ///full (dense) representation or the approximate (ACA) representation
     fn gemv(&mut self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
         // Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
         self.num_mv += 1; // keep track of number of matrix-vector products
@@ -78,8 +82,8 @@ impl GMRES{
         return 0.0
     }
     fn gmres(&mut self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {
-        // see the example code at 
-        // https://en.wikipedia.org/wiki/Generalized_minimal_residual_method#Regular_GMRES_(MATLAB_/_GNU_Octave)
+        //! see the example code at 
+        //! https://en.wikipedia.org/wiki/Generalized_minimal_residual_method#Regular_GMRES_(MATLAB_/_GNU_Octave)
         let mut flag = ExitFlag::Error;
         let n = x.len();
         let m = self.max_it_per_restart;

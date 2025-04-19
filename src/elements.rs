@@ -51,7 +51,7 @@ pub mod interpolation {
 
 use interpolation::*;
 use na::{DMatrix, Vector3};
-use crate::preprocess::mesh_data::{CollocationPoint, Coords, ElementType, Mesh};
+use crate::preprocess::mesh::{CollocationPoint, Coords, ElementType, Mesh};
 
 /// Numerically integrated elements
 /// 

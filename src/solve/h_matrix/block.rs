@@ -1,6 +1,21 @@
-use std::rc::Rc;
+/*!
+Block tree and block list
 
-use super::cluster::Cluster;
+The block tree is used to compare distances between clusters and determine
+admissibility, i.e., are they separated enough to approximate their interaction with
+an approximated matrix (ACA)
+
+The block tree is built from the cluster tree based on admissibility criteria between
+the clusters
+
+The block list is a flattened version of the block tree to make parallel computation 
+more amenable
+*/
+
+pub mod cluster;
+
+use cluster::Cluster as Cluster;
+use std::rc::Rc;
 
 /// Block Tree, which is used to compare distances between clusters and determine
 /// admissibility, i.e., are they separated enough to approximate their interaction
@@ -30,6 +45,7 @@ impl BlockTree {
     fn is_divisible(&self) -> bool {
         !(self.admissible || self.rows.is_leaf() || self.columns.is_leaf())
     }
+    /// Return if block is admissible
     #[inline]
     fn is_admissible(&self) -> bool {return self.admissible;}
     fn get_children(&self) -> &Vec<BlockTree> {return &self.children;}
@@ -54,6 +70,7 @@ impl BlockTree {
     }
 }
 
+/// Block, representing a sub-block of the influence matrix
 pub struct Block {
     rows: Vec<usize>,
     columns: Vec<usize>,
@@ -66,7 +83,7 @@ impl Block {
     pub fn is_admissible(&self) -> bool { return self.admissible; }
 }
 
-// Flattened version of block tree, all held in one vector
+/// Flattened version of block tree, all held in one vector
 pub struct BlockList {
     list: Vec<Block>
 }
@@ -99,7 +116,7 @@ impl BlockList {
 mod tests {
     use std::{collections::HashMap, rc::Rc};
     use na::Vector3;
-    use crate::{preprocess::mesh_data::CollocationPoint, solve::h_matrix::{block::{BlockList, BlockTree}, cluster::Cluster}};
+    use crate::{preprocess::mesh::CollocationPoint, solve::h_matrix::{block::{BlockList, BlockTree}, Cluster}};
 
     #[test]
     fn build_block_tree() {

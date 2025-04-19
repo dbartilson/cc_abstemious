@@ -1,26 +1,40 @@
-mod cluster;
-mod block;
+/*!
+Hierarchical matrix decomposition
+
+This build a matrix decomposition using the following steps
+    1. Building the cluster tree from node locations
+    2. Building a block tree indicating admissibility of the blocks 
+        (i.e., whether the clusters are distant enough apart to have their 
+         block of equations/interactions approximated by an ACA approximation)
+    3. Flattening the block tree into a block list
+    4. Forming the admissible and inadmissible blocks into the HMatrix in parallel
+        - Admissible blocks are decomposed by ACA
+        - Inadmissible blocks (think diagonal, close together points) are left as full/dense representation
+
+This results in a much smaller memory footprint and faster matrix-vector multiplies
+*/
+
+pub mod block;
+pub mod aca;
 
 use std::{collections::HashMap, rc::Rc, sync::{Arc, Mutex}};
 use na::{DMatrix, DVector};
 use scoped_threadpool::Pool;
-use crate::{preprocess::{self, mesh_data::CollocationPoint}, Cplx};
-use cluster::Cluster;
+use crate::{preprocess::mesh::CollocationPoint, tools, Cplx};
+use block::cluster::Cluster;
 use block::{BlockTree, BlockList};
 
-use super::aca::ACA;
-
-/// Can be represented in reduced format (e.g., ACA)
+/// Matrix represented in reduced format: ACA
 #[derive(Debug)]
 struct AdmissibleBlock {
     rows: Vec<usize>,
     columns: Vec<usize>,
-    values: ACA
+    values: aca::ACA
 }
 impl AdmissibleBlock {
     fn new<F>(rows: Vec<usize>, columns: Vec<usize>, get_row_or_column: F, tolerance: f64) -> AdmissibleBlock
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
-        let aca = ACA::new(tolerance, rows.len(), columns.len(), 
+        let aca = aca::ACA::new(tolerance, rows.len(), columns.len(), 
         &|i| get_row_or_column(vec![rows[i]], columns.clone()),
         &|j| get_row_or_column(rows.clone(), vec![columns[j]]));
         AdmissibleBlock {
@@ -46,6 +60,7 @@ impl AdmissibleBlock {
             b[*row] += b1[i];
         }
     }
+    /// For testing/debugging
     fn to_full(&self, a: &mut DMatrix::<Cplx>) {
         let ai = self.values.to_full();
         for (i, row) in self.rows.iter().enumerate() {
@@ -124,6 +139,7 @@ impl HMatrix {
             inadmissible_blocks: Vec::new()
         }
     }
+    /// Generate a hierarchical matrix from collocation points and functional
     pub fn new_from<F>(n: usize, 
                    get_row_or_column: &F, 
                    cpts: &Vec<CollocationPoint>, 
@@ -147,11 +163,12 @@ impl HMatrix {
         return mat;
     }
     pub fn get_num_eqn(&self) -> usize { self.num_eqn }
+    /// Get matrix norm, used for iterative stopping criterion
     pub fn get_norm(&self) -> f64 { self.norm }
     /// Process block tree into admissible and inadmissible blocks
     fn load_from<F>(&mut self, blocklist: BlockList, get_row_or_column: &F, tolerance: f64)
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
-        let num_threads = preprocess::get_num_threads();
+        let num_threads = tools::get_num_threads();
         // use a parallel pool of threads
         info!("  Using {} threads...", num_threads);
         let mut pool = Pool::new(num_threads as u32);
@@ -250,7 +267,7 @@ impl HMatrix {
 mod tests {
     use std::collections::HashMap;
     use na::{DMatrix, DVector, Vector3};
-    use crate::{preprocess::mesh_data::CollocationPoint, solve::{h_matrix, tests::generate_random_ab}, Cplx};
+    use crate::{preprocess::mesh::CollocationPoint, solve::{h_matrix, tests::generate_random_ab}, Cplx};
 
     fn get_hyperbolic_matrix(n: usize) -> (Vec::<CollocationPoint>, HashMap::<usize, usize>,
         DMatrix::<Cplx>, DVector::<Cplx>) {

@@ -1,25 +1,31 @@
-use std::collections::HashSet;
+/*!
+Adaptive Cross Approximation, used to compress admissible blocks
+*/
 
+use std::collections::HashSet;
 use na::{ComplexField, DMatrix, DVector};
 use rand::{distr::{Distribution, Uniform}, SeedableRng, rngs::StdRng};
 use crate::Cplx;
 
+/// U and V terms for pseudo SVD representation
 #[derive(Debug)]
 struct UV {
     u: DVector::<Cplx>,
     v: DVector::<Cplx>
 }
+/// Approximation of a matrix/block
 #[derive(Debug)]
 pub struct ACA
 {
     num_rows: usize,
     num_columns: usize,
-    uv: Vec<UV>,
+    uv: Vec<UV>, // vector of UV, see below for how this corresponds to full matrix
     norm: f64,
 }
 
 impl ACA
 {
+    /// Decompose a matrix using ACA using functional and tolerance
     pub fn new<F,G>(tol: f64, m: usize, n: usize, get_row: &F, get_column: &G) -> ACA
         where F: Fn(usize) -> Vec::<Cplx>,
               G: Fn(usize) -> Vec::<Cplx>  {
@@ -52,13 +58,14 @@ impl ACA
         }
         return r;
     }
+    /// Get number of UV vectors in decomposition
     pub fn get_num_uv(&self) -> usize { return self.uv.len();}
     /// Calculate the Adaptive Cross Approximation for the given matrix
     fn decompose<F,G>(&mut self, tol: f64, get_row: &F, get_column: &G) 
     where F: Fn(usize) -> Vec::<Cplx>,
           G: Fn(usize) -> Vec::<Cplx> {
-        // largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
-        // also see https://doi.org/10.1007/s00607-004-0103-1
+        //! largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
+        //! also see https://doi.org/10.1007/s00607-004-0103-1
         debug!("  Assembling Adaptive Cross Approximation matrix ({} x {})...", self.num_rows, self.num_columns);
         let n = self.get_max_rank();
         let mut rng = rand::rngs::StdRng::seed_from_u64(10);
@@ -135,8 +142,8 @@ impl ACA
         self.svd_recompression(tol);
     }
     fn svd_recompression(&mut self, tol: f64) {
-        // Largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
-        // Build U and V as matrix represenations for QR
+        //! Largely adapted from https://tbenthompson.com/book/tdes/low_rank.html
+        //! Build U and V as matrix represenations for QR
         let czero = Cplx::new(0.0,0.0);
         let mut u = DMatrix::<Cplx>::from_element(self.num_rows, self.get_num_uv(), czero);
         let mut v = DMatrix::<Cplx>::from_element(self.num_columns, self.get_num_uv(), czero);
@@ -193,6 +200,7 @@ impl ACA
             b.axpy(dot_product, &self.uv[k].u, c_one);
         }
     }
+    /// For testing/diagnostic, transform ACA representation to full (lossy)
     #[allow(dead_code)]
     pub fn to_full(&self) -> DMatrix::<Cplx> {
         let mut a = DMatrix::<Cplx>::from_element(
@@ -273,7 +281,7 @@ mod tests {
     extern crate approx;
     use na::DVector;
 
-    use crate::solve::aca::ACA;
+    use crate::solve::h_matrix::aca::ACA;
     use crate::Cplx;
     use crate::solve::tests::generate_random_ab;
 

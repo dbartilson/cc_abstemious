@@ -1,5 +1,9 @@
+/*!
+Mesh file processing, currently only VTK ASCII
+*/
+
 mod text_reader {
-    // module for reading text files line by line to a buffer
+    /// For reading text files line by line to a buffer
     use std::{
         fs::File,
         io::{self, prelude::*},
@@ -34,6 +38,7 @@ use na::Vector3;
 
 pub type Coords = Vector3<f64>;
 
+/// VTK element types
 #[derive(Clone)]
 pub enum ElementType {
     Null,
@@ -42,11 +47,17 @@ pub enum ElementType {
     Tri,
     Quad
 }
+/// Element struct
 pub struct Element {
+    /// Element ID #
     pub id: usize,
+    /// Body ID associated with element
     pub body_id: usize,
+    /// Type
     pub etype: ElementType,
+    /// Global node IDs
     pub node_ids: Vec<usize>,
+    /// Equations associated with element
     pub eqn_idx: Vec<usize>
 }
 
@@ -57,29 +68,41 @@ pub struct Element {
 //    Surface,
 //    Volume
 //}
+/// Body, having an ID and vector ofelement IDs
 pub struct Body {
     pub id: usize,
     pub element_ids: Vec<usize>
 }
-
+/// Node, having ID and coordinates
 #[derive(Clone)]
 pub struct Node {
     pub id: usize,
     pub coords: Coords
 }
 
+/// Collocation points, used for integration
 pub struct CollocationPoint {
+    /// Collocation point ID #
     pub id: usize,
+    /// Global coordinates
     pub coords: Coords,
+    /// Normal vector 
     pub normal: Vector3<f64>,
+    /// Area associated with this (detj)
     pub area: f64,
-    pub wt: f64 // detj * wt at this point
+    /// Gauss integration weight
+    pub wt: f64 
 }
 
+/// Mesh, from VTK
 pub struct Mesh {
+    /// All nodes
     pub nodes: Vec<Node>,
+    /// All elements
     pub elements: Vec<Element>,
+    /// All bodies 
     pub bodies: Vec<Body>,
+    /// Collocation points (added in preprocessing)
     pub cpts: Vec<CollocationPoint>
 }
 impl Default for Mesh {
@@ -93,6 +116,7 @@ impl Default for Mesh {
     }
 }
 impl Mesh {
+    /// Set up mesh from VTK ASCII
     pub fn read_from_vtk(&mut self, path: &Path) -> std::io::Result<()> {
         if !path.exists() { 
             error!("Mesh file not found at specified path: {}", path::absolute(path).unwrap().display().to_string())
@@ -181,7 +205,7 @@ mod tests {
         // test mesh reader (VTK ASCII) capability
         use std::path::Path;
 
-        let mut mesh: crate::preprocess::mesh_data::Mesh = Default::default();
+        let mut mesh: crate::preprocess::mesh::Mesh = Default::default();
         let _result = mesh.read_from_vtk(Path::new("./src/tests/sphere.vtk"));
 
         assert_eq!(mesh.elements.len(), 336);

@@ -27,3 +27,10 @@ pub fn logspace(start: f64, end: f64, npts: usize) -> Vec<f64> {
     }
     return x;
 }
+
+pub fn get_num_threads() -> usize {
+    match std::thread::available_parallelism() {
+        Ok(result) => std::cmp::max(result.get() / 2, 2),
+        Err(_) => 2
+    }
+}
