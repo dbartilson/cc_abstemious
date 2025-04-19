@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.3",
   "version": 1,
-  "serialNumber": "urn:uuid:849f5258-f7ca-4d91-84e8-7ba19c272e5b",
+  "serialNumber": "urn:uuid:5d91437d-c730-49f9-a842-699671177371",
   "metadata": {
-    "timestamp": "2025-04-08T00:41:13.945766200Z",
+    "timestamp": "2025-04-19T12:54:07.211882300Z",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -14,25 +14,25 @@
     ],
     "component": {
       "type": "application",
-      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.0",
+      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.1",
       "name": "cc_abstemious",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "scope": "required",
-      "purl": "pkg:cargo/cc_abstemious@1.2.0?download_url=file://.",
+      "purl": "pkg:cargo/cc_abstemious@1.2.1?download_url=file://.",
       "components": [
         {
           "type": "library",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.0 bin-target-0",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.1 bin-target-0",
           "name": "cc_abstemious",
-          "version": "1.2.0",
-          "purl": "pkg:cargo/cc_abstemious@1.2.0?download_url=file://.#src/lib.rs"
+          "version": "1.2.1",
+          "purl": "pkg:cargo/cc_abstemious@1.2.1?download_url=file://.#src/lib.rs"
         },
         {
           "type": "application",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.0 bin-target-1",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.1 bin-target-1",
           "name": "cc_abstemious",
-          "version": "1.2.0",
-          "purl": "pkg:cargo/cc_abstemious@1.2.0?download_url=file://.#src/main.rs"
+          "version": "1.2.1",
+          "purl": "pkg:cargo/cc_abstemious@1.2.1?download_url=file://.#src/main.rs"
         }
       ]
     },
@@ -818,16 +818,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
       "author": "David Tolnay <dtolnay@gmail.com>, Alex Crichton <alex@alexcrichton.com>",
       "name": "proc-macro2",
-      "version": "1.0.94",
+      "version": "1.0.95",
       "description": "A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a31971752e70b8b2686d7e46ec17fb38dad4051d94024c88df49b667caea9c84"
+          "content": "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
         }
       ],
       "licenses": [
@@ -835,7 +835,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/proc-macro2@1.0.94",
+      "purl": "pkg:cargo/proc-macro2@1.0.95",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1749,7 +1749,7 @@
   ],
   "dependencies": [
     {
-      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.0",
+      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.2.1",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#approx@0.5.1",
         "registry+https://github.com/rust-lang/crates.io-index#csv@1.3.1",
@@ -1834,7 +1834,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra-macros@0.2.2",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.100"
       ]
@@ -1904,7 +1904,7 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#unicode-ident@1.0.18"
       ]
@@ -1912,7 +1912,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94"
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95"
       ]
     },
     {
@@ -1962,7 +1962,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#schemars_derive@0.8.22",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#serde_derive_internals@0.29.1",
         "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.100"
@@ -1981,7 +1981,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#serde_derive@1.0.219",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.100"
       ]
@@ -1989,7 +1989,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#serde_derive_internals@0.29.1",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.100"
       ]
@@ -2024,7 +2024,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.100",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.94",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#unicode-ident@1.0.18"
       ]

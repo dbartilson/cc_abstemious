@@ -9,29 +9,24 @@
 * Support for VTK mesh files
 * Multiple solver options:
    * Dense matrix, direct (LU)
-   * Dense matrix, iteratative (GMRES)
+   * Dense matrix, iterative (GMRES)
    * Hierarchical matrix decomposition (ACA) with iterative solver
 * Parallel processing of surface influence matrix (dense) and hierarchical decompositions
 
-More information on the theory behind `cc_abstemious` is available [here](./docs/theory.md).
+More information is available:
+- [Theory Guide](./docs/theory.md)
+- [Development Guide](./docs/development.md)
 
 **License:** MIT
 
 **Author:** Daniel T. Bartilson
 
-## Build and test
-
-``cargo`` is used for the build and test phases. If you install Rust via `rustup`, you should have `cargo` as well.
-
-### Automated tests
-
-``cargo test`` will build ``cc_abstemious`` in debug mode, then run the unit and integration tests.
-
-``cargo test --release`` will do the same, but in release mode.
-
 ### Build
 
-``cargo build --release`` will build ``cc_abstemious`` in release mode.
+```
+cargo build --release
+```
+will build ``cc_abstemious`` in release mode.
 
 ## Usage
 

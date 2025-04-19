@@ -29,7 +29,7 @@ pub struct BlockTree {
 impl BlockTree {
     /// Build 'Block' of interaction between rows and columns, each represented by a cluster
     /// eta controls the required separation for admissibility, though it is not particularly
-    /// sensitive. Recommend eta [4-10] based on http://dx.doi.org/10.3970/cmes.2009.043.149
+    /// sensitive. Recommend eta [4-10] based on <http://dx.doi.org/10.3970/cmes.2009.043.149>
     pub fn new_from(rows: Rc<Cluster>, columns: Rc<Cluster>, eta: f64) -> BlockTree {
         let mut tree = BlockTree {
             rows: rows,
