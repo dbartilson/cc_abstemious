@@ -1,16 +1,25 @@
+/*!
+Computes the surface and field influence matrices
+*/
+
 use std::f64::consts::PI;
 use std::sync::{Arc, Mutex};
 use scoped_threadpool::Pool;
 use na::{DMatrix, Vector3, DVector};
 
-use crate::preprocess::{self, Hypersingular};
-use crate::Cplx;
-use crate::preprocess::mesh_data::Coords;
+use crate::preprocess::{self, BurtonMiller};
+use crate::{tools, Cplx};
+use crate::preprocess::mesh::Coords;
 
-/// Calculate classical and 'hypersingular' Green's function (dg) and its derivative (dh) for the given origin (x), destination (y),
-/// normal vector at y (non-normalized), and wavenumber (k)
+/// Calculate classical and hypersingular Green's function (dg) and its derivative (dh)
+/// 
+///  Inputs: 
+///     - origin (x), 
+///     - destination (y), 
+///     - normal vector at x/y (assume non-normalized), 
+///     - wavenumber (k)
 fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, 
-    y: &Coords, n_y: &Vector3<f64>, hypersingular: &Hypersingular) -> (Cplx, Cplx) {
+    y: &Coords, n_y: &Vector3<f64>, hypersingular: &BurtonMiller) -> (Cplx, Cplx) {
     let e_nx = n_x / n_x.norm();
     let e_ny = n_y / n_y.norm();
     let r = x - y;
@@ -36,10 +45,15 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
     return (g, h)
 }
 
+/// Wrapper over get_greens_functions to deal with singular integration
+/// 
+/// Takes in collocation point indices i and j
 fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx, Cplx) {
     let hypersingular = predata.get_hypersingular();
     
+    // If this is the same collocation point (singular), do other scheme
     if i == j { 
+        // In this case, just do analytical integration (TODO: add to theory doc)
         let cptj = &predata.get_cpts()[j];
         let area = cptj.area;
         let b = (area / PI).sqrt();
@@ -59,8 +73,10 @@ fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx,
     return (g * cptj.wt * cptj.area, h * cptj.wt * cptj.area)
 }
 
-/// evaluate the surface BEM influence matrices. These matrices are complex-valued,
-/// square, and non-symmetric in general
+/// Evaluate the dense surface BEM influence matrices
+/// 
+/// These matrices are complex-valued, square, and non-symmetric in general
+/// Use parallel processes by default
 pub fn get_dense_surface_matrices(predata: &preprocess::PreData) 
     -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
 
@@ -71,7 +87,7 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
 
     let hdiag = predata.get_hdiag();
     let gdiag = predata.get_gdiag();
-    let num_threads = preprocess::get_num_threads();
+    let num_threads = tools::get_num_threads();
     // use a parallel pool of threads
     info!(" Using {} threads...", num_threads);
     let mut pool = Pool::new(num_threads as u32);
@@ -97,7 +113,9 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     return (h, g)
 }
 
-/// evaluate the field BEM influence matrices. These matrices are complex-valued, and typically rectangular
+/// Evaluate the field BEM influence matrices. 
+/// 
+/// These matrices are complex-valued and typically rectangular
 pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cplx>, DMatrix::<Cplx>) {
 
     info!(" Calculating field results...");
@@ -118,7 +136,7 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
         let n_y = &cptj.normal;
         for (i, fieldpt) in field_points.iter().enumerate()  {
             let x = Vector3::from_column_slice(fieldpt);
-            let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, &Hypersingular { is: false, factor: Cplx::new(0.0, 0.0) });
+            let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, &BurtonMiller { is: false, factor: Cplx::new(0.0, 0.0) });
             m[(i, j)] += h_j * cptj.wt * cptj.area;
             l[(i, j)] += g_j * cptj.wt * cptj.area;
         }
@@ -126,17 +144,17 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
     return (m, l);
 }
 
-/// return alpha and beta for system matrix [alpha*H + beta*G]
+/// return alpha and beta for system matrix [alpha*H + beta*G] according to RHS
 fn get_lhs_factors(predata: &preprocess::PreData) -> (Cplx, Cplx) {
     let sbc = predata.get_surface_bc();
     match sbc.bc_type {
-        preprocess::input_data::BCType::Pressure => {
+        preprocess::input::BCType::Pressure => {
             (Cplx::new(0.0, 0.0), Cplx::new(1.0, 0.0))
         }   
-        preprocess::input_data::BCType::NormalVelocity => {
+        preprocess::input::BCType::NormalVelocity => {
             (Cplx::new(1.0, 0.0), Cplx::new(0.0, 0.0))
         }
-        preprocess::input_data::BCType::Impedance => {
+        preprocess::input::BCType::Impedance => {
             let impedance_bc = Cplx::new(sbc.value[0], sbc.value[1]);
             let omega = predata.get_angular_frequency();
             let rho = predata.get_mass_density();
@@ -149,13 +167,13 @@ fn get_lhs_factors(predata: &preprocess::PreData) -> (Cplx, Cplx) {
 fn get_rhs_factors(predata: &preprocess::PreData) -> (Cplx, Cplx) {
     let sbc = predata.get_surface_bc();
     match sbc.bc_type {
-        preprocess::input_data::BCType::Pressure => {
+        preprocess::input::BCType::Pressure => {
             (Cplx::new(-1.0, 0.0), Cplx::new(0.0, 0.0))
         }   
-        preprocess::input_data::BCType::NormalVelocity => {
+        preprocess::input::BCType::NormalVelocity => {
             (Cplx::new(0.0, 0.0), Cplx::new(1.0, 0.0))
         }
-        preprocess::input_data::BCType::Impedance => {
+        preprocess::input::BCType::Impedance => {
             (Cplx::new(0.0, 0.0), Cplx::new(0.0, 0.0))
         }
     }
@@ -166,7 +184,7 @@ pub enum EqnSide {
     LHS
 }
 
-/// Get row or column of the LHS or RHS, i or j must be singleton vector
+/// Get row or column of the LHS or RHS, i or j must be singleton vector (used by ACA)
 pub fn get_surface_row_or_column(predata: &preprocess::PreData, 
                                  i: Vec<usize>, 
                                  j: Vec<usize>, 
@@ -203,6 +221,7 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
         h[index] += h_j;
         g[index] += g_j;
     }
+    // deal with diagonal
     if let Some(diag) = j.iter().position(|&r| r == *i) {
         h[diag] += predata.get_hdiag();
         g[diag] += predata.get_gdiag();
@@ -222,6 +241,7 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
         h[index] += h_j;
         g[index] += g_j;
     }
+    // deal with diagonal
     if let Some(diag) = i.iter().position(|&r| r == *j) {
         h[diag] += predata.get_hdiag();
         g[diag] += predata.get_gdiag();

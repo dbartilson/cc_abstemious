@@ -1,20 +1,31 @@
-use std::{collections::HashMap, rc::Rc};
+/*!
+Cluster tree, representing a hierarchical clustering of physical points
 
-use crate::preprocess::mesh_data::CollocationPoint;
+The cluster tree is used to partition the surface in space until
+the leaves contain fewer nodes than the 'cardinality' parameter of the tree
+*/
+
+use std::{collections::HashMap, rc::Rc};
+use crate::preprocess::mesh::CollocationPoint;
 
 /// Cluster Tree, used to partition the surface in space until
 /// they contain fewer nodes than the 'cardinality' parameter of the tree
 #[derive(Clone)]
 pub struct Cluster {
+    /// Physical upper bound of the coordinates in the cluster
     u_bound: [f64;3],
+    /// Physical lower bound of the coordinates in the cluster
     l_bound: [f64;3],
+    /// See update_diameter for definition
     diameter: f64,
-    indices_contained: Vec<usize>, // node indices, not eqn indices
+    /// node indices, not eqn indices
+    indices_contained: Vec<usize>, 
+    /// References to 'sons' (i.e., subclusters this was split into)
     sons: Vec<Rc<Cluster>>
 }
 
 impl Cluster {
-    /// Build cluster tree from nodal data
+    /// Build cluster tree from nodal data.
     /// Leaf cardinality is the approximate minimum size of clusters
     pub fn new_from(cpts: &Vec<CollocationPoint>, 
                     indices_contained: Vec<usize>, 
@@ -70,10 +81,15 @@ impl Cluster {
         self.sons.push(Rc::new(Cluster::new_from(nodes, indx1, leaf_cardinality, eqn_map)));
         self.sons.push(Rc::new(Cluster::new_from(nodes, indx2, leaf_cardinality, eqn_map)));
     }
+    /// Check if a cluster is a leaf (has no sons, is not further split)
     pub fn is_leaf(&self) -> bool { return self.sons.is_empty()}
+    /// Return reference to indices contained in this cluster (includes sons)
     pub fn get_indices(&self) -> &Vec<usize> {return &self.indices_contained;}
+    /// Return diameter of this cluster
     pub fn get_diameter(&self) -> f64 { return self.diameter;}
+    /// Return reference to the sons of this cluster
     pub fn get_sons(&self) -> &Vec<Rc<Cluster>> { return &self.sons;}
+    /// Update the bounds (maxima/minima in each coordinate direction)
     fn update_bounds(&mut self, cpts: &Vec<CollocationPoint>) {
         let alpha = &mut self.l_bound;
         let beta = &mut self.u_bound;
@@ -103,6 +119,7 @@ impl Cluster {
         }
         return dist.sqrt();
     }
+    /// Use equation map to go from cpt indices to equations
     fn map_cpts_to_eqns(&mut self, eqn_map: &HashMap::<usize, usize>) {
         for idx in &mut self.indices_contained {
             if let Some(new_idx) = eqn_map.get(idx) {*idx = *new_idx;}
@@ -115,7 +132,7 @@ mod tests {
     use std::collections::HashMap;
     use na::Vector3;
 
-    use crate::{preprocess::mesh_data::CollocationPoint, solve::h_matrix::cluster::Cluster};
+    use crate::{preprocess::mesh::CollocationPoint, solve::h_matrix::block::cluster::Cluster};
 
     #[test]
     fn build_cluster_tree() {

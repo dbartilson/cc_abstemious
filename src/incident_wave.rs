@@ -1,9 +1,17 @@
+/*!
+Defines the incident wave on the surface (RHS) and field responses
+*/
+
 use crate::preprocess;
 use na::{Complex, DVector, Vector3};
 use std::f64::consts::PI;
 type Cplx = Complex<f64>;
 
-/// return the incident velocity potential and normal velocity on the surface
+/// return a vector of incident velocity potential and normal velocity on the surface
+/// 
+/// incident rhs can be 
+/// phi_inc                  for classical method
+/// phi_inc + beta * vn_inc  for Burton-Miller method
 pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
     let cpts = predata.get_cpts();
     let k = predata.get_wavenumber();
@@ -11,13 +19,10 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
 
     let num_eqn = predata.get_num_eqn();
 
-    // incident rhs can be 
-    // phi_inc                  for classical method
-    // phi_inc + beta * vn_inc  for Burton-Miller method
     let mut rhs_inc = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     
     match predata.get_incident_wave() {
-        &preprocess::input_data::IncidentWaveInput::PlaneWave { direction, amplitude } => {
+        &preprocess::input::IncidentWaveInput::PlaneWave { direction, amplitude } => {
             // amplitude in pressure units
             let p_amp = Cplx::new(amplitude[0], amplitude[1]);
             // amplitude in velocity potential units (phi = p / (i omega rho))
@@ -36,7 +41,7 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                 }
             }
         }
-        &preprocess::input_data::IncidentWaveInput::SphericalWave { origin, amplitude } => {
+        &preprocess::input::IncidentWaveInput::SphericalWave { origin, amplitude } => {
             // amplitude in pressure units
             let p_amp = Cplx::new(amplitude[0], amplitude[1]);
             // amplitude in velocity potential units (phi = p / (i omega rho))
@@ -72,7 +77,7 @@ pub fn get_incident_field(predata: &preprocess::PreData) -> DVector::<Cplx> {
     let mut phi_inc_fp = DVector::<Cplx>::from_element(num_fp, Cplx::new(0., 0.));
     
     match predata.get_incident_wave() {
-        &preprocess::input_data::IncidentWaveInput::PlaneWave { direction, amplitude } => {
+        &preprocess::input::IncidentWaveInput::PlaneWave { direction, amplitude } => {
             // amplitude in pressure units
             let p_amp = Cplx::new(amplitude[0], amplitude[1]);
             // amplitude in velocity potential units (phi = p / (i omega rho))
@@ -83,7 +88,7 @@ pub fn get_incident_field(predata: &preprocess::PreData) -> DVector::<Cplx> {
                 phi_inc_fp[i] = amp * Cplx::new(0., k * dir3.dot(&coord)).exp();
             }
         }
-        &preprocess::input_data::IncidentWaveInput::SphericalWave { origin, amplitude } => {
+        &preprocess::input::IncidentWaveInput::SphericalWave { origin, amplitude } => {
             // amplitude in pressure units
             let p_amp = Cplx::new(amplitude[0], amplitude[1]);
             // amplitude in velocity potential units (phi = p / (i omega rho))

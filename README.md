@@ -1,4 +1,6 @@
-# cc_abstemious <=> BEM-ACOUSTICS
+# cc_abstemious 
+
+`cc_abstemious` is an anagram of BEM-Acoustics.
 
 `cc_abstemious` is a numerical acoustics simulation software based on the boundary element method. The main features are:
 
@@ -7,27 +9,24 @@
 * Support for VTK mesh files
 * Multiple solver options:
    * Dense matrix, direct (LU)
-   * Dense matrix, iteratative (GMRES)
+   * Dense matrix, iterative (GMRES)
    * Hierarchical matrix decomposition (ACA) with iterative solver
 * Parallel processing of surface influence matrix (dense) and hierarchical decompositions
+
+More information is available:
+- [Theory Guide](./docs/theory.md)
+- [Development Guide](./docs/development.md)
 
 **License:** MIT
 
 **Author:** Daniel T. Bartilson
 
-## Build and test
-
-``cargo`` is used for the build and test phases. If you install Rust via `rustup`, you should have `cargo` as well.
-
-### Automated tests
-
-``cargo test`` will build ``cc_abstemious`` in debug mode, then run the unit and integration tests.
-
-``cargo test --release`` will do the same, but in release mode.
-
 ### Build
 
-``cargo build --release`` will build ``cc_abstemious`` in release mode.
+```
+cargo build --release
+```
+will build ``cc_abstemious`` in release mode.
 
 ## Usage
 
@@ -38,7 +37,7 @@ cc_abstemious(.exe) my_input.json
 
 ### Input file format
 
-An example input file is available in the `src/tests` directory. 
+An example input file is available in the `tests` directory. 
 
 The input file includes:
 * The path to the mesh file, in `.vtk` format (ASCII) [^1][^2][^3]
@@ -62,6 +61,3 @@ A file (`input_schema.json`) describing the input file JSON schema is automatica
 [^4]: Only one body supported per analysis 
 [^5]: Only one surface boundary condition may be utilized, i.e., the pressure, normal velocity, or impedance B.C. must be applied to the whole surface
 [^6]: There is no explicit check of whether a field point is interior to the body for interior problems, and similar for exterior problems
-
-
-

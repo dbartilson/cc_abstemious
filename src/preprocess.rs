@@ -1,5 +1,9 @@
-pub mod input_data;
-pub mod mesh_data;
+/*!
+Preprocessing steps and input
+*/
+
+pub mod input;
+pub mod mesh;
 
 use std::collections::HashMap;
 use std::f64::consts::PI;
@@ -9,21 +13,18 @@ use crate::elements::NIElement;
 use crate::tools;
 use crate::Cplx;
 
-pub fn get_num_threads() -> usize {
-    match std::thread::available_parallelism() {
-        Ok(result) => std::cmp::max(result.get() / 2, 2),
-        Err(_) => 2
-    }
-}
-
-pub struct Hypersingular {
+/// Burton-Miller method
+pub struct BurtonMiller {
+    /// true: use Burton-Miller method
     pub is: bool,
+    /// Complex-valued coupling factor, default i/k
     pub factor: Cplx
 }
 
+/// Preprocessing data, held by analysis
 pub struct PreData {
-    input: input_data::UserInput,
-    mesh: mesh_data::Mesh,
+    input: input::UserInput,
+    mesh: mesh::Mesh,
     eqn_map: HashMap<usize,usize>, 
     node_map: HashMap<usize,usize>,
     frequency_list: Vec<f64>,
@@ -31,81 +32,105 @@ pub struct PreData {
 }
 
 impl PreData {
+    /// Set frequency index to input
     pub fn set_frequency_index(&mut self, index: &usize) {self.ifreq = *index;}
-
+    /// Get list of frequencies (reference)
     #[inline]
     pub fn get_frequencies(&self) -> &Vec<f64> {return &self.frequency_list;}
+    /// Get current analysis frequency (copy)
     #[inline]
     pub fn get_frequency(&self) -> f64 {return self.frequency_list[self.ifreq];}
+    /// Get current analysis ANGULAR frequency (copy)
     #[inline]
     pub fn get_angular_frequency(&self) -> f64 {return 2.0 * PI * self.get_frequency();}
+    /// Get current analysis wavenumber (k = omega / c)
     #[inline]
     pub fn get_wavenumber(&self) -> f64 {return self.get_angular_frequency() / self.get_sound_speed()}
+    /// Get sound speed of acoustic medium (c)
     #[inline]
     pub fn get_sound_speed(&self) -> f64 {return self.input.sound_speed;}
+    /// Get mass density of acoustic medium (rho)
     #[inline]
     pub fn get_mass_density(&self) -> f64 {return self.input.mass_density;}
+    /// Get problem type (internal/external fluid)
     #[inline]
-    pub fn get_problem_type(&self) -> &input_data::ProblemType {return &self.input.problem_type;}
+    pub fn get_problem_type(&self) -> &input::ProblemType {return &self.input.problem_type;}
+    /// Get method type (classical or Burton-Miller)
     #[inline]
-    pub fn get_method_type(&self) -> &input_data::MethodType {return &self.input.method_type;}
+    pub fn get_method_type(&self) -> &input::MethodType {return &self.input.method_type;}
+    /// Return new hypersingular struct in current state
     #[inline]
-    pub fn get_hypersingular(&self) -> Hypersingular {
-        return Hypersingular { is: self.use_hypersingular(), factor: self.get_burton_miller_coupling_factor()} }
+    pub fn get_hypersingular(&self) -> BurtonMiller {
+        return BurtonMiller { is: self.use_hypersingular(), factor: self.get_burton_miller_coupling_factor()} }
+    /// Return whether to use Burton-Miller method
     #[inline]
-    fn use_hypersingular(&self) -> bool {return self.input.method_type == input_data::MethodType::BurtonMiller;}
+    fn use_hypersingular(&self) -> bool {return self.input.method_type == input::MethodType::BurtonMiller;}
+    /// Calculator Burton-Miller coupling factor (beta = i/k)
     #[inline]
     fn get_burton_miller_coupling_factor(&self) -> Cplx {return Cplx::new(0.0, 1.0 / self.get_wavenumber())}
+    /// Get added diagonal of H matrix. The H matrix has -1/2 added along the diagonal for exterior problems
     #[inline]
     pub fn get_hdiag(&self) -> Cplx {
         match self.get_problem_type() {
-            // the H matrix has -1/2 added along the diagonal for exterior problems
-            input_data::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
-            input_data::ProblemType::Interior => Cplx::new(0.0, 0.0)
+            input::ProblemType::Exterior => Cplx::new(-0.5, 0.0),
+            input::ProblemType::Interior => Cplx::new(0.0, 0.0)
         }
     }
+    /// Get added diagonal of G matrix. The G matrix has 0.5 * beta added along the diagonal for exterior problems
     #[inline]
     pub fn get_gdiag(&self) -> Cplx {
         match self.get_method_type() {
             // the G matrix has 1/2 (ultimately beta/2, where beta = i/k) added along the diagonal for Burton-Miller formulation
-            input_data::MethodType::Classical => Cplx::new(0.0, 0.0),
-            input_data::MethodType::BurtonMiller => 0.5 * self.get_burton_miller_coupling_factor()
+            input::MethodType::Classical => Cplx::new(0.0, 0.0),
+            input::MethodType::BurtonMiller => 0.5 * self.get_burton_miller_coupling_factor()
         }
     }
+    /// Return reference to mesh body
     #[inline]
-    pub fn get_mesh_body(&self) -> &mesh_data::Body {return &self.mesh.bodies[self.input.body_index - 1];}
+    pub fn get_mesh_body(&self) -> &mesh::Body {return &self.mesh.bodies[self.input.body_index - 1];}
+    /// Return reference to solver struct
     #[inline]
-    pub fn get_solver(&self) -> &input_data::Solver {return &self.input.solver}
+    pub fn get_solver(&self) -> &input::Solver {return &self.input.solver}
+    /// Return reference to incident wave input struct
     #[inline]
-    pub fn get_incident_wave(&self) -> &input_data::IncidentWaveInput {return &self.input.incident_wave;}
+    pub fn get_incident_wave(&self) -> &input::IncidentWaveInput {return &self.input.incident_wave;}
+    /// Return reference to surface boundary condition struct
     #[inline]
-    pub fn get_surface_bc(&self) -> &input_data::SurfaceBoundaryCondition {return &self.input.surface_bc;}
+    pub fn get_surface_bc(&self) -> &input::SurfaceBoundaryCondition {return &self.input.surface_bc;}
+    /// Return reference to map from node index to equation index
     #[inline]
-    /// get map from node index to equation index
     pub fn get_eqn_map(&self) -> &HashMap<usize, usize> {return &self.eqn_map;}
+    /// Return reference to map from equation index to node index
     #[inline]
-    /// get map from equation index to node index
     pub fn get_node_map(&self) -> &HashMap<usize, usize> {return &self.node_map;}
+    /// Return reference to mesh
     #[inline]
-    pub fn get_mesh(&self) -> &mesh_data::Mesh {return &self.mesh;}
+    pub fn get_mesh(&self) -> &mesh::Mesh {return &self.mesh;}
+    /// Return refernnce to collocation point vector
     #[inline]
-    pub fn get_cpts(&self) -> &Vec<mesh_data::CollocationPoint> {return &self.mesh.cpts}
+    pub fn get_cpts(&self) -> &Vec<mesh::CollocationPoint> {return &self.mesh.cpts}
+    /// Return number of equations
     #[inline]
     pub fn get_num_eqn(&self) -> usize {return self.mesh.cpts.len();}
+    /// Return reference to output file name
+    #[inline]
     pub fn get_output_filename(&self) -> &String {return &self.input.output.file;}
+    /// Return reference to output field (pressure or velocity potential)
     #[inline]
-    pub fn get_output_field(&self) -> &input_data::OutputField {return &self.input.output.field;}
+    pub fn get_output_field(&self) -> &input::OutputField {return &self.input.output.field;}
+    /// Return reference to output type (total or scatteres)
     #[inline]
-    pub fn get_output_type(&self) -> &input_data::OutputType {return &self.input.output.o_type;}
+    pub fn get_output_type(&self) -> &input::OutputType {return &self.input.output.o_type;}
+    /// Return reference to vector of field points
     #[inline]
     pub fn get_field_points(&self) -> &Vec<[f64; 3]> {return &self.input.output.field_points;}
 }
 
-pub fn preprocess(input: input_data::UserInput) -> PreData {
-    
+/// Wrapper of preprocessing steps
+pub fn preprocess(input: input::UserInput) -> PreData {
     info!(" Preprocessing...");
     // read mesh VTK
-    let mut mesh: mesh_data::Mesh = Default::default();
+    let mut mesh: mesh::Mesh = Default::default();
     let _result = mesh.read_from_vtk(Path::new(&input.mesh_file));
 
     let body_id = &input.body_index;
@@ -122,8 +147,9 @@ pub fn preprocess(input: input_data::UserInput) -> PreData {
                    frequency_list,
                    ifreq: 0};
 }
+
 /// Calculate the collocation points and normals using surface elements
-fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) -> 
+fn process_collocation_pts(mesh: &mut mesh::Mesh, body_id: usize) -> 
     (HashMap::<usize, usize>, 
      HashMap::<usize, usize>) {
     let ibody = &mesh.bodies[body_id-1];
@@ -152,16 +178,16 @@ fn process_collocation_pts(mesh: &mut mesh_data::Mesh, body_id: usize) ->
     return (eqn_map, cpt_map)
 }
 
-fn process_frequency_list(freq_input: &input_data::FrequencyInput) 
-    -> Vec<f64> {
+/// Set up frequency vector based on input
+fn process_frequency_list(freq_input: &input::FrequencyInput) -> Vec<f64> {
     match freq_input {
-        input_data::FrequencyInput::List {values} => {
+        input::FrequencyInput::List {values} => {
             return values.to_vec();
         },
-        input_data::FrequencyInput::LinearSpaced { start, end, number } => {
+        input::FrequencyInput::LinearSpaced { start, end, number } => {
             return tools::linspace(*start, *end, *number);
         },
-        input_data::FrequencyInput::LogSpaced { start, end, number } => {
+        input::FrequencyInput::LogSpaced { start, end, number } => {
             return tools::logspace(*start, *end, *number);
         }
     }
