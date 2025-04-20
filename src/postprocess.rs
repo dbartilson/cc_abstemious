@@ -39,10 +39,10 @@ pub fn write_results_at_frequency(predata: &preprocess::PreData, result: &FPResu
         preprocess::input::OutputField::Pressure => "pre",
         preprocess::input::OutputField::VelocityPotential => "vpo"
     };
-    let _ = wtr.write_record(&["index","x","y","z",
-                               &format!("{}{}",on,"_re"),
-                               &format!("{}{}",on,"_im"),
-                               "inc_re","inc_im"]);
+    let _ = wtr.write_record(["index","x","y","z",
+                              &format!("{}{}",on,"_re"),
+                              &format!("{}{}",on,"_im"),
+                              "inc_re","inc_im"]);
     for i in 0..scatt.len() {
         wtr.write_record(&[i.to_string(), 
                            points[i][0].to_string(), 
@@ -65,10 +65,10 @@ pub fn write_results_at_point(predata: &preprocess::PreData, results: &Vec<FPRes
         preprocess::input::OutputField::Pressure => "pre",
         preprocess::input::OutputField::VelocityPotential => "vpo"
     };
-    let _ = wtr.write_record(&["freq",
-                               &format!("{}{}",on,"_re"),
-                               &format!("{}{}",on,"_im"),
-                               "inc_re","inc_im"]);
+    let _ = wtr.write_record(["freq",
+                              &format!("{}{}",on,"_re"),
+                              &format!("{}{}",on,"_im"),
+                              "inc_re","inc_im"]);
     for result in results {
         wtr.write_record(&[result.frequency.to_string(), 
                            result.scattered.as_ref().unwrap()[index].re.to_string(),

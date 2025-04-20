@@ -13,7 +13,7 @@ use crate::Cplx;
 
 /// Solve for surface fields (velocity potential, normal velocity) from a given RHS vector. 
 /// This is a wrapper over the individual solve methods
-pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
+pub fn solve_for_surface(predata: & preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
     -> (DVector::<Cplx>, DVector::<Cplx>) {
     match predata.get_solver() {
         preprocess::input::Solver::Direct {  } |
@@ -73,7 +73,7 @@ fn get_surface_dense(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
             vn.axpy(factor, &phi, Cplx::new(0.0,0.0));
         }
     }
-    return (phi, vn);
+    (phi, vn)
 }
 
 /// Solve for surface by using hierarchical matrix and iterative solver
@@ -92,7 +92,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
         } else {
             h_matrix::HMatrix::new_from(num_eqn, 
                 &get_row_or_column, 
-                &predata.get_cpts(), 
+                predata.get_cpts(), 
                 predata.get_eqn_map(),
                 32,
                 1e-4)
@@ -112,7 +112,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
             }
             preprocess::input::BCType::Impedance => {
                 // solve for phi, but need to post-process for vn later
-                rhs.axpy(Cplx::new(0.0, 0.0), &rhs_inc, Cplx::new(-1.0, 0.0));
+                rhs.axpy(Cplx::new(0.0, 0.0), rhs_inc, Cplx::new(-1.0, 0.0));
             }
         }
     }
@@ -120,7 +120,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
     let get_row_or_column = |i, j| get_surface_row_or_column(predata, i, j, EqnSide::LHS);
     let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
                                                        &get_row_or_column, 
-                                                       &predata.get_cpts(), 
+                                                       predata.get_cpts(), 
                                                        predata.get_eqn_map(),
                                                        32,
                                                        1e-4);
@@ -152,7 +152,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
             vn.axpy(factor, &phi, Cplx::new(0.0,0.0));
         }
     }
-    return (phi, vn);
+    (phi, vn)
 }
 
 /// Solve the system of equations for dense matrix cases (direct or iterative)
@@ -184,11 +184,11 @@ pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix
     let mut phi_fp = phi_inc_fp.clone();
     if !want_total {phi_fp.fill(Cplx::new(0.0,0.0));}
 
-    phi_fp.gemv(-Cplx::new(1.0, 0.0), &m, &phi, Cplx::new(1.0, 0.0));
-    phi_fp.gemv(-Cplx::new(-1.0, 0.0), &l, &vn, Cplx::new(1.0, 0.0));
+    phi_fp.gemv(-Cplx::new(1.0, 0.0), m, phi, Cplx::new(1.0, 0.0));
+    phi_fp.gemv(-Cplx::new(-1.0, 0.0), l, vn, Cplx::new(1.0, 0.0));
     //let phi_fp = m * phi - l * vn + phi_inc_fp;
 
-    return phi_fp;
+    phi_fp
 }
 
 #[cfg(test)]

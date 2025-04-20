@@ -42,7 +42,7 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
         g += *beta * dg;
         h += *beta * dh;
     }
-    return (g, h)
+    (g, h)
 }
 
 /// Wrapper over get_greens_functions to deal with singular integration
@@ -110,7 +110,7 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     });
     let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
     let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
-    return (h, g)
+    (h, g)
 }
 
 /// Evaluate the field BEM influence matrices. 
@@ -141,7 +141,7 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
             l[(i, j)] += g_j * cptj.wt * cptj.area;
         }
     }
-    return (m, l);
+    (m, l)
 }
 
 /// return alpha and beta for system matrix [alpha*H + beta*G] according to RHS
@@ -200,24 +200,24 @@ pub fn get_surface_row_or_column(predata: &preprocess::PreData,
         let (mut h, g) = get_surface_matrices_row(predata, &i[0], &j);
         h.axpy(beta, &g, alpha);
         let rr: Vec<Cplx> = h.data.into();
-        return rr      
+        rr      
     }
     else {
         let (mut h, g) = get_surface_matrices_column(predata, &i, &j[0]);
         h.axpy(beta, &g, alpha);
         let rr: Vec<Cplx> = h.data.into();
-        return rr
-    };  
+        rr
+    }
 }
 
-fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<usize>) 
+fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &[usize]) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let num_column = j.len();
     let mut h = DVector::<Cplx>::from_element(num_column, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
     for (index, jeqn) in j.iter().enumerate() {
-        let (g_j, h_j) = get_gh_functions(&predata, *i, *jeqn);
+        let (g_j, h_j) = get_gh_functions(predata, *i, *jeqn);
         h[index] += h_j;
         g[index] += g_j;
     }
@@ -227,17 +227,17 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &Vec<us
         g[diag] += predata.get_gdiag();
     }
 
-    return (h, g)
+    (h, g)
 }
 
-fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j: &usize) 
+fn get_surface_matrices_column(predata: &preprocess::PreData, i: &[usize], j: &usize) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
 
     let num_row = i.len();
     let mut h = DVector::<Cplx>::from_element(num_row, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
     for (index, ieqn) in i.iter().enumerate() {
-        let (g_j, h_j) = get_gh_functions(&predata, *ieqn, *j);
+        let (g_j, h_j) = get_gh_functions(predata, *ieqn, *j);
         h[index] += h_j;
         g[index] += g_j;
     }
@@ -246,6 +246,5 @@ fn get_surface_matrices_column(predata: &preprocess::PreData, i: &Vec<usize>, j:
         h[diag] += predata.get_hdiag();
         g[diag] += predata.get_gdiag();
     }
-
-    return (h, g)
+    (h, g)
 }

@@ -35,6 +35,12 @@ pub struct Analysis {
     results: Vec<postprocess::FPResult>
 }
 
+impl<'a> Default for Analysis {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl <'a>Analysis {
     pub fn new() -> Analysis {
         Analysis {
@@ -137,9 +143,7 @@ impl <'a>Analysis {
         info!(" Complete!");
     }
     /// Return ref to field results from analysis
-    pub fn get_result(&self) -> &Vec<postprocess::FPResult> {
-        return &self.results;
-    }
+    pub fn get_result(&self) -> &Vec<postprocess::FPResult> { &self.results }
     /// Write results to output file at one frequency for all field points
     pub fn write_results_at_frequency(&self, ifreq: usize) {
         let _u = postprocess::write_results_at_frequency(self.predata.as_ref().unwrap(), &self.results[ifreq]);

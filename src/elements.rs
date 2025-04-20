@@ -128,12 +128,12 @@ impl NIElement <'_> {
         let n = self.shape_functions_at(gp);
         let mut x = Coords::from_element(0.0);
         let element = &self.mesh.elements[self.element_id];
-        for ni in 0..n.len() {
-            let node_index = &element.node_ids[ni];
+        for (i, ni) in n.iter().enumerate() {
+            let node_index = &element.node_ids[i];
             let icoord = &self.mesh.nodes[*node_index].coords;
-            x += n[ni] * icoord;
+            x += *ni * icoord;
         }
-        return x;
+        x
     }
     /// Get natural coordinates corresponding to node index
     #[allow(dead_code)]
@@ -165,7 +165,7 @@ impl NIElement <'_> {
             _ => {
                 let dn = self.shape_derivatives_at(gp);
                 let mut dndxi = Vector3::from_element(0.0);
-                let mut dndeta = dndxi.clone();
+                let mut dndeta = dndxi;
                 let element = &self.mesh.elements[self.element_id];
                 for i in 0..self.get_num_nodes() {
                     let node_index = &element.node_ids[i];
@@ -199,6 +199,6 @@ impl NIElement <'_> {
             let area = self.detj_at(gp);
             result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area: area, wt: gp.wt })
         }
-        return result
+        result
     }
 }
