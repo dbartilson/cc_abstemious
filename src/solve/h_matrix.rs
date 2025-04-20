@@ -38,8 +38,8 @@ impl AdmissibleBlock {
         &|i| get_row_or_column(vec![rows[i]], columns.clone()),
         &|j| get_row_or_column(rows.clone(), vec![columns[j]]));
         AdmissibleBlock {
-            rows: rows,
-            columns: columns,
+            rows,
+            columns,
             values: aca
         }
     }
@@ -89,9 +89,9 @@ impl InadmissibleBlock {
             }
         }
         InadmissibleBlock {
-            rows: rows,
-            columns: columns,
-            values: values
+            rows,
+            columns,
+            values
         }
     }
     /// Perform gather, multiply, scatter for this contribution to b = alpha * self * x + beta * b

@@ -95,6 +95,7 @@ pub struct CollocationPoint {
 }
 
 /// Mesh, from VTK
+#[derive(Default)]
 pub struct Mesh {
     /// All nodes
     pub nodes: Vec<Node>,
@@ -105,31 +106,21 @@ pub struct Mesh {
     /// Collocation points (added in preprocessing)
     pub cpts: Vec<CollocationPoint>
 }
-impl Default for Mesh {
-    fn default() -> Mesh {
-        Mesh {
-            nodes: Vec::new(),
-            elements: Vec::new(),
-            bodies: Vec::new(), 
-            cpts: Vec::new()
-        }
-    }
-}
 impl Mesh {
     /// Set up mesh from VTK ASCII
     pub fn read_from_vtk(&mut self, path: &Path) -> std::io::Result<()> {
         if !path.exists() { 
-            error!("Mesh file not found at specified path: {}", path::absolute(path).unwrap().display().to_string())
+            error!("Mesh file not found at specified path: {}", path::absolute(path).unwrap().display())
         }
         // read mesh from VTK (ASCII) format
-        info!(" Reading VTK (ASCII) file '{}' ...", path.display().to_string());
+        info!(" Reading VTK (ASCII) file '{}' ...", path.display());
         let mut reader = text_reader::BufReader::open(path)?;
         let mut buffer = String::new();
 
         let nodes = &mut self.nodes;
         let elements = &mut self.elements;
         while let Some(_line) = reader.read_line(&mut buffer) {
-            let mut sline = buffer.trim().split_whitespace();
+            let mut sline = buffer.split_whitespace();
             let first_word = sline.next();
             // Read POINTS data block
             if first_word == Some("POINTS") {
@@ -156,7 +147,7 @@ impl Mesh {
                     let body_id: usize = sline.next().as_ref().unwrap().parse().unwrap();
                     let mut elem_temp: Element = 
                         Element{id: i, 
-                                body_id: body_id as usize,
+                                body_id,
                                 etype: ElementType::Null, 
                                 node_ids: Vec::new(),
                                 eqn_idx: Vec::new()};
@@ -169,11 +160,11 @@ impl Mesh {
             // Read CELL_TYPES data block
             else if first_word == Some("CELL_TYPES") {
                 let nelem: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                for i in 0..nelem {
+                for elem in elements.iter_mut().take(nelem) {
                     reader.read_line(&mut buffer);
                     sline = buffer.split_whitespace();
                     let etype: usize = sline.next().as_ref().unwrap().parse().unwrap();
-                    elements[i].etype = match etype {
+                    elem.etype = match etype {
                         1 => ElementType::Point,
                         3 => ElementType::Line,
                         5 => ElementType::Tri,

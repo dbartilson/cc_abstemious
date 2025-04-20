@@ -6,7 +6,7 @@ pub fn linspace(start: f64, end: f64, npts: usize) -> Vec<f64> {
     //! evenly-spaced npts between start and end
     let dx = (end - start) / ((npts - 1) as f64);
     let mut x = vec![start; npts];
-    for (i, xi) in x.iter_mut().enumerate().take((npts-1)).skip(1) {
+    for (i, xi) in x.iter_mut().enumerate().take(npts-1).skip(1) {
         *xi = start + dx * (i as f64);
     }
     x[npts-1] = end;

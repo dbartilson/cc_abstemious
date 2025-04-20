@@ -32,8 +32,8 @@ impl BlockTree {
     /// sensitive. Recommend eta [4-10] based on <http://dx.doi.org/10.3970/cmes.2009.043.149>
     pub fn new_from(rows: Rc<Cluster>, columns: Rc<Cluster>, eta: f64) -> BlockTree {
         let mut tree = BlockTree {
-            rows: rows,
-            columns: columns,
+            rows,
+            columns,
             admissible: false,
             children: Vec::new()
         };

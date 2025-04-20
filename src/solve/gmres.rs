@@ -27,9 +27,9 @@ pub struct GMRES{
 impl GMRES{
     pub fn new(max_it: usize, thresh: f64) -> GMRES {
         GMRES {
-            max_it: max_it,
+            max_it,
             max_it_per_restart: 0,
-            thresh: thresh,
+            thresh,
             num_mv: 0,
             a: None,
             hmatrix: None
@@ -69,13 +69,13 @@ impl GMRES{
         if self.hmatrix.is_some() {self.hmatrix.as_ref().unwrap().gemv(alpha, x, beta, b)}
     }
     fn get_num_eqn(&self) -> usize {
-        if self.a.is_some() { return self.a.as_ref().unwrap().shape().0} else {}
-        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_num_eqn()} else {}
+        if self.a.is_some() { return self.a.as_ref().unwrap().shape().0} 
+        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_num_eqn()} 
         0
     }
     fn get_norm(&self) -> f64 {
-        if self.a.is_some() { return self.a.as_ref().unwrap().norm()} else {}
-        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_norm()} else {}
+        if self.a.is_some() { return self.a.as_ref().unwrap().norm()} 
+        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_norm()} 
         0.0
     }
     fn gmres(&mut self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {

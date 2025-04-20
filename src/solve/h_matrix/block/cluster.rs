@@ -35,7 +35,7 @@ impl Cluster {
             u_bound: [f64::NEG_INFINITY;3],
             l_bound: [f64::INFINITY;3],
             diameter: 0.0,
-            indices_contained: indices_contained,
+            indices_contained,
             sons: Vec::new()
         };
         cluster.process_cluster(cpts, leaf_cardinality, eqn_map);

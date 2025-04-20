@@ -70,7 +70,7 @@ fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx,
     let x = &cptj.coords;
     let n_x = &cptj.normal;
     let (g, h) = get_greens_functions(predata.get_wavenumber(), x, n_x, y, n_y, &hypersingular);
-    return (g * cptj.wt * cptj.area, h * cptj.wt * cptj.area)
+    (g * cptj.wt * cptj.area, h * cptj.wt * cptj.area)
 }
 
 /// Evaluate the dense surface BEM influence matrices

@@ -64,7 +64,7 @@ pub struct NIElement <'a> {
     element_type: ElementType
 }
 impl NIElement <'_> {
-    pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> NIElement <'a> {
+    pub fn new(meshdata: &Mesh, element: usize) -> NIElement <'_> {
         let etype = &meshdata.elements[element].etype;
         let int = match etype.clone() {
             ElementType::Tri => TRIGP1.to_vec(),
@@ -72,7 +72,7 @@ impl NIElement <'_> {
             _ => {error!("Invalid numerically integrated element"); Vec::new()}
         };
         NIElement{integration: int, 
-                  mesh: &meshdata, 
+                  mesh: meshdata, 
                   element_id: element,
                   element_type: etype.clone()}
     }
@@ -197,7 +197,7 @@ impl NIElement <'_> {
             let y = self.coordinates_at(gp);
             let n_y = self.normal_vector_at_gp(gp);
             let area = self.detj_at(gp);
-            result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area: area, wt: gp.wt })
+            result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area, wt: gp.wt })
         }
         result
     }

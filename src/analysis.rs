@@ -35,7 +35,7 @@ pub struct Analysis {
     results: Vec<postprocess::FPResult>
 }
 
-impl<'a> Default for Analysis {
+impl Default for Analysis {
     fn default() -> Self {
         Self::new()
     }
