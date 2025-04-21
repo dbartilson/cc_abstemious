@@ -57,8 +57,8 @@ pub struct Element {
     pub etype: ElementType,
     /// Global node IDs
     pub node_ids: Vec<usize>,
-    /// Equations associated with element
-    pub eqn_idx: Vec<usize>
+    /// Integration data
+    pub intpts: Vec<CollocationPoint>
 }
 
 //pub enum BodyType {
@@ -150,7 +150,7 @@ impl Mesh {
                                 body_id,
                                 etype: ElementType::Null, 
                                 node_ids: Vec::new(),
-                                eqn_idx: Vec::new()};
+                                intpts: Vec::new()};
                     for slinej in sline {
                         elem_temp.node_ids.push(slinej.parse().unwrap());
                     }

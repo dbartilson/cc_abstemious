@@ -93,7 +93,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
             h_matrix::HMatrix::new_from(num_eqn, 
                 &get_row_or_column, 
                 predata.get_cpts(), 
-                predata.get_eqn_map(),
+                predata.get_cpt2eqn_map(),
                 32,
                 1e-4)
         };
@@ -121,7 +121,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
     let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
                                                        &get_row_or_column, 
                                                        predata.get_cpts(), 
-                                                       predata.get_eqn_map(),
+                                                       predata.get_cpt2eqn_map(),
                                                        32,
                                                        1e-4);
     if let input::Solver::Hierarchical { tolerance, max_iterations } = predata.get_solver() {
@@ -180,8 +180,8 @@ fn solve_lu(a: &DMatrix<Cplx>, x: &mut DVector<Cplx>) {
 pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix::<Cplx>, 
     phi: &DVector::<Cplx>, vn: &DVector::<Cplx>, phi_inc_fp: &DVector::<Cplx>) -> DVector::<Cplx> {
 
-    let want_total = *predata.get_output_type() == preprocess::input::OutputType::Total;
     let mut phi_fp = phi_inc_fp.clone();
+    let want_total = *predata.get_output_type() == preprocess::input::OutputType::Total;
     if !want_total {phi_fp.fill(Cplx::new(0.0,0.0));}
 
     phi_fp.gemv(-Cplx::new(1.0, 0.0), m, phi, Cplx::new(1.0, 0.0));

@@ -114,7 +114,7 @@ pub struct UserInput {
     pub problem_type: ProblemType,
     pub method_type: MethodType,
     pub solver: Solver,
-    pub incident_wave: IncidentWaveInput,
+    pub incident_wave: Vec<IncidentWaveInput>,
     pub surface_bc: SurfaceBoundaryCondition,
     pub output: Output
 }

@@ -13,12 +13,14 @@
     "solver": {
         "Direct": {}
     },
-    "incident_wave": {
-        "PlaneWave": {
+    "incident_wave": [
+        {
+            "PlaneWave": {
             "direction": [0.0, 1.0, 0.0],
             "amplitude": [ 1.0, 0.0 ]
+            }
         }
-    },
+    ],
     "surface_bc": {
         "bc_type": "NormalVelocity",
         "value": [

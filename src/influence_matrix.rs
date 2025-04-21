@@ -35,7 +35,7 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
         // dg = (ik - 1/r) * g * (r dot n_x), where r and n are unit vectors -> (r dot n) is a direction cosine
         let rdotx = e_r.dot(&e_nx);
         let dg = g * f1 * rdotx;
-        // dh = {-(ik - 1/r) * (n_y dot n_x) - (k^2 * r + 3 * (ik - 1/r)) * (r dot n_y) * (r dot n_x)} * g / r
+        // dh = {-(ik - 1/r) * (n_y dot n_x) + (k^2 * r + 3 * (ik - 1/r)) * (r dot n_y) * (r dot n_x)} * g / r
         let dh = 1.0 / rdist * g * (-f1 * e_ny.dot(&e_nx) - (k.powi(2)*rdist + 3.0*f1) * rdotx * rdoty);
         // coupling parameter gamma = i/k
         let beta = &hypersingular.factor;
@@ -52,25 +52,33 @@ fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx,
     let hypersingular = predata.get_hypersingular();
     
     // If this is the same collocation point (singular), do other scheme
-    if i == j { 
-        // In this case, just do analytical integration (TODO: add to theory doc)
-        let cptj = &predata.get_cpts()[j];
-        let area = cptj.area;
-        let b = (area / PI).sqrt();
-        let g = Cplx::new(1.0 / (2.0 * PI * b), 0.0);
-        let mut h = Cplx::new(0.0, 0.0); // proportional to curvature, assume zero
-        if hypersingular.is {h += hypersingular.factor * Cplx::new(-1.0 / (2.0 * PI * b.powi(3)), 0.0)};
-        return (g * cptj.wt * area, h * cptj.wt * area)
-    }
+    //if i == j { 
+    //    // In this case, just do analytical integration
+    //    let cptj = &predata.get_cpts()[j];
+    //    let area = cptj.area;
+    //    let b = (area / PI).sqrt();
+    //    let g = Cplx::new(1.0 / (2.0 * PI * b), 0.0);
+    //    let mut h = Cplx::new(0.0, 0.0); // proportional to curvature, assume zero
+    //    if hypersingular.is {h += hypersingular.factor * Cplx::new(-1.0 / (2.0 * PI * b.powi(3)), 0.0)};
+    //    return (g * cptj.wt * area, h * cptj.wt * area)
+    //}
     
     let cpti = &predata.get_cpts()[i];
     let y = &cpti.coords;
     let n_y = &cpti.normal;
-    let cptj = &predata.get_cpts()[j];
-    let x = &cptj.coords;
-    let n_x = &cptj.normal;
-    let (g, h) = get_greens_functions(predata.get_wavenumber(), x, n_x, y, n_y, &hypersingular);
-    (g * cptj.wt * cptj.area, h * cptj.wt * cptj.area)
+    let element_j_index = predata.get_cpt2el_map().get(&j).unwrap();
+    let intpts_j = &predata.get_mesh().elements[*element_j_index].intpts;
+    let mut g = Cplx::new(0.0, 0.0);
+    let mut h = g;
+    for intpt_j in intpts_j {
+        let x = &intpt_j.coords;
+        let n_x = &intpt_j.normal;
+        let (gk, hk) = get_greens_functions(predata.get_wavenumber(), x, n_x, y, n_y, &hypersingular);
+        g += gk * intpt_j.wt * intpt_j.area;
+        h += hk * intpt_j.wt * intpt_j.area;
+    }
+    (g, h)
+
 }
 
 /// Evaluate the dense surface BEM influence matrices
@@ -94,16 +102,16 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData)
     let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, hdiag)));
     let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(num_eqn, num_eqn, gdiag)));
     pool.scoped(|scope| {
-        for i in 0..ncpts {
+        for j in 0..ncpts {
             let h_share = h_share.clone();
             let g_share = g_share.clone();
             scope.execute(move|| {
-                for j in 0..ncpts {
-                    let (g_j, h_j) = get_gh_functions(predata, i, j);
+                for i in 0..ncpts {
+                    let (g_ij, h_ij) = get_gh_functions(predata, i, j);
                     let mut hi = h_share.lock().unwrap();
                     let mut gi = g_share.lock().unwrap();
-                    hi[(i, j)] += h_j;
-                    gi[(i, j)] += g_j;
+                    hi[(i, j)] += h_ij;
+                    gi[(i, j)] += g_ij;
                 }
             });
         }
@@ -212,7 +220,6 @@ pub fn get_surface_row_or_column(predata: &preprocess::PreData,
 
 fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &[usize]) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
-
     let num_column = j.len();
     let mut h = DVector::<Cplx>::from_element(num_column, Cplx::new(0.0, 0.0));
     let mut g = h.clone();
@@ -226,13 +233,11 @@ fn get_surface_matrices_row(predata: &preprocess::PreData, i: &usize, j: &[usize
         h[diag] += predata.get_hdiag();
         g[diag] += predata.get_gdiag();
     }
-
     (h, g)
 }
 
 fn get_surface_matrices_column(predata: &preprocess::PreData, i: &[usize], j: &usize) 
         -> (DVector::<Cplx>, DVector::<Cplx>) {
-
     let num_row = i.len();
     let mut h = DVector::<Cplx>::from_element(num_row, Cplx::new(0.0, 0.0));
     let mut g = h.clone();

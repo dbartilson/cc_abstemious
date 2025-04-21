@@ -21,12 +21,22 @@ pub struct BurtonMiller {
     pub factor: Cplx
 }
 
+pub struct Maps {
+    // map frm cpts to elements
+    cpt2el: HashMap<usize,usize>, 
+    // map from elements to cpts
+    el2cpt: HashMap<usize,usize>,
+    // map from cpts to equations
+    cpt2eqn: HashMap<usize,usize>,
+    // map from equations to cpts
+    eqn2cpt: HashMap<usize,usize>,
+}
+
 /// Preprocessing data, held by analysis
 pub struct PreData {
     input: input::UserInput,
     mesh: mesh::Mesh,
-    eqn_map: HashMap<usize,usize>, 
-    node_map: HashMap<usize,usize>,
+    maps: Maps,
     frequency_list: Vec<f64>,
     ifreq: usize // current frequency index
 }
@@ -93,16 +103,22 @@ impl PreData {
     pub fn get_solver(&self) -> &input::Solver {&self.input.solver}
     /// Return reference to incident wave input struct
     #[inline]
-    pub fn get_incident_wave(&self) -> &input::IncidentWaveInput {&self.input.incident_wave}
+    pub fn get_incident_wave(&self) -> &Vec<input::IncidentWaveInput> {&self.input.incident_wave}
     /// Return reference to surface boundary condition struct
     #[inline]
     pub fn get_surface_bc(&self) -> &input::SurfaceBoundaryCondition {&self.input.surface_bc}
-    /// Return reference to map from node index to equation index
+    /// Return reference to map from collocation point index to equation
     #[inline]
-    pub fn get_eqn_map(&self) -> &HashMap<usize, usize> {&self.eqn_map}
-    /// Return reference to map from equation index to node index
+    pub fn get_cpt2eqn_map(&self) -> &HashMap<usize, usize> {&self.maps.cpt2eqn}
+    /// Return reference to map from equation to collocation point index
     #[inline]
-    pub fn get_node_map(&self) -> &HashMap<usize, usize> {&self.node_map}
+    pub fn get_eqn2cpt_map(&self) -> &HashMap<usize, usize> {&self.maps.eqn2cpt}
+    /// Return reference to map from collocation point index to element index
+    #[inline]
+    pub fn get_cpt2el_map(&self) -> &HashMap<usize, usize> {&self.maps.cpt2el}
+    /// Return reference to map from element number to collocation point index
+    #[inline]
+    pub fn get_el2cpt_map(&self) -> &HashMap<usize, usize> {&self.maps.el2cpt}
     /// Return reference to mesh
     #[inline]
     pub fn get_mesh(&self) -> &mesh::Mesh {&self.mesh}
@@ -132,48 +148,64 @@ pub fn preprocess(input: input::UserInput) -> PreData {
     // read mesh VTK
     let mut mesh: mesh::Mesh = Default::default();
     let _result = mesh.read_from_vtk(Path::new(&input.mesh_file));
-
     let body_id = &input.body_index;
 
     let frequency_list = process_frequency_list(&input.frequency);
 
-    let (eqn_map, node_map) = process_collocation_pts(&mut mesh, *body_id);
+    let maps = process_collocation_pts(&mut mesh, *body_id);
+
+    process_elements(&mut mesh, *body_id);
 
     // take ownership of input data
     PreData{input, 
-                   mesh, 
-                   eqn_map, 
-                   node_map,
-                   frequency_list,
-                   ifreq: 0}
+            mesh, 
+            maps,
+            frequency_list,
+            ifreq: 0}
+}
+
+/// Get the element integration data so it does not need to be done repeatedly
+fn process_elements(mesh: &mut mesh::Mesh, body_id: usize) {
+    let ibody = &mesh.bodies[body_id-1];
+    for element_id in &ibody.element_ids {
+        // get element with all integration points
+        let element = NIElement::new(mesh, *element_id);
+        // get integration data
+        let ecpts= element.get_integration_points_and_normals();
+        // assign into mesh data
+        mesh.elements[*element_id].intpts = ecpts;
+    }
 }
 
 /// Calculate the collocation points and normals using surface elements
-fn process_collocation_pts(mesh: &mut mesh::Mesh, body_id: usize) -> 
-    (HashMap::<usize, usize>, 
-     HashMap::<usize, usize>) {
+fn process_collocation_pts(mesh: &mut mesh::Mesh, body_id: usize) -> Maps {
     let ibody = &mesh.bodies[body_id-1];
+    let mut cpt2el = HashMap::<usize, usize>::new();
+    let mut el2cpt = HashMap::<usize, usize>::new();
     let mut i: usize = 0;
     for element_id in &ibody.element_ids {
-        let element = NIElement::new(mesh, *element_id);
-        // get collocation points for this element
+        // get element with only central integration point 
+        let element = NIElement::new_1_point_integration(mesh, *element_id);
+        // get collocation point for this element
         let ecpts= element.get_integration_points_and_normals();
         // dump into global data
         for mut ecpt in ecpts {
             ecpt.id = i;
+            cpt2el.insert(i, *element_id);
+            el2cpt.insert(*element_id, i);
             mesh.cpts.push(ecpt);
             i += 1;
         }
     }
 
     // Scroll through all used eqns in order and put in map
-    let mut eqn_map = HashMap::<usize, usize>::new();
-    let mut cpt_map = HashMap::<usize, usize>::new();
-    for (eqn_number, i) in (0..mesh.cpts.len()).enumerate() {
-        eqn_map.insert(i, eqn_number);
-        cpt_map.insert(eqn_number, i);
+    let mut cpt2eqn = HashMap::<usize, usize>::new();
+    let mut eqn2cpt = HashMap::<usize, usize>::new();
+    for i in 0..mesh.cpts.len() {
+        cpt2eqn.insert(i, i);
+        eqn2cpt.insert(i, i);
     }
-    (eqn_map, cpt_map)
+    Maps{cpt2el, el2cpt, cpt2eqn, eqn2cpt}
 }
 
 /// Set up frequency vector based on input

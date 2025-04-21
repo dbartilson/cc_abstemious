@@ -20,7 +20,6 @@ pub mod interpolation {
     /// Integration scheme for 1 point triangle
     pub static TRIGP1: [Gp; 1] = [Gp{coords: [1./3., 1./3.], wt: 1.0}];
     /// Integration scheme for 3 point triangle
-    #[allow(dead_code)]
     pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
                                   Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
                                   Gp{coords: [2./3., 1./6.], wt: 1./3.}];
@@ -42,7 +41,6 @@ pub mod interpolation {
     /// Integration scheme for 1 point quad
     pub static QUADGP1: [Gp; 1] = [Gp{coords: [0., 0.], wt: 4.0}];
     /// Integration scheme for 4 point quad
-    #[allow(dead_code)]
     pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
@@ -67,14 +65,27 @@ impl NIElement <'_> {
     pub fn new(meshdata: &Mesh, element: usize) -> NIElement <'_> {
         let etype = &meshdata.elements[element].etype;
         let int = match etype.clone() {
-            ElementType::Tri => TRIGP1.to_vec(),
-            ElementType::Quad => QUADGP1.to_vec(),
+            ElementType::Tri => TRIGP3.to_vec(),
+            ElementType::Quad => QUADGP4.to_vec(),
             _ => {error!("Invalid numerically integrated element"); Vec::new()}
         };
         NIElement{integration: int, 
                   mesh: meshdata, 
                   element_id: element,
                   element_type: etype.clone()}
+    }
+    /// Set up element with one integration point (for the collocation point setup)
+    pub fn new_1_point_integration(meshdata: &Mesh, element: usize) -> NIElement <'_> {
+        let etype = &meshdata.elements[element].etype;
+        let int = match etype.clone() {
+            ElementType::Tri => TRIGP1.to_vec(),
+            ElementType::Quad => QUADGP1.to_vec(),
+            _ => {error!("Invalid numerically integrated element"); Vec::new()}
+        };
+        NIElement{integration: int, 
+            mesh: meshdata, 
+            element_id: element,
+            element_type: etype.clone()}
     }
     /// Get number of nodes for element
     #[inline]
