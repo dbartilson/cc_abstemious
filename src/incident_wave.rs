@@ -2,24 +2,19 @@
 Defines the incident wave on the surface (RHS) and field responses
 */
 
-use crate::preprocess;
+use crate::{analysis::PrimaryVariables, preprocess};
 use na::{Complex, DVector, Vector3};
 use std::f64::consts::PI;
 type Cplx = Complex<f64>;
 
-/// return a vector of incident velocity potential and normal velocity on the surface
-/// 
-/// incident rhs can be 
-/// phi_inc                  for classical method
-/// phi_inc + beta * vn_inc  for Burton-Miller method
-pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
+/// return vectors of incident velocity potential and normal velocity on the surface
+pub fn get_incident_surface(predata: &preprocess::PreData) -> PrimaryVariables {
     let cpts = predata.get_cpts();
     let k = predata.get_wavenumber();
-    let hypersingular = predata.get_hypersingular();
 
     let num_eqn = predata.get_num_eqn();
-
-    let mut rhs_inc = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
+    let mut phi_inc = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
+    let mut vn_inc = phi_inc.clone();
     
     for incw in predata.get_incident_wave().iter() {
         match *incw {
@@ -32,14 +27,10 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                 for cpt in cpts {
                     let coord = &cpt.coords;
                     // phi_inc = A * exp(ik (x dot d))
-                    let phi_inc = amp * Cplx::new(0., k * dir3.dot(coord)).exp();
-                    rhs_inc[cpt.id] = phi_inc;
-                    if hypersingular.is {
-                        // vn_inc = phi_inc * ik * (e_n dot d)
-                        let normal = &cpt.normal;
-                        let vn_inc = phi_inc * Cplx::new(0.0, k) * dir3.dot(normal);
-                        rhs_inc[cpt.id] += hypersingular.factor * vn_inc;
-                    }
+                    phi_inc[cpt.id] = amp * Cplx::new(0., k * dir3.dot(coord)).exp();
+                    // vn_inc = phi_inc * ik * (e_n dot d)
+                    let normal = &cpt.normal;
+                    vn_inc[cpt.id] = phi_inc[cpt.id] * Cplx::new(0.0, k) * dir3.dot(normal);
                 }
             }
             preprocess::input::IncidentWaveInput::SphericalWave { origin, amplitude } => {
@@ -54,19 +45,15 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> DVector::<Cplx> {
                     let r = rvec.magnitude();
                     let e_r = rvec / r;
                     // phi_inc = A / (4 pi r) * exp(ikr)
-                    let phi_inc = amp * Cplx::new(0., k * r).exp() / (4.0 * PI * r);
-                    rhs_inc[cpt.id] = phi_inc;
-                    if hypersingular.is {
-                        // vn_inc = phi_inc * (ik - 1/r) * (e_n dot e_r)
-                        let normal = &cpt.normal;
-                        let vn_inc = phi_inc * Cplx::new(-1.0 / r, k) * e_r.dot(normal);
-                        rhs_inc[cpt.id] += hypersingular.factor * vn_inc;
-                    }
+                    phi_inc[cpt.id] = amp * Cplx::new(0., k * r).exp() / (4.0 * PI * r);
+                    // vn_inc = phi_inc * (ik - 1/r) * (e_n dot e_r)
+                    let normal = &cpt.normal;
+                    vn_inc[cpt.id] = phi_inc[cpt.id] * Cplx::new(-1.0 / r, k) * e_r.dot(normal);
                 }
             }
         }
     }
-    rhs_inc
+    PrimaryVariables { phi: phi_inc, vn: vn_inc }
 }
 
 /// return the incident velocity potential at field points

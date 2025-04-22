@@ -134,7 +134,7 @@ impl PreData {
     /// Return reference to output field (pressure or velocity potential)
     #[inline]
     pub fn get_output_field(&self) -> &input::OutputField {&self.input.output.field}
-    /// Return reference to output type (total or scatteres)
+    /// Return reference to output type (total or scattered)
     #[inline]
     pub fn get_output_type(&self) -> &input::OutputType {&self.input.output.o_type}
     /// Return reference to vector of field points

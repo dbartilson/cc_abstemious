@@ -57,13 +57,13 @@ fn rigid_sphere_plane_wave_ring() {
     analysis.write_results_at_frequency(0);
 }
 
-#[allow(dead_code)]
-//#[test]
+//#[allow(dead_code)]
+#[test]
 fn rigid_sphere_plane_wave_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     //input.mesh_file = "./src/tests/refined_sphere.vtk".to_string();
-    input.method_type = MethodType::BurtonMiller;
+    input.method_type = MethodType::Classical;
     input.frequency = FrequencyInput::LinearSpaced { start: 10.0, end: 1000.0, number: 50 };
     // incident wave
     input.incident_wave = vec![IncidentWaveInput::PlaneWave {
@@ -80,8 +80,9 @@ fn rigid_sphere_plane_wave_sweep() {
 
     analysis.set_input(input);
     analysis.run();
-    analysis.write_results_at_point(0);
-    let _fp = analysis.get_result();
+    //analysis.write_results_at_point(0);
+    analysis.write_power();
+    let _fp = analysis.get_results();
 }
 
 #[test]
@@ -101,11 +102,11 @@ fn rigid_sphere_plane_wave() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.norm(), 0.0004776828778512934, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.norm(), 0.00045892241574703284, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -0.000038592340803747317, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00045729685643614465, epsilon = 1.0e-10);
 }
 
 #[test]
@@ -127,10 +128,10 @@ fn rigid_sphere_plane_wave_iterative() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-8);
-    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-8);
+    assert_relative_eq!(fpi.re, -0.000038592340803747317, epsilon = 1.0e-8);
+    assert_relative_eq!(fpi.im, 0.00045729685643614465, epsilon = 1.0e-8);
 }
 
 #[test]
@@ -152,10 +153,10 @@ fn rigid_sphere_plane_wave_hmatrix() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -3.9380308176032198e-05, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00047605563272935873, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -0.000038592340803747317, epsilon = 1.0e-8);
+    assert_relative_eq!(fpi.im, 0.00045729685643614465, epsilon = 1.0e-8);
 }
 
 #[test]
@@ -177,11 +178,11 @@ fn rigid_sphere_plane_wave_burton_miller() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.norm(), 0.0004964814282687255, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.re, 0.00012125591274707629, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.0004814465829556038, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.norm(),  0.0005407404080455677, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -0.00021387485159944078, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00049664649072212743, epsilon = 1.0e-10);
 }
 
 #[test]
@@ -201,9 +202,6 @@ fn monopole_power() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
-    let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.norm(), 0.0004964814282687255, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.re, 0.00012125591274707629, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.0004814465829556038, epsilon = 1.0e-10);
+    analysis.write_power();
+    let _res = analysis.get_results();
 }

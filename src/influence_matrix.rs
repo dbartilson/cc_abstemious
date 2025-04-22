@@ -14,8 +14,8 @@ use crate::preprocess::mesh::Coords;
 /// Calculate classical and hypersingular Green's function (dg) and its derivative (dh)
 /// 
 ///  Inputs: 
-///     - origin (x), 
-///     - destination (y), 
+///     - origin (y), 
+///     - destination (x), 
 ///     - normal vector at x/y (assume non-normalized), 
 ///     - wavenumber (k)
 fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>, 
@@ -36,7 +36,7 @@ fn get_greens_functions(k: f64, x: &Coords, n_x: &Vector3<f64>,
         let rdotx = e_r.dot(&e_nx);
         let dg = g * f1 * rdotx;
         // dh = {-(ik - 1/r) * (n_y dot n_x) + (k^2 * r + 3 * (ik - 1/r)) * (r dot n_y) * (r dot n_x)} * g / r
-        let dh = 1.0 / rdist * g * (-f1 * e_ny.dot(&e_nx) - (k.powi(2)*rdist + 3.0*f1) * rdotx * rdoty);
+        let dh = 1.0 / rdist * g * (-f1 * e_ny.dot(&e_nx) + (k.powi(2)*rdist + 3.0*f1) * rdotx * rdoty);
         // coupling parameter gamma = i/k
         let beta = &hypersingular.factor;
         g += *beta * dg;
@@ -52,27 +52,27 @@ fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx,
     let hypersingular = predata.get_hypersingular();
     
     // If this is the same collocation point (singular), do other scheme
-    //if i == j { 
-    //    // In this case, just do analytical integration
-    //    let cptj = &predata.get_cpts()[j];
-    //    let area = cptj.area;
-    //    let b = (area / PI).sqrt();
-    //    let g = Cplx::new(1.0 / (2.0 * PI * b), 0.0);
-    //    let mut h = Cplx::new(0.0, 0.0); // proportional to curvature, assume zero
-    //    if hypersingular.is {h += hypersingular.factor * Cplx::new(-1.0 / (2.0 * PI * b.powi(3)), 0.0)};
-    //    return (g * cptj.wt * area, h * cptj.wt * area)
-    //}
+    if i == j { 
+        // In this case, just do analytical integration
+        let cptj = &predata.get_cpts()[j];
+        let area = cptj.area;
+        let b = (area / PI).sqrt();
+        let g = Cplx::new(1.0 / (2.0 * PI * b), 0.0);
+        let mut h = Cplx::new(0.0, 0.0); // proportional to curvature, assume zero
+        if hypersingular.is {h += hypersingular.factor * Cplx::new(-1.0 / (2.0 * PI * b.powi(3)), 0.0)};
+        return (g * cptj.wt * area, h * cptj.wt * area)
+    }
     
     let cpti = &predata.get_cpts()[i];
-    let y = &cpti.coords;
-    let n_y = &cpti.normal;
+    let x = &cpti.coords;
+    let n_x = &cpti.normal;
     let element_j_index = predata.get_cpt2el_map().get(&j).unwrap();
     let intpts_j = &predata.get_mesh().elements[*element_j_index].intpts;
     let mut g = Cplx::new(0.0, 0.0);
     let mut h = g;
     for intpt_j in intpts_j {
-        let x = &intpt_j.coords;
-        let n_x = &intpt_j.normal;
+        let y = &intpt_j.coords;
+        let n_y = &intpt_j.normal;
         let (gk, hk) = get_greens_functions(predata.get_wavenumber(), x, n_x, y, n_y, &hypersingular);
         g += gk * intpt_j.wt * intpt_j.area;
         h += hk * intpt_j.wt * intpt_j.area;
@@ -139,14 +139,17 @@ pub fn get_dense_field_matrices(predata: &preprocess::PreData) -> (DMatrix::<Cpl
     let mut l = m.clone();
     let n_x = Vector3::new(0.0, 0.0, 0.0); // dummy
     for j in 0..ncpts {
-        let cptj = &mesh.cpts[j];
-        let y = &cptj.coords;
-        let n_y = &cptj.normal;
-        for (i, fieldpt) in field_points.iter().enumerate()  {
-            let x = Vector3::from_column_slice(fieldpt);
-            let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, &BurtonMiller { is: false, factor: Cplx::new(0.0, 0.0) });
-            m[(i, j)] += h_j * cptj.wt * cptj.area;
-            l[(i, j)] += g_j * cptj.wt * cptj.area;
+        let element_j_index = predata.get_cpt2el_map().get(&j).unwrap();
+        let intpts_j = &predata.get_mesh().elements[*element_j_index].intpts;
+        for intpt_j in intpts_j {
+            let y = &intpt_j.coords;
+            let n_y = &intpt_j.normal;
+            for (i, fieldpt) in field_points.iter().enumerate()  {
+                let x = Vector3::from_column_slice(fieldpt);
+                let (g_j, h_j) = get_greens_functions(k, &x, &n_x, y, n_y, &BurtonMiller { is: false, factor: Cplx::new(0.0, 0.0) });
+                m[(i, j)] += h_j * intpt_j.wt * intpt_j.area;
+                l[(i, j)] += g_j * intpt_j.wt * intpt_j.area;
+            }
         }
     }
     (m, l)
