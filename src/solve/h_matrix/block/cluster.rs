@@ -35,11 +35,11 @@ impl Cluster {
             u_bound: [f64::NEG_INFINITY;3],
             l_bound: [f64::INFINITY;3],
             diameter: 0.0,
-            indices_contained: indices_contained,
+            indices_contained,
             sons: Vec::new()
         };
         cluster.process_cluster(cpts, leaf_cardinality, eqn_map);
-        return cluster;
+        cluster
     }
     /// Can be called recursively to process current cluster, split if applicable,
     /// then process those clusters
@@ -82,15 +82,15 @@ impl Cluster {
         self.sons.push(Rc::new(Cluster::new_from(nodes, indx2, leaf_cardinality, eqn_map)));
     }
     /// Check if a cluster is a leaf (has no sons, is not further split)
-    pub fn is_leaf(&self) -> bool { return self.sons.is_empty()}
+    pub fn is_leaf(&self) -> bool { self.sons.is_empty()} 
     /// Return reference to indices contained in this cluster (includes sons)
-    pub fn get_indices(&self) -> &Vec<usize> {return &self.indices_contained;}
+    pub fn get_indices(&self) -> &Vec<usize> { &self.indices_contained}
     /// Return diameter of this cluster
-    pub fn get_diameter(&self) -> f64 { return self.diameter;}
+    pub fn get_diameter(&self) -> f64 { self.diameter }
     /// Return reference to the sons of this cluster
-    pub fn get_sons(&self) -> &Vec<Rc<Cluster>> { return &self.sons;}
+    pub fn get_sons(&self) -> &Vec<Rc<Cluster>> { &self.sons }
     /// Update the bounds (maxima/minima in each coordinate direction)
-    fn update_bounds(&mut self, cpts: &Vec<CollocationPoint>) {
+    fn update_bounds(&mut self, cpts: &[CollocationPoint]) {
         let alpha = &mut self.l_bound;
         let beta = &mut self.u_bound;
         for index in &self.indices_contained {
@@ -117,7 +117,7 @@ impl Cluster {
             dist += f64::powi(f64::max(0.0, c1.l_bound[j] - c2.u_bound[j]),2);
             dist += f64::powi(f64::max(0.0, c2.l_bound[j] - c1.u_bound[j]),2);
         }
-        return dist.sqrt();
+        dist.sqrt()
     }
     /// Use equation map to go from cpt indices to equations
     fn map_cpts_to_eqns(&mut self, eqn_map: &HashMap::<usize, usize>) {

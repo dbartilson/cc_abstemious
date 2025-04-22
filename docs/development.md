@@ -18,6 +18,14 @@ will build `cc_abstemious` in debug mode, then run the unit and integration test
 
 `cargo test --release` will do the same, but in release mode.
 
+### Linting
+
+```
+cargo clippy
+```
+
+will do linting to provide code formatting warnings and suggestions. Running `cargo clippy --fix --lib -p cc_abstemious` will attempt to automatically fix the code.
+
 ## Documentation
 ```
 cargo doc --no-deps

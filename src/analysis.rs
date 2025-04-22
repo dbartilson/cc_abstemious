@@ -2,21 +2,27 @@
 Defines the analysis object (struct) and analysis states
 */
 
+use na::DVector;
 use simplelog::*;
 use std::fs::File;
 use std::path::Path;
 
 use crate::preprocess;
 use crate::incident_wave;
-use crate::influence_matrix;
 use crate::solve;
 use crate::postprocess;
+use crate::Cplx;
 
 /// Enumerate the analysis states for tracking 
 enum AnalysisState {
     PostInput,
     PostSolve,
     Null
+}
+
+pub struct PrimaryVariables {
+    pub phi: DVector::<Cplx>,
+    pub vn: DVector::<Cplx>
 }
 
 ///This contains all data related to the analysis and the main wrapper functions
@@ -33,6 +39,12 @@ pub struct Analysis {
     analysis_state: AnalysisState,
     freq_index: usize,
     results: Vec<postprocess::FPResult>
+}
+
+impl Default for Analysis {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl <'a>Analysis {
@@ -108,38 +120,21 @@ impl <'a>Analysis {
             info!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);
             self.freq_index = i;
 
-            let rhs_inc = incident_wave::get_incident_surface(predata);
+            let incident = incident_wave::get_incident_surface(predata);
 
-            let (phi, vn) = solve::solve_for_surface(predata, &rhs_inc);
-        
-            let (m, l) = influence_matrix::get_dense_field_matrices(predata);
+            let total = solve::solve_for_surface(predata, &incident);
 
-            let phi_inc_fp = incident_wave::get_incident_field(predata);
-            
-            let phi_fp = solve::get_field(predata, &m, &l, &phi, &vn, &phi_inc_fp);
+            let result = postprocess::postprocess(predata, &incident, &total);
 
-            let result = postprocess::FPResult{
-                frequency: freq,
-                scattered: Some(phi_fp),
-                incident: Some(phi_inc_fp),
-                power: postprocess::Power {
-                    radiated: 0.0,
-                    incident: 0.0
-                }
-            };
             self.results.push(result);
         }
-
-        postprocess::convert_results(predata, &mut self.results);
 
         self.analysis_state = AnalysisState::PostSolve;
 
         info!(" Complete!");
     }
     /// Return ref to field results from analysis
-    pub fn get_result(&self) -> &Vec<postprocess::FPResult> {
-        return &self.results;
-    }
+    pub fn get_results(&self) -> &Vec<postprocess::FPResult> { &self.results }
     /// Write results to output file at one frequency for all field points
     pub fn write_results_at_frequency(&self, ifreq: usize) {
         let _u = postprocess::write_results_at_frequency(self.predata.as_ref().unwrap(), &self.results[ifreq]);
@@ -148,5 +143,8 @@ impl <'a>Analysis {
     pub fn write_results_at_point(&self, index: usize) {
         let _u = postprocess::write_results_at_point(self.predata.as_ref().unwrap(), &self.results, index);
     }
-
+    /// Write results to output file for all field points at one frequency
+    pub fn write_power(&self) {
+        let _u = postprocess::write_power(self.predata.as_ref().unwrap(), &self.results);
+    }
 }

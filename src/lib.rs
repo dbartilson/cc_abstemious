@@ -7,8 +7,8 @@
 */
 
 pub const VER_MAJOR: usize = 1;
-pub const VER_MINOR: usize = 2; 
-pub const VER_SUBMINOR: usize = 1; 
+pub const VER_MINOR: usize = 3; 
+pub const VER_SUBMINOR: usize = 0; 
 
 extern crate simplelog;
 extern crate nalgebra as na;

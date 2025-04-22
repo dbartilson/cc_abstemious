@@ -6,6 +6,7 @@ pub mod gmres;
 pub mod h_matrix;
 
 use na::{DMatrix, DVector};
+use crate::analysis::PrimaryVariables;
 use crate::influence_matrix;
 use crate::influence_matrix::{get_surface_row_or_column, EqnSide};
 use crate::preprocess::{self, input};
@@ -13,8 +14,9 @@ use crate::Cplx;
 
 /// Solve for surface fields (velocity potential, normal velocity) from a given RHS vector. 
 /// This is a wrapper over the individual solve methods
-pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
-    -> (DVector::<Cplx>, DVector::<Cplx>) {
+pub fn solve_for_surface(predata: & preprocess::PreData, incident: &PrimaryVariables) 
+    -> PrimaryVariables {
+    let rhs_inc = &get_rhs_from_incident(predata, incident);
     match predata.get_solver() {
         preprocess::input::Solver::Direct {  } |
         preprocess::input::Solver::Iterative { .. } => {
@@ -26,9 +28,23 @@ pub fn solve_for_surface<'a>(predata: &'a preprocess::PreData, rhs_inc: &DVector
     }  
 }
 
+/// incident rhs can be 
+/// phi_inc                  for classical method
+/// phi_inc + beta * vn_inc  for Burton-Miller method
+fn get_rhs_from_incident(predata: & preprocess::PreData, incident: &PrimaryVariables) -> DVector<Cplx> {
+    let mut rhs = incident.phi.clone();
+    let hypersingular = predata.get_hypersingular();
+    if hypersingular.is {
+        for (j , rhsj) in rhs.iter_mut().enumerate() {
+            *rhsj += hypersingular.factor * incident.vn[j];
+        }
+    }
+    rhs
+}
+
 /// Solve for surface by using dense matrix and LU solver
 fn get_surface_dense(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
-    -> (DVector::<Cplx>, DVector::<Cplx>) {
+    -> PrimaryVariables {
 
     let (h, g) = influence_matrix::get_dense_surface_matrices(predata);
     info!(" Solving system of equations...");
@@ -73,12 +89,12 @@ fn get_surface_dense(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
             vn.axpy(factor, &phi, Cplx::new(0.0,0.0));
         }
     }
-    return (phi, vn);
+    PrimaryVariables {phi, vn}
 }
 
 /// Solve for surface by using hierarchical matrix and iterative solver
 fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>) 
-    -> (DVector::<Cplx>, DVector::<Cplx>) {
+    -> PrimaryVariables {
     let num_eqn = predata.get_num_eqn();
     let mut phi = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     let mut vn = phi.clone();
@@ -92,8 +108,8 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
         } else {
             h_matrix::HMatrix::new_from(num_eqn, 
                 &get_row_or_column, 
-                &predata.get_cpts(), 
-                predata.get_eqn_map(),
+                predata.get_cpts(), 
+                predata.get_cpt2eqn_map(),
                 32,
                 1e-4)
         };
@@ -112,7 +128,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
             }
             preprocess::input::BCType::Impedance => {
                 // solve for phi, but need to post-process for vn later
-                rhs.axpy(Cplx::new(0.0, 0.0), &rhs_inc, Cplx::new(-1.0, 0.0));
+                rhs.axpy(Cplx::new(0.0, 0.0), rhs_inc, Cplx::new(-1.0, 0.0));
             }
         }
     }
@@ -120,8 +136,8 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
     let get_row_or_column = |i, j| get_surface_row_or_column(predata, i, j, EqnSide::LHS);
     let hmatrix = h_matrix::HMatrix::new_from(num_eqn, 
                                                        &get_row_or_column, 
-                                                       &predata.get_cpts(), 
-                                                       predata.get_eqn_map(),
+                                                       predata.get_cpts(), 
+                                                       predata.get_cpt2eqn_map(),
                                                        32,
                                                        1e-4);
     if let input::Solver::Hierarchical { tolerance, max_iterations } = predata.get_solver() {
@@ -152,7 +168,7 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector::<Cplx>)
             vn.axpy(factor, &phi, Cplx::new(0.0,0.0));
         }
     }
-    return (phi, vn);
+    PrimaryVariables {phi, vn}
 }
 
 /// Solve the system of equations for dense matrix cases (direct or iterative)
@@ -177,18 +193,20 @@ fn solve_lu(a: &DMatrix<Cplx>, x: &mut DVector<Cplx>) {
 }
 
 /// Calculate the responses at field points using the field influence matrices (dense solve)
-pub fn get_field(predata: &preprocess::PreData, m: &DMatrix::<Cplx>, l: &DMatrix::<Cplx>, 
-    phi: &DVector::<Cplx>, vn: &DVector::<Cplx>, phi_inc_fp: &DVector::<Cplx>) -> DVector::<Cplx> {
+pub fn get_field(predata: &preprocess::PreData, total: &PrimaryVariables, phi_inc_fp: &DVector::<Cplx>) 
+    -> DVector::<Cplx> {
 
-    let want_total = *predata.get_output_type() == preprocess::input::OutputType::Total;
+    let (m, l) = influence_matrix::get_dense_field_matrices(predata);
+
     let mut phi_fp = phi_inc_fp.clone();
+    let want_total = *predata.get_output_type() == preprocess::input::OutputType::Total;
     if !want_total {phi_fp.fill(Cplx::new(0.0,0.0));}
 
-    phi_fp.gemv(-Cplx::new(1.0, 0.0), &m, &phi, Cplx::new(1.0, 0.0));
-    phi_fp.gemv(-Cplx::new(-1.0, 0.0), &l, &vn, Cplx::new(1.0, 0.0));
+    phi_fp.gemv(-Cplx::new(1.0, 0.0), &m, &total.phi, Cplx::new(1.0, 0.0));
+    phi_fp.gemv(-Cplx::new(-1.0, 0.0), &l, &total.vn, Cplx::new(1.0, 0.0));
     //let phi_fp = m * phi - l * vn + phi_inc_fp;
 
-    return phi_fp;
+    phi_fp
 }
 
 #[cfg(test)]

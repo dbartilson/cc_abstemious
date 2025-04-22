@@ -32,13 +32,13 @@ impl BlockTree {
     /// sensitive. Recommend eta [4-10] based on <http://dx.doi.org/10.3970/cmes.2009.043.149>
     pub fn new_from(rows: Rc<Cluster>, columns: Rc<Cluster>, eta: f64) -> BlockTree {
         let mut tree = BlockTree {
-            rows: rows,
-            columns: columns,
+            rows,
+            columns,
             admissible: false,
             children: Vec::new()
         };
         tree.process_block(eta);
-        return tree;
+        tree
     }
     /// Check if block can be divided (is not admissible, neither cluster is a leaf)
     #[inline]
@@ -47,10 +47,10 @@ impl BlockTree {
     }
     /// Return if block is admissible
     #[inline]
-    fn is_admissible(&self) -> bool {return self.admissible;}
-    fn get_children(&self) -> &Vec<BlockTree> {return &self.children;}
-    fn get_row_indices(&self) -> &Vec<usize> { return self.rows.get_indices();}
-    fn get_column_indices(&self) -> &Vec<usize> { return &self.columns.get_indices();}
+    fn is_admissible(&self) -> bool { self.admissible }
+    fn get_children(&self) -> &Vec<BlockTree> { &self.children }
+    fn get_row_indices(&self) -> &Vec<usize> { self.rows.get_indices() }
+    fn get_column_indices(&self) -> &Vec<usize> { self.columns.get_indices() }
     fn process_block(&mut self, eta: f64) {
         // update admissibility 
         let diam1 = self.rows.get_diameter();
@@ -78,9 +78,9 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn get_row_indices(&self) -> &Vec<usize> { return &self.rows; }
-    pub fn get_column_indices(&self) -> &Vec<usize> { return &self.columns;}
-    pub fn is_admissible(&self) -> bool { return self.admissible; }
+    pub fn get_row_indices(&self) -> &Vec<usize> { &self.rows}
+    pub fn get_column_indices(&self) -> &Vec<usize> { &self.columns }
+    pub fn is_admissible(&self) -> bool { self.admissible }
 }
 
 /// Flattened version of block tree, all held in one vector
@@ -93,7 +93,7 @@ impl BlockList {
     pub fn new_from(block: &BlockTree) -> BlockList {
         let mut result = BlockList { list: Vec::new() };
         result.load_from(block);
-        return result;
+        result
     }
     /// Recursive call to load children from the block tree into vector
     fn load_from(&mut self, block: &BlockTree) {
@@ -109,7 +109,7 @@ impl BlockList {
             }
         }
     }
-    pub fn get_list(&self) -> &Vec<Block> { return &self.list }
+    pub fn get_list(&self) -> &Vec<Block> { &self.list }
 }
 
 #[cfg(test)]

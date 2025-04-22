@@ -10,15 +10,13 @@ fn default_input() -> UserInput {
         mesh_file: "./src/tests/sphere.vtk".to_string(),
         body_index: 3,
         frequency: FrequencyInput::List { values: vec![100.0] },
-        sound_speed: 1.0,
-        mass_density: 1.0,
+        // water
+        sound_speed: 1500.0,
+        mass_density: 1000.0,
         problem_type: ProblemType::Exterior,
         method_type: MethodType::Classical,
         solver: Solver::Direct {  },
-        incident_wave: IncidentWaveInput::SphericalWave {
-            origin: [0.0, 0.0, 0.0],
-            amplitude: [0.0, 0.0]
-        },
+        incident_wave: Vec::new(),
         surface_bc: SurfaceBoundaryCondition {
             bc_type: BCType::NormalVelocity,
             value: [0.0, 0.0]
@@ -37,15 +35,12 @@ fn rigid_sphere_plane_wave_ring() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.frequency = FrequencyInput::List { values: vec![10.0] };
-    // water
-    input.sound_speed = 1500.0;
-    input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave = IncidentWaveInput::PlaneWave {
+    input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
-    };
-    // output fule
+    }];
+    // output file
     input.output.file = "./src/tests/rigid_sphere_plane_wave_bem.csv".to_string();
     // set up field points (ring in XY plane)
     let num_fp = 100;
@@ -68,17 +63,14 @@ fn rigid_sphere_plane_wave_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     //input.mesh_file = "./src/tests/refined_sphere.vtk".to_string();
-    input.method_type = MethodType::BurtonMiller;
+    input.method_type = MethodType::Classical;
     input.frequency = FrequencyInput::LinearSpaced { start: 10.0, end: 1000.0, number: 50 };
-    // water
-    input.sound_speed = 1500.0;
-    input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave = IncidentWaveInput::PlaneWave {
+    input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
-    };
-    // output fule
+    }];
+    // output file
     input.output.file = "./src/tests/rigid_sphere_plane_wave_bem.csv".to_string();
     let radius = 10.0;
     let theta = 0.0;
@@ -89,7 +81,7 @@ fn rigid_sphere_plane_wave_sweep() {
     analysis.set_input(input);
     analysis.run();
     analysis.write_results_at_point(0);
-    let _fp = analysis.get_result();
+    let _fp = analysis.get_results();
 }
 
 #[test]
@@ -97,13 +89,10 @@ fn rigid_sphere_plane_wave() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.frequency = FrequencyInput::List { values: vec![100.0] };
-    // water
-    input.sound_speed = 1500.0;
-    input.mass_density = 1000.0;
-    input.incident_wave = IncidentWaveInput::PlaneWave {
+    input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
-    };
+    }];
     let radius = 10.0;
     let theta = 0.0;
     let x = radius * f64::cos(theta);
@@ -112,11 +101,11 @@ fn rigid_sphere_plane_wave() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.norm(), 0.0004776828778512934, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.norm(), 0.00045892241574703284, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -0.000038592340803747317, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00045729685643614465, epsilon = 1.0e-10);
 }
 
 #[test]
@@ -124,14 +113,11 @@ fn rigid_sphere_plane_wave_iterative() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.frequency = FrequencyInput::List { values: vec![100.0] };
-    // water
-    input.sound_speed = 1500.0;
-    input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave = IncidentWaveInput::PlaneWave {
+    input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
-    };
+    }];
     input.solver = Solver::Iterative { max_iterations: 1000, tolerance: 1.0e-5 };
     let radius = 10.0;
     let theta = 0.0;
@@ -141,10 +127,10 @@ fn rigid_sphere_plane_wave_iterative() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -0.000039380091293979903, epsilon = 1.0e-8);
-    assert_relative_eq!(fpi.im, 0.00047605686656319906, epsilon = 1.0e-8);
+    assert_relative_eq!(fpi.re, -0.000038592340803747317, epsilon = 1.0e-8);
+    assert_relative_eq!(fpi.im, 0.00045729685643614465, epsilon = 1.0e-8);
 }
 
 #[test]
@@ -152,14 +138,11 @@ fn rigid_sphere_plane_wave_hmatrix() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.frequency = FrequencyInput::List { values: vec![100.0] };
-    // water
-    input.sound_speed = 1500.0;
-    input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave = IncidentWaveInput::PlaneWave {
+    input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
-    };
+    }];
     input.solver = Solver::Hierarchical { max_iterations: 1000, tolerance: 1.0e-5 };
     let radius = 10.0;
     let theta = 0.0;
@@ -169,10 +152,10 @@ fn rigid_sphere_plane_wave_hmatrix() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.re, -3.9380308176032198e-05, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00047605563272935873, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -0.000038592340803747317, epsilon = 1.0e-8);
+    assert_relative_eq!(fpi.im, 0.00045729685643614465, epsilon = 1.0e-8);
 }
 
 #[test]
@@ -181,14 +164,11 @@ fn rigid_sphere_plane_wave_burton_miller() {
     let mut input = default_input();
     input.method_type = MethodType::BurtonMiller;
     input.frequency = FrequencyInput::List { values: vec![100.0] };
-    // water
-    input.sound_speed = 1500.0;
-    input.mass_density = 1000.0;
     // incident wave
-    input.incident_wave = IncidentWaveInput::PlaneWave {
+    input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
-    };
+    }];
     let radius = 10.0;
     let theta = 0.0;
     let x = radius * f64::cos(theta);
@@ -197,9 +177,43 @@ fn rigid_sphere_plane_wave_burton_miller() {
 
     analysis.set_input(input);
     analysis.run();
-    let fp = analysis.get_result();
+    let fp = analysis.get_results();
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
-    assert_relative_eq!(fpi.norm(), 0.0004964814282687255, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.re, 0.00012125591274707629, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.0004814465829556038, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.norm(),  0.0005407404080455677, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.re, -0.00021387485159944078, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.00049664649072212743, epsilon = 1.0e-10);
+}
+
+#[test]
+fn monopole_power() {
+    let mut analysis = cc_abstemious::Analysis::new();
+    let mut input = default_input();
+    input.frequency = FrequencyInput::List { values: vec![100.0] };
+    input.surface_bc = SurfaceBoundaryCondition {
+        bc_type: BCType::NormalVelocity,
+        value: [1.0, 0.0]
+    };
+
+    analysis.set_input(input);
+    analysis.run();
+    let power = analysis.get_results()[0].power.scattered;
+    assert_relative_eq!(power, 95617.4138092842, epsilon = 1.0e-10);
+}
+
+#[allow(dead_code)]
+//#[test]
+fn monopole_power_sweep() {
+    let mut analysis = cc_abstemious::Analysis::new();
+    let mut input = default_input();
+    // output file
+    input.output.file = "./src/tests/pulsating_sphere.csv".to_string();
+    input.frequency = FrequencyInput::LinearSpaced { start: 10.0, end: 1000.0, number: 50 };
+    input.surface_bc = SurfaceBoundaryCondition {
+        bc_type: BCType::NormalVelocity,
+        value: [1.0, 0.0]
+    };
+
+    analysis.set_input(input);
+    analysis.run();
+    analysis.write_power();
 }

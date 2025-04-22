@@ -27,9 +27,9 @@ pub struct GMRES{
 impl GMRES{
     pub fn new(max_it: usize, thresh: f64) -> GMRES {
         GMRES {
-            max_it: max_it,
+            max_it,
             max_it_per_restart: 0,
-            thresh: thresh,
+            thresh,
             num_mv: 0,
             a: None,
             hmatrix: None
@@ -44,7 +44,7 @@ impl GMRES{
         // zero as initial guess
         x.fill(Cplx::new(0.0, 0.0));
         // if max_it is zero, set to lesser of {default} or num_eqn
-        if self.max_it <= 0 {self.max_it = 1000;}
+        if self.max_it == 0 {self.max_it = 1000;}
         self.max_it = std::cmp::min(self.max_it, self.get_num_eqn());
         // if thresh is zero, set to {default}
         if self.thresh <= 0.0 {self.thresh = 1.0e-5;}
@@ -56,10 +56,7 @@ impl GMRES{
             info!("  GMRES restart: {}", i);
             // run GMRES algorithm, return updated solution
             let flag = self.gmres(x, &b);
-            match flag {
-                ExitFlag::Tolerance => {break;},
-                _ => {}
-            }
+            if let ExitFlag::Tolerance = flag {break;}
         }
         info!("  Number of matrix-vector products: {}", self.num_mv);
     }
@@ -68,18 +65,18 @@ impl GMRES{
     fn gemv(&mut self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
         // Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
         self.num_mv += 1; // keep track of number of matrix-vector products
-        if self.a.is_some() {b.gemv(alpha, &self.a.as_ref().unwrap(), x, beta); return}
-        if self.hmatrix.is_some() {self.hmatrix.as_ref().unwrap().gemv(alpha, x, beta, b); return}
+        if self.a.is_some() {b.gemv(alpha, self.a.as_ref().unwrap(), x, beta)}
+        if self.hmatrix.is_some() {self.hmatrix.as_ref().unwrap().gemv(alpha, x, beta, b)}
     }
     fn get_num_eqn(&self) -> usize {
-        if self.a.is_some() { return self.a.as_ref().unwrap().shape().0} else {}
-        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_num_eqn()} else {}
-        return 0
+        if self.a.is_some() { return self.a.as_ref().unwrap().shape().0} 
+        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_num_eqn()} 
+        0
     }
     fn get_norm(&self) -> f64 {
-        if self.a.is_some() { return self.a.as_ref().unwrap().norm()} else {}
-        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_norm()} else {}
-        return 0.0
+        if self.a.is_some() { return self.a.as_ref().unwrap().norm()} 
+        if self.hmatrix.is_some() { return self.hmatrix.as_ref().unwrap().get_norm()} 
+        0.0
     }
     fn gmres(&mut self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {
         //! see the example code at 
@@ -140,7 +137,7 @@ impl GMRES{
                 flag = ExitFlag::Iterations;
             }
         }
-        return flag;
+        flag
     }
     /// Calculate backward error, see https://doi.org/10.1145/1067967.1067970
     fn backward_error(r: f64, alpha: f64, x: &DVector::<Cplx>, beta: f64) -> f64 {
@@ -158,7 +155,7 @@ impl GMRES{
         // x = x + Q * y
         x.gemv(c_one, &q.columns(0,k), y.as_ref().unwrap(), c_one);
     }
-    ///
+    /// Arndoli method
     fn arnoldi(&mut self, q: &DMatrix<Cplx>, k: usize, 
             qk1: &mut DVector<Cplx>, hk1: &mut DVector<Cplx>)  {
         let c_zero = Cplx::new(0.0, 0.0);
@@ -202,6 +199,6 @@ impl GMRES{
         let r = (v1.norm_sqr() + v2.norm_sqr()).sqrt();
         let cs = Cplx::new(v1.norm() / r, 0.0);
         let sn = signf * v2.conj() / r;
-        return (cs, sn)
+        (cs, sn)
     }
 }

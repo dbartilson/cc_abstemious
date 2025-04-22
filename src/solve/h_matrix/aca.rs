@@ -35,7 +35,7 @@ impl ACA
             uv: Vec::new(), 
             norm: 0.0};
         a.decompose(tol, &get_row, &get_column);
-        return a
+        a
     }
     fn get_max_rank(&self) -> usize { std::cmp::min(self.num_rows, self.num_columns) }
     /// Get the current residual for the given row
@@ -46,7 +46,7 @@ impl ACA
         for uv in &self.uv {
             r.axpy(-uv.u[i], &uv.v, Cplx::new(1.0, 0.0));
         }
-        return r;
+        r
     }
     /// Get the current residual for the given column
     fn get_residual_column<G>(&self, get_column: &G, j: usize) -> DVector::<Cplx>
@@ -56,10 +56,10 @@ impl ACA
         for uv in &self.uv {
             r.axpy(-uv.v[j], &uv.u, Cplx::new(1.0, 0.0));
         }
-        return r;
+        r
     }
     /// Get number of UV vectors in decomposition
-    pub fn get_num_uv(&self) -> usize { return self.uv.len();}
+    pub fn get_num_uv(&self) -> usize { self.uv.len()}
     /// Calculate the Adaptive Cross Approximation for the given matrix
     fn decompose<F,G>(&mut self, tol: f64, get_row: &F, get_column: &G) 
     where F: Fn(usize) -> Vec::<Cplx>,
@@ -212,7 +212,7 @@ impl ACA
                 }
             }
         }
-        return a;
+        a
     }
     /// Return the Frobenius norm estimate from the ACA approximation
     pub fn get_norm(&self) -> f64 { self.norm }
@@ -242,9 +242,9 @@ impl ACA
                     let uvi = &self.uv[i];
                     *norm_f2_total += 2.0 * uvi.u.dot(&uv.u).abs() * uvi.v.dot(&uv.v).abs();
                 }
-                return norm_f2_k;
+                norm_f2_k
             },
-            None => {error!("UV last not found"); return 0.0}
+            None => {error!("UV last not found"); 0.0}
         }
     }
     /// Check if desired index is already in not_allowed HashSet, 
@@ -272,7 +272,7 @@ impl ACA
                 val_abs = ival;
             }
         }
-        return index
+        index
     }
 }
 

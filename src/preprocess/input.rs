@@ -114,7 +114,7 @@ pub struct UserInput {
     pub problem_type: ProblemType,
     pub method_type: MethodType,
     pub solver: Solver,
-    pub incident_wave: IncidentWaveInput,
+    pub incident_wave: Vec<IncidentWaveInput>,
     pub surface_bc: SurfaceBoundaryCondition,
     pub output: Output
 }
@@ -122,7 +122,7 @@ pub struct UserInput {
 /// Read input from json at path
 pub fn read_input_json<P: AsRef<Path>>(path: P) -> Result<UserInput, Box<dyn Error>> {
     // Open the file in read-only mode with buffer.
-    info!(" Reading json file '{}' ...", path.as_ref().display().to_string());
+    info!(" Reading json file '{}' ...", path.as_ref().display());
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 

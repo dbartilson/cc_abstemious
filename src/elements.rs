@@ -20,7 +20,6 @@ pub mod interpolation {
     /// Integration scheme for 1 point triangle
     pub static TRIGP1: [Gp; 1] = [Gp{coords: [1./3., 1./3.], wt: 1.0}];
     /// Integration scheme for 3 point triangle
-    #[allow(dead_code)]
     pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
                                   Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
                                   Gp{coords: [2./3., 1./6.], wt: 1./3.}];
@@ -42,7 +41,6 @@ pub mod interpolation {
     /// Integration scheme for 1 point quad
     pub static QUADGP1: [Gp; 1] = [Gp{coords: [0., 0.], wt: 4.0}];
     /// Integration scheme for 4 point quad
-    #[allow(dead_code)]
     pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
                                    Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
@@ -64,7 +62,20 @@ pub struct NIElement <'a> {
     element_type: ElementType
 }
 impl NIElement <'_> {
-    pub fn new<'a>(meshdata: &'a Mesh, element: usize) -> NIElement <'a> {
+    pub fn new(meshdata: &Mesh, element: usize) -> NIElement <'_> {
+        let etype = &meshdata.elements[element].etype;
+        let int = match etype.clone() {
+            ElementType::Tri => TRIGP3.to_vec(),
+            ElementType::Quad => QUADGP4.to_vec(),
+            _ => {error!("Invalid numerically integrated element"); Vec::new()}
+        };
+        NIElement{integration: int, 
+                  mesh: meshdata, 
+                  element_id: element,
+                  element_type: etype.clone()}
+    }
+    /// Set up element with one integration point (for the collocation point setup)
+    pub fn new_1_point_integration(meshdata: &Mesh, element: usize) -> NIElement <'_> {
         let etype = &meshdata.elements[element].etype;
         let int = match etype.clone() {
             ElementType::Tri => TRIGP1.to_vec(),
@@ -72,9 +83,9 @@ impl NIElement <'_> {
             _ => {error!("Invalid numerically integrated element"); Vec::new()}
         };
         NIElement{integration: int, 
-                  mesh: &meshdata, 
-                  element_id: element,
-                  element_type: etype.clone()}
+            mesh: meshdata, 
+            element_id: element,
+            element_type: etype.clone()}
     }
     /// Get number of nodes for element
     #[inline]
@@ -128,12 +139,12 @@ impl NIElement <'_> {
         let n = self.shape_functions_at(gp);
         let mut x = Coords::from_element(0.0);
         let element = &self.mesh.elements[self.element_id];
-        for ni in 0..n.len() {
-            let node_index = &element.node_ids[ni];
+        for (i, ni) in n.iter().enumerate() {
+            let node_index = &element.node_ids[i];
             let icoord = &self.mesh.nodes[*node_index].coords;
-            x += n[ni] * icoord;
+            x += *ni * icoord;
         }
-        return x;
+        x
     }
     /// Get natural coordinates corresponding to node index
     #[allow(dead_code)]
@@ -165,7 +176,7 @@ impl NIElement <'_> {
             _ => {
                 let dn = self.shape_derivatives_at(gp);
                 let mut dndxi = Vector3::from_element(0.0);
-                let mut dndeta = dndxi.clone();
+                let mut dndeta = dndxi;
                 let element = &self.mesh.elements[self.element_id];
                 for i in 0..self.get_num_nodes() {
                     let node_index = &element.node_ids[i];
@@ -197,8 +208,8 @@ impl NIElement <'_> {
             let y = self.coordinates_at(gp);
             let n_y = self.normal_vector_at_gp(gp);
             let area = self.detj_at(gp);
-            result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area: area, wt: gp.wt })
+            result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area, wt: gp.wt })
         }
-        return result
+        result
     }
 }

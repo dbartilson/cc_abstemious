@@ -38,8 +38,8 @@ impl AdmissibleBlock {
         &|i| get_row_or_column(vec![rows[i]], columns.clone()),
         &|j| get_row_or_column(rows.clone(), vec![columns[j]]));
         AdmissibleBlock {
-            rows: rows,
-            columns: columns,
+            rows,
+            columns,
             values: aca
         }
     }
@@ -89,9 +89,9 @@ impl InadmissibleBlock {
             }
         }
         InadmissibleBlock {
-            rows: rows,
-            columns: columns,
-            values: values
+            rows,
+            columns,
+            values
         }
     }
     /// Perform gather, multiply, scatter for this contribution to b = alpha * self * x + beta * b
@@ -129,10 +129,16 @@ pub struct HMatrix {
     inadmissible_blocks: Vec<InadmissibleBlock>
 }
 
+impl Default for HMatrix {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HMatrix {
     /// Default 
     pub fn new() -> HMatrix {
-        return HMatrix{
+        HMatrix{
             num_eqn: 0,
             norm: 0.0,
             admissible_blocks: Vec::new(),
@@ -148,7 +154,7 @@ impl HMatrix {
                    tolerance: f64) -> HMatrix 
     where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
         info!("  Building hierarchical matrix decomposition...");
-        let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), leaf_cardinality, eqn_map));
+        let cluster_tree = Rc::new(Cluster::new_from(cpts, (0..cpts.len()).collect(), leaf_cardinality, eqn_map));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let block_list = BlockList::new_from(&block_tree);
         let mut mat = HMatrix {
@@ -160,7 +166,7 @@ impl HMatrix {
         mat.load_from(block_list, get_row_or_column, tolerance);
         mat.update_norm();
         mat.print_stats();
-        return mat;
+        mat
     }
     pub fn get_num_eqn(&self) -> usize { self.num_eqn }
     /// Get matrix norm, used for iterative stopping criterion
@@ -243,10 +249,10 @@ impl HMatrix {
             error!("Dimension mismatch in H matrix gemv");
         }
         for block in &self.inadmissible_blocks {
-            block.gemv(alpha, &x, Cplx::new(1.0, 0.0), b);
+            block.gemv(alpha, x, Cplx::new(1.0, 0.0), b);
         }
         for block in &self.admissible_blocks {
-            block.gemv(alpha, &x, Cplx::new(1.0, 0.0), b);
+            block.gemv(alpha, x, Cplx::new(1.0, 0.0), b);
         }
     }
     #[allow(dead_code)]
@@ -259,7 +265,7 @@ impl HMatrix {
         for block in &self.admissible_blocks {
             block.to_full(&mut h);
         }
-        return h;
+        h
     }
 }
 
