@@ -40,7 +40,7 @@ fn rigid_sphere_plane_wave_ring() {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
     }];
-    // output fule
+    // output file
     input.output.file = "./src/tests/rigid_sphere_plane_wave_bem.csv".to_string();
     // set up field points (ring in XY plane)
     let num_fp = 100;
@@ -57,8 +57,8 @@ fn rigid_sphere_plane_wave_ring() {
     analysis.write_results_at_frequency(0);
 }
 
-//#[allow(dead_code)]
-#[test]
+#[allow(dead_code)]
+//#[test]
 fn rigid_sphere_plane_wave_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
@@ -70,7 +70,7 @@ fn rigid_sphere_plane_wave_sweep() {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0]
     }];
-    // output fule
+    // output file
     input.output.file = "./src/tests/rigid_sphere_plane_wave_bem.csv".to_string();
     let radius = 10.0;
     let theta = 0.0;
@@ -80,8 +80,7 @@ fn rigid_sphere_plane_wave_sweep() {
 
     analysis.set_input(input);
     analysis.run();
-    //analysis.write_results_at_point(0);
-    analysis.write_power();
+    analysis.write_results_at_point(0);
     let _fp = analysis.get_results();
 }
 
@@ -194,14 +193,27 @@ fn monopole_power() {
         bc_type: BCType::NormalVelocity,
         value: [1.0, 0.0]
     };
-    let radius = 10.0;
-    let theta = 0.0;
-    let x = radius * f64::cos(theta);
-    let y = radius * f64::sin(theta);
-    input.output.field_points.push([x, y, 0.0]);
+
+    analysis.set_input(input);
+    analysis.run();
+    let power = analysis.get_results()[0].power.scattered;
+    assert_relative_eq!(power, 95617.4138092842, epsilon = 1.0e-10);
+}
+
+#[allow(dead_code)]
+//#[test]
+fn monopole_power_sweep() {
+    let mut analysis = cc_abstemious::Analysis::new();
+    let mut input = default_input();
+    // output file
+    input.output.file = "./src/tests/pulsating_sphere.csv".to_string();
+    input.frequency = FrequencyInput::LinearSpaced { start: 10.0, end: 1000.0, number: 50 };
+    input.surface_bc = SurfaceBoundaryCondition {
+        bc_type: BCType::NormalVelocity,
+        value: [1.0, 0.0]
+    };
 
     analysis.set_input(input);
     analysis.run();
     analysis.write_power();
-    let _res = analysis.get_results();
 }

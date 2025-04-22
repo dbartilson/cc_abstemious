@@ -13,7 +13,7 @@ where $`\psi(\mathbf{x},t)`$ is the velocity potential field and $`c`$ is the pr
 Using a harmonic, steady-state assumption, the velocity potential field can be rewritten as [[3]](#3)
 
 ```math
-\psi(\mathbf{x},t) = Re[\phi(\mathbf{x}) e^{-i\omega t}]
+\psi(\mathbf{x},t) = \text{Re}[\phi(\mathbf{x}) e^{-i\omega t}]
 ```
 
 given that the angular drive frequency is $`\omega = 2 \pi f`$, where $`f`$ is the frequency in Hertz. 
@@ -52,7 +52,7 @@ g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r} \\
 h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{y})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (-\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}))
 ```
 
-with $`\mathbf{r} = \mathbf{x} - \mathbf{y}`$ as the vector pointing from $`\mathbf{y}`$ to $`\mathbf{x}`$ and $`r = || \mathbf{r} ||`$ as the magnitude (distance) and $`\mathbf{e}_r = \mathbf{r}/r`$ as the unit vector form.
+with $`\mathbf{r} = \mathbf{x} - \mathbf{y}`$ as the vector pointing from $`\mathbf{y}`$ to $`\mathbf{x}`$ and $`r = \| \mathbf{r} \|`$ as the magnitude (distance) and $`\mathbf{e}_r = \mathbf{r}/r`$ as the unit vector form.
 
 # Implementation
 
@@ -185,7 +185,7 @@ For generating the influence matrices, both for the surface and field problems, 
 ```math
 G_{ij} = \int_{S_j} g(\mathbf{x}_i, \mathbf{y}_j)d\mathbf{y}_j
 ```
-with $`g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r}`$ and $`r = ||\mathbf{x} - \mathbf{y}||`$. This is straight-forward to compute numerically using Gaussian quadrature:
+with $`g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r}`$ and $`r = \|\mathbf{x} - \mathbf{y}\|`$. This is straight-forward to compute numerically using Gaussian quadrature:
 ```math
 G_{ij} \approx \sum_k g(\mathbf{x}_i, \mathbf{y}(\mathbf{\xi}_k))| \frac{\partial \mathbf{y}}{\partial \mathbf{\xi}} |_k w_k
 ```
@@ -210,17 +210,17 @@ For flat elements, the average curvature is infinite, and thus the approximant t
 
 The temporal average power for a point force aligned with a normal velocity is [[3, eq. 2.16]](#3)
 ```math
-W = \frac{1}{2} Re(f^*v)
+W = \frac{1}{2} \text{Re}(f^*v)
 ```
 where $`f^*`$ is the conjugate of the complex force amplitude, and $`v`$ is the (aligned) complex velocity amplitude.
 
 Similarly, the acoustic intensity is [[4, eq. 28]](#4):
 ```math
-I = \frac{1}{2} Re(p^*v_n)
+I = \frac{1}{2} \text{Re}(p^*v_n)
 ```
 Thus, the total power over the surface is
 ```math
-W = \frac{1}{2} \int _S Re(p^*v_n)dS
+W = \frac{1}{2} \int _S \text{Re}(p^*v_n)dS
 ```
 
 # Numerical solution

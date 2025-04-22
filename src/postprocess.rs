@@ -74,16 +74,20 @@ pub fn postprocess(predata: &preprocess::PreData, incident: &PrimaryVariables, t
 /// Calculate power by integrating intensity over the surface
 /// 
 /// Intensity is equal to 0.5 * Re (p v_n*), where v_n* is the complex conjugate of the normal velocity
+/// = 0.5 * omega * rho * Re (i p v_n*)
 pub fn calculate_surface_power(predata: &preprocess::PreData, incident: &PrimaryVariables, total: &PrimaryVariables)
     -> Power
 {
     let mut w_inc = 0.0;
     let mut w_scatt = 0.0;
+    let rho = predata.get_mass_density();
+    let omega = predata.get_angular_frequency();
+    let iomegarho = Cplx::new(0.0, omega * rho);
     for (i, cpt) in predata.get_cpts().iter().enumerate() {
-        let i_inc = 0.5 * (incident.phi[i] * incident.vn[i].conj()).re;
+        let i_inc = 0.5 * ((incident.phi[i] * iomegarho) * incident.vn[i].conj()).re;
         let phi_scatt = total.phi[i] - incident.phi[i];
         let vn_scatt = total.vn[i] - incident.vn[i];
-        let i_scatt = 0.5 * (phi_scatt * vn_scatt.conj()).re;
+        let i_scatt = 0.5 * ((phi_scatt * iomegarho) * vn_scatt.conj()).re;
         w_inc += i_inc * cpt.area * cpt.wt;
         w_scatt += i_scatt * cpt.area * cpt.wt;
     }
