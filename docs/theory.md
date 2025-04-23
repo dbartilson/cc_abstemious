@@ -16,7 +16,7 @@ Using a harmonic, steady-state assumption, the velocity potential field can be r
 \psi(\mathbf{x},t) = \text{Re}[\phi(\mathbf{x}) e^{-i\omega t}]
 ```
 
-given that the angular drive frequency is $`\omega = 2 \pi f`$, where $`f`$ is the frequency in Hertz. 
+given that the angular drive frequency is $`\omega = 2 \pi f`$, where $`f`$ is the frequency in Hertz and $`\phi(\mathbf{x})`$ is the complex-valued amplitude of the velocity potential. 
 
 The harmonic form of the Helmholtz equation for the fluid is then [[1]](#1)[[2]](#2)
 
@@ -28,6 +28,13 @@ where $`k=\omega / c`$ is the wavenumber. The directional derivative, along a sp
 
 ```math
 v_n(\mathbf{x}) = \nabla \phi (\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{x}) = \frac{\partial \phi(\mathbf{x})}{\partial n(\mathbf{x})}
+```
+
+Note that these express the *total* field, which can be written as a sum of the scattered (radiated) and incident portions:
+
+```math
+\phi = \phi_{scatt} + \phi_I \\
+v_n = (v_{n})_{scatt} + v_{nI}
 ```
 
 ### Integral solution
@@ -166,18 +173,6 @@ Summing together the classical and hypersingular equations using a coupling fact
 ```
 where $`\beta`$ is traditionally set to $`i/k`$ [[0]](#0)[[6]](#6).
 
-## Field solution
-
-Once the velocity potential and normal velocity fields are known on the surface, the velocity potential for an arbitrary point $`\mathbf{x}`$ in the interior or exterior field can be found from the general solution via: 
-
-```math
-\int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) g(\mathbf{x}, \mathbf{y}) d\mathbf{y} =
-\phi(\mathbf{x})-\phi_I(\mathbf{x}) \\
-\mathbf{\phi}_{fp} = \mathbf{M} \mathbf{\phi} - \mathbf{L} \mathbf{v}_n + \mathbf{\phi}_I
-```
-
-where $`\mathbf{M}`$ and $`\mathbf{G}`$ are analagously constructed to $`\mathbf{H}`$ and $`\mathbf{G}`$, but are (generally) rectangular matrices of dimension $`n_{fp} \times n_s`$ where $`n_{fp}`$ is the number of field points and $`n_s`$ is the number of surface points. $`\mathbf{M}`$ and $`\mathbf{G}`$ represent the influence of the surface fields on the velocity potential at each field point. Note that $`\mathbf{\phi}_I`$ contains the vector of $`n_{fp}`$ incident wave velocity potentials at each field point.
-
 ## Numerical integration and singular integrals
 
 For generating the influence matrices, both for the surface and field problems, requires integrating over surface elements, with a common form. For example, the $`(i,j)`$ component of the $`\mathbf{G}`$ matrix corresponds to the influence of collocation point (equivalently, element) $`j`$ on point $`i`$
@@ -206,6 +201,20 @@ H_{jj} \approx (dG)_{jj} \approx \frac{ikb_j - 1}{4 \pi b_j c_j}
 ```
 For flat elements, the average curvature is infinite, and thus the approximant terms are zero [[5]](#5).
 
+## Field solution
+
+Once the velocity potential and normal velocity fields are known on the surface, the velocity potential for an arbitrary point $`\mathbf{x}`$ in the interior or exterior field can be found from the general solution via: 
+
+```math
+\int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) g(\mathbf{x}, \mathbf{y}) d\mathbf{y} =
+\phi(\mathbf{x})-\phi_I(\mathbf{x}) \\
+\mathbf{\phi}_{fp} = \mathbf{M} \mathbf{\phi} - \mathbf{L} \mathbf{v}_n + \mathbf{\phi}_{fpI}
+```
+
+where $`\mathbf{M}`$ and $`\mathbf{L}`$ are analagously constructed to $`\mathbf{H}`$ and $`\mathbf{G}`$, but are (generally) rectangular matrices of dimension $`n_{fp} \times n_s`$ where $`n_{fp}`$ is the number of field points and $`n_s`$ is the number of surface points. $`\mathbf{M}`$ and $`\mathbf{L}`$ represent the influence of the surface fields on the velocity potential at each field point. Note that $`\mathbf{\phi}_I`$ contains the vector of $`n_{fp}`$ incident wave velocity potentials at each field point.
+
+$`\mathbf{\phi}_{fp}`$ represents the total field velocity potential, equal to the radiated portion in radiation problems. For scattering problems, the scattered portion of the field velocity potential is $`\mathbf{\phi}_{fp} - \mathbf{\phi}_{fpI}`$. 
+
 ## Radiated and incident power
 
 The temporal average power for a point force aligned with a normal velocity is [[3, eq. 2.16]](#3)
@@ -221,6 +230,13 @@ I = \frac{1}{2} \text{Re}(p^*v_n)
 Thus, the total power over the surface is
 ```math
 W = \frac{1}{2} \int _S \text{Re}(p^*v_n)dS
+```
+
+This represents the total power, equal to the radiated power for radiation problems. For scattering problems, the power can be decomposed into scattered and incident power:
+
+```math
+W_I = \frac{1}{2} \int _S \text{Re}(p_I^*v_{nI})dS \\
+W_{scatt} = \frac{1}{2} \int _S \text{Re}(p_{scatt}^*v_{n,scatt})dS
 ```
 
 # Numerical solution

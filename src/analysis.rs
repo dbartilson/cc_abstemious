@@ -20,6 +20,8 @@ enum AnalysisState {
     Null
 }
 
+/// Struct containing velocity potential (phi) and normal velocity (vn), on surface
+/// can be total, incident, or scattered
 pub struct PrimaryVariables {
     pub phi: DVector::<Cplx>,
     pub vn: DVector::<Cplx>
