@@ -2,7 +2,7 @@
 
 ## The acoustic wave and Helmholtz equations
 
-The linear wave equation is satisfied over a field, at a given location $`\mathbf{x}`$ and at a time $`t`$ [[1]](#1)[[2]](#2)
+The linear wave equation is satisfied over a field, at a given location $`\mathbf{x}`$ and at a time $`t`$ [^1][^2]
 
 ```math
 \nabla ^2 \psi(\mathbf{x},t) = \frac{1}{c^2} \frac{\partial^2}{\partial t^2} \psi(\mathbf{x},t)
@@ -10,7 +10,7 @@ The linear wave equation is satisfied over a field, at a given location $`\mathb
 
 where $`\psi(\mathbf{x},t)`$ is the velocity potential field and $`c`$ is the propagation velocity. The vector velocity is given $`\mathbf{v}(\mathbf{x},t) = \nabla \psi(\mathbf{x},t)`$ and the acoustic pressure is $`p = -\rho \frac{\partial}{\partial t} \psi(\mathbf{x},t)`$ with $`\rho`$ as the fluid mass density.
 
-Using a harmonic, steady-state assumption, the velocity potential field can be rewritten as [[3]](#3)
+Using a harmonic, steady-state assumption, the velocity potential field can be rewritten as [^3]
 
 ```math
 \psi(\mathbf{x},t) = \text{Re}[\phi(\mathbf{x}) e^{-i\omega t}]
@@ -18,13 +18,13 @@ Using a harmonic, steady-state assumption, the velocity potential field can be r
 
 given that the angular drive frequency is $`\omega = 2 \pi f`$, where $`f`$ is the frequency in Hertz and $`\phi(\mathbf{x})`$ is the complex-valued amplitude of the velocity potential. 
 
-The harmonic form of the Helmholtz equation for the fluid is then [[1]](#1)[[2]](#2)
+The harmonic form of the Helmholtz equation for the fluid is then [^1][^2]
 
 ```math
 \nabla ^2 \phi + k^2 \phi= \phi_{I}
 ```
 
-where $`k=\omega / c`$ is the wavenumber. The directional derivative, along a specified normal direction, will also be important. This is expressed as [[2]](#2)
+where $`k=\omega / c`$ is the wavenumber. The directional derivative, along a specified normal direction, will also be important. This is expressed as [^2]
 
 ```math
 v_n(\mathbf{x}) = \nabla \phi (\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{x}) = \frac{\partial \phi(\mathbf{x})}{\partial n(\mathbf{x})}
@@ -39,7 +39,7 @@ v_n = (v_{n})_{scatt} + v_{nI}
 
 ### Integral solution
 
-The integral solution to the Helmholtz equation is written as [[0]](#0)[[4]](#4):
+The integral solution to the Helmholtz equation is written as [^0][^4]:
 
 ```math
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) g(\mathbf{x}, \mathbf{y}) d\mathbf{y} =
@@ -52,7 +52,7 @@ The integral solution to the Helmholtz equation is written as [[0]](#0)[[4]](#4)
 \right.
 ```
 
-where $`\phi_I`$ is the incident wave (free-field) velocity potential. $`g`$ and its normal derivative are given as [[0]](#0)[[5]](#5):
+where $`\phi_I`$ is the incident wave (free-field) velocity potential. $`g`$ and its normal derivative are given as [^0][^5]:
 
 ```math
 g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r} \\
@@ -65,17 +65,17 @@ with $`\mathbf{r} = \mathbf{x} - \mathbf{y}`$ as the vector pointing from $`\mat
 
 ## Boundary conditions and source (incident field) terms
 
-Three classes of boundary condition may be used on the surface, and only one type may be used on any partition of the surface [[0]](#0):
+Three classes of boundary condition may be used on the surface, and only one type may be used on any partition of the surface [^0]:
 
 1. **Velocity potential or pressure B.C.**: $`\mathbf{\phi} = \bar{\mathbf{\phi}}`$. This can represent a known non-zero surface pressure, or if set to zero, it represents a sound-soft (infinitely absorptive) boundary. ( $`\beta = 0, \gamma/\alpha = \bar{\mathbf{\phi}}`$ )
 2. **Surface normal velocity B.C.**: $`\mathbf{v}_n = \bar{\mathbf{v}}_n`$. This can represent a known non-zero surface motion, or if set to zero, it represents a sound-hard (reflective) boundary. ( $`\alpha = 0, \gamma/\beta = \bar{\mathbf{v}}_n`$ )
-3. **Impedance B.C.**: A known, linear relation between the surface normal velocity and the fluid pressure: $`(i \omega \rho) \phi = p = Z v_n`$ where $`p`$ is the pressure and $`Z`$ is the impedance [[0]](#0)[[3]](#3). ( $`\gamma = 0, \alpha / \beta = -Z / (i \omega \rho)`$ )
+3. **Impedance B.C.**: A known, linear relation between the surface normal velocity and the fluid pressure: $`(i \omega \rho) \phi = p = Z v_n`$ where $`p`$ is the pressure and $`Z`$ is the impedance [^0][^3]. ( $`\gamma = 0, \alpha / \beta = -Z / (i \omega \rho)`$ )
 
 These may be stated generally as variants of a Robin condition condition $`\alpha \phi + \beta v_n = \gamma`$, as shown above.
 
 The incident sound sources (incident acoustic fields) can be defined similarly:
 
-1. **Plane wave**: Has a defined strength (amplitude: $`A`$) and propagates along a unit vector $`\mathbf{e}_d`$. The phase is assumed to be zero at the origin, i.e. $`\mathbf{x} \cdot \mathbf{e}_d = 0`$ [[2]](#2): 
+1. **Plane wave**: Has a defined strength (amplitude: $`A`$) and propagates along a unit vector $`\mathbf{e}_d`$. The phase is assumed to be zero at the origin, i.e. $`\mathbf{x} \cdot \mathbf{e}_d = 0`$ [^2]: 
 
 ```math
 \phi_I(\mathbf{x}) = A e^{ik(\mathbf{x} \cdot \mathbf{e}_d)}
@@ -85,7 +85,7 @@ The incident sound sources (incident acoustic fields) can be defined similarly:
 v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} = ik \left(\frac{\partial \mathbf{x}}{\partial n(\mathbf{x})}\cdot \mathbf{e}_d+\mathbf{x} \cdot \frac{\partial \mathbf{e}_d}{\partial n(\mathbf{x})} \right) \phi_I(\mathbf{x}) = ik (\mathbf{e}_n(\mathbf{x}) \cdot \mathbf{e}_d) \phi_I(\mathbf{x})
 ```
 
-2. **Point source**: Also known as a volume source or spherical source. Has a defined amplitude $`A`$ and position vector $`\mathbf{x}_I`$ [[2]](#2):
+2. **Point source**: Also known as a volume source or spherical source. Has a defined amplitude $`A`$ and position vector $`\mathbf{x}_I`$ [^2]:
 
 ```math
 \phi_I(\mathbf{x}) = \frac{A}{4 \pi r}e^{ikr}; \qquad r = \mathbf{x} - \mathbf{x}_I
@@ -117,7 +117,7 @@ The integral form can be discretized over the surface this way as
 \right.
 ```
 
-Examining the $`\mathbf{H}\mathbf{\phi}`$ term, each row $`i`$ of $`\mathbf{H}`$ corresponds to the contribution (influence) of the velocity potentials at all surface points to the velocity potential at node $`i`$, which can be split into an integral over the elements [[2]](#2): 
+Examining the $`\mathbf{H}\mathbf{\phi}`$ term, each row $`i`$ of $`\mathbf{H}`$ corresponds to the contribution (influence) of the velocity potentials at all surface points to the velocity potential at node $`i`$, which can be split into an integral over the elements [^2]: 
 
 ```math
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) d\mathbf{y} \approx
@@ -127,7 +127,7 @@ Examining the $`\mathbf{H}\mathbf{\phi}`$ term, each row $`i`$ of $`\mathbf{H}`$
 
 Note that the collocation values of velocity potential are assembled into the vector $`\mathbf{\phi}`$ and the in-element integral can be calculated using quadrature rules.
 
-The velocity potentials must first be solved on the surface, giving the matrix equation (in an exterior problem) [[2]](#2):
+The velocity potentials must first be solved on the surface, giving the matrix equation (in an exterior problem) [^2]:
 
 ```math
 \left[\mathbf{H} - \frac{1}{2} \mathbf{I} \right] \mathbf{\phi} = \mathbf{G} \mathbf{v}_n - \mathbf{\phi}_I
@@ -145,13 +145,13 @@ For the three possible boundary conditions, this is solved as:
 
 ## Burton-Miller Method
 
-In its classical form, the boundary integral formulation suffers from problems where interior mode frequencies can be present in exterior analyses. The Burton-Miller method is one technique for avoiding this issue. First, consider the 'hypersingular' formulation of the boundary integral equation which is equal to the derivative of the classical formulation with respect to the normal vector at $`\mathbf{x}`$ [[0]](#0)[[2]](#2):
+In its classical form, the boundary integral formulation suffers from problems where interior mode frequencies can be present in exterior analyses. The Burton-Miller method is one technique for avoiding this issue. First, consider the 'hypersingular' formulation of the boundary integral equation which is equal to the derivative of the classical formulation with respect to the normal vector at $`\mathbf{x}`$ [^0][^2]:
 
 ```math
 \int_S \phi (\mathbf{y}) dh(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) dg(\mathbf{x}, \mathbf{y}) d\mathbf{y} = \frac{v_{n}(\mathbf{x})}{2} - v_{nI}(\mathbf{x})
 ```
 
-where [[0]](#0)[[5]](#5)
+where [^0][^5]
 ```math
 dg(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{x})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x})) 
 ```
@@ -166,12 +166,12 @@ Discretized over the elements and assembled into matrix form, similar to the cla
 ```math
 [d\mathbf{H}] \mathbf{\phi} = \left[[d\mathbf{G}] + \frac{1}{2} \mathbf{I} \right]\mathbf{v}_n - \mathbf{v}_{nI}
 ```
-Summing together the classical and hypersingular equations using a coupling factor $`\beta`$ yields the following form [[0]](#0)[[2]](#2):
+Summing together the classical and hypersingular equations using a coupling factor $`\beta`$ yields the following form [^0][^2]:
 
 ```math
 \left[\mathbf{H} + \beta [d\mathbf{H}] - \frac{1}{2} \mathbf{I}\right] \mathbf{\phi} = \left[\mathbf{G} + \beta[d\mathbf{G}] + \frac{\beta}{2} \mathbf{I} \right]\mathbf{v}_n - \mathbf{\phi}_I - \beta\mathbf{v}_{nI}
 ```
-where $`\beta`$ is traditionally set to $`i/k`$ [[0]](#0)[[6]](#6).
+where $`\beta`$ is traditionally set to $`i/k`$ [^0][^6].
 
 ## Numerical integration and singular integrals
 
@@ -186,7 +186,7 @@ G_{ij} \approx \sum_k g(\mathbf{x}_i, \mathbf{y}(\mathbf{\xi}_k))| \frac{\partia
 ```
 where $`\xi_k`$ is the $`k^{th}`$ Gauss point, expressed in natural coordinate space $`\xi`$ with weight $`w_k`$. $`| \frac{\partial \mathbf{y}}{\partial \mathbf{\xi}} |`$ is the Jacobian of the natural/physical coordinate transformation, analogous to the area associated with the Gauss point.
 
-One can note that $`r`$ goes to 0 as $`\mathbf{y}`$ approaches $`\mathbf{x}_i`$. This is problematic and leads to singular integrals. There are a variety of strategies to ameliorate this problem, but the chosen approach is based on Chertock's analytical approximations [[5]](#5). Thus, when $`i=j`$ the following approximations are used:
+One can note that $`r`$ goes to 0 as $`\mathbf{y}`$ approaches $`\mathbf{x}_i`$. This is problematic and leads to singular integrals. There are a variety of strategies to ameliorate this problem, but the chosen approach is based on Chertock's analytical approximations [^5]. Thus, when $`i=j`$ the following approximations are used:
 
 ```math
 G_{jj} \approx \frac{1}{2 \pi b_j} \\
@@ -199,7 +199,7 @@ For the other matrices, the approximant is inversely proportional to the mean ra
 ```math
 H_{jj} \approx (dG)_{jj} \approx \frac{ikb_j - 1}{4 \pi b_j c_j}
 ```
-For flat elements, the average curvature is infinite, and thus the approximant terms are zero [[5]](#5).
+For flat elements, the average curvature is infinite, and thus the approximant terms are zero [^5].
 
 ## Field solution
 
@@ -217,13 +217,13 @@ $`\mathbf{\phi}_{fp}`$ represents the total field velocity potential, equal to t
 
 ## Radiated and incident power
 
-The temporal average power for a point force aligned with a normal velocity is [[3, eq. 2.16]](#3)
+The temporal average power for a point force aligned with a normal velocity is [^3] eq. 2.16
 ```math
 W = \frac{1}{2} \text{Re}(f^*v)
 ```
 where $`f^*`$ is the conjugate of the complex force amplitude, and $`v`$ is the (aligned) complex velocity amplitude.
 
-Similarly, the acoustic intensity is [[4, eq. 28]](#4):
+Similarly, the acoustic intensity is [^4] eq. 28:
 ```math
 I = \frac{1}{2} \text{Re}(p^*v_n)
 ```
@@ -260,7 +260,7 @@ The restarted GMRES iterative iterative solver [[wiki]](https://en.wikipedia.org
 
 For practical problems, holding the full $`\mathbf{A}`$ matrix becomes impossible. Hierarchical matrix decomposition, often referred to as H-matrix decomposition (but this will be avoided due to confusion with the $`\mathbf{H}`$ matrix defined previously) reduces the memory requirements and compute complexity by a significant margin. 
 
-The theory and implementation is complex [[7-9]](#7), but the main idea is to compress the off-diagonal 'blocks' of the matrix, which represent more distant points, using an SVD-like compression method. The blocks along or close to the diagonal, representing spatially-close pairs of points, are not good candidates for approximation, since they contain strongly-interacting sets. However, much of the matrix can be compressed in this way, leading to large improvements for computation.
+The theory and implementation is complex [^7][^8][^9], but the main idea is to compress the off-diagonal 'blocks' of the matrix, which represent more distant points, using an SVD-like compression method. The blocks along or close to the diagonal, representing spatially-close pairs of points, are not good candidates for approximation, since they contain strongly-interacting sets. However, much of the matrix can be compressed in this way, leading to large improvements for computation.
 
 For a broad overview, the surface is first processed into a hierarchical clustering of points based on coordinates. This clustering tree then forms the basis for forming another tree: this one representing the pair-wise interactions of clusters. This directly translates to the row and columns of the $`\mathbf{A}`$ matrix, and determining whether the points represented by the rows of the block are sufficiently distant from the points represented by the columns of the block. If they are, the block is deemed 'admissible', in which case it is decomposed by the Adaptive Cross Approximation (ACA) algorithm, which is similar to SVD. If not, the block is inadmissible and it is computed in full, dense format. 
 
@@ -268,25 +268,25 @@ The block tree is then flattened into a list of blocks for easier parallel compu
 
 ## References
 
-<a id="0">[0]</a> Liu, Y. (2019). On the BEM for acoustic wave problems. *Engineering Analysis with Boundary Elements*, 107, 53-62.
+[^0] Liu, Y. (2019). On the BEM for acoustic wave problems. *Engineering Analysis with Boundary Elements*, 107, 53-62.
 
-<a id="1">[1]</a> Marburg, S., & Nolte, B. (2008). *Computational acoustics of noise propagation in fluids: finite and boundary element methods* (Vol. 578). Berlin: Springer.
+[^1] Marburg, S., & Nolte, B. (2008). *Computational acoustics of noise propagation in fluids: finite and boundary element methods* (Vol. 578). Berlin: Springer.
 
-<a id="2">[2]</a> Kreuzer, W., Pollack, K., Brinkmann, F., & Majdak, P. (2024). NumCalc: An open-source BEM code for solving acoustic scattering problems. *Engineering Analysis with Boundary Elements*, 161, 157-178.
+[^2] Kreuzer, W., Pollack, K., Brinkmann, F., & Majdak, P. (2024). NumCalc: An open-source BEM code for solving acoustic scattering problems. *Engineering Analysis with Boundary Elements*, 161, 157-178.
 
-<a id="3">[3]</a> Cremer, L., & Heckl, M. (2005). *Structure-borne sound: structural vibrations and sound radiation at audio frequencies*. Springer Science & Business Media.
+[^3] Cremer, L., & Heckl, M. (2005). *Structure-borne sound: structural vibrations and sound radiation at audio frequencies*. Springer Science & Business Media.
 
-<a id="4">[4]</a> Everstine, G. C., & Henderson, F. M. (1990). Coupled finite element/boundary element approach for fluid–structure interaction. *The Journal of the Acoustical Society of America*, 87(5), 1938-1947.
+[^4] Everstine, G. C., & Henderson, F. M. (1990). Coupled finite element/boundary element approach for fluid–structure interaction. *The Journal of the Acoustical Society of America*, 87(5), 1938-1947.
 
-<a id="5">[5]</a> Chertock, G. (1972). Integral equation methods in sound radiation and scattering from arbitrary surfaces. *The Journal of the Acoustical Society of America*, 52(6A), 1588-1588.
+[^5] Chertock, G. (1972). Integral equation methods in sound radiation and scattering from arbitrary surfaces. *The Journal of the Acoustical Society of America*, 52(6A), 1588-1588.
 
-<a id="6">[6]</a> Marburg, S. (2016). The Burton and Miller method: Unlocking another mystery of its coupling parameter. *Journal of Computational Acoustics*, 24(01), 1550016.
+[^6] Marburg, S. (2016). The Burton and Miller method: Unlocking another mystery of its coupling parameter. *Journal of Computational Acoustics*, 24(01), 1550016.
 
-<a id="7">[7]</a> Börm, S., Grasedyck, L., & Hackbusch, W. (2003). Introduction to hierarchical matrices with applications. Engineering analysis with boundary elements, 27(5), 405-422.
+[^7] Börm, S., Grasedyck, L., & Hackbusch, W. (2003). Introduction to hierarchical matrices with applications. Engineering analysis with boundary elements, 27(5), 405-422.
 
-<a id="8">[8]</a> Thompson, T. Ben. (2021). *Integral equation tutorials: 4. Low rank approximation of BEM matrices with adaptive cross approximation (ACA)*. Available at https://tbenthompson.com/book/tdes/low_rank.html, accessed 19 April 2025.
+[^8] Thompson, T. Ben. (2021). *Integral equation tutorials: 4. Low rank approximation of BEM matrices with adaptive cross approximation (ACA)*. Available at https://tbenthompson.com/book/tdes/low_rank.html, accessed 19 April 2025.
 
-<a id="9">[9]</a> Grasedyck, L. (2005). Adaptive recompression of H-matrices for BEM. *Computing*, 74, 205-223.
+[^9] Grasedyck, L. (2005). Adaptive recompression of H-matrices for BEM. *Computing*, 74, 205-223.
 
 <!---
 
