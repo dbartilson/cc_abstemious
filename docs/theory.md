@@ -268,25 +268,25 @@ The block tree is then flattened into a list of blocks for easier parallel compu
 
 ## References
 
-[^0] Liu, Y. (2019). On the BEM for acoustic wave problems. *Engineering Analysis with Boundary Elements*, 107, 53-62.
+[^0]: Liu, Y. (2019). On the BEM for acoustic wave problems. *Engineering Analysis with Boundary Elements*, 107, 53-62.
 
-[^1] Marburg, S., & Nolte, B. (2008). *Computational acoustics of noise propagation in fluids: finite and boundary element methods* (Vol. 578). Berlin: Springer.
+[^1]: Marburg, S., & Nolte, B. (2008). *Computational acoustics of noise propagation in fluids: finite and boundary element methods* (Vol. 578). Berlin: Springer.
 
-[^2] Kreuzer, W., Pollack, K., Brinkmann, F., & Majdak, P. (2024). NumCalc: An open-source BEM code for solving acoustic scattering problems. *Engineering Analysis with Boundary Elements*, 161, 157-178.
+[^2]: Kreuzer, W., Pollack, K., Brinkmann, F., & Majdak, P. (2024). NumCalc: An open-source BEM code for solving acoustic scattering problems. *Engineering Analysis with Boundary Elements*, 161, 157-178.
 
-[^3] Cremer, L., & Heckl, M. (2005). *Structure-borne sound: structural vibrations and sound radiation at audio frequencies*. Springer Science & Business Media.
+[^3]: Cremer, L., & Heckl, M. (2005). *Structure-borne sound: structural vibrations and sound radiation at audio frequencies*. Springer Science & Business Media.
 
-[^4] Everstine, G. C., & Henderson, F. M. (1990). Coupled finite element/boundary element approach for fluid–structure interaction. *The Journal of the Acoustical Society of America*, 87(5), 1938-1947.
+[^4]: Everstine, G. C., & Henderson, F. M. (1990). Coupled finite element/boundary element approach for fluid–structure interaction. *The Journal of the Acoustical Society of America*, 87(5), 1938-1947.
 
-[^5] Chertock, G. (1972). Integral equation methods in sound radiation and scattering from arbitrary surfaces. *The Journal of the Acoustical Society of America*, 52(6A), 1588-1588.
+[^5]: Chertock, G. (1972). Integral equation methods in sound radiation and scattering from arbitrary surfaces. *The Journal of the Acoustical Society of America*, 52(6A), 1588-1588.
 
-[^6] Marburg, S. (2016). The Burton and Miller method: Unlocking another mystery of its coupling parameter. *Journal of Computational Acoustics*, 24(01), 1550016.
+[^6]: Marburg, S. (2016). The Burton and Miller method: Unlocking another mystery of its coupling parameter. *Journal of Computational Acoustics*, 24(01), 1550016.
 
-[^7] Börm, S., Grasedyck, L., & Hackbusch, W. (2003). Introduction to hierarchical matrices with applications. Engineering analysis with boundary elements, 27(5), 405-422.
+[^7]: Börm, S., Grasedyck, L., & Hackbusch, W. (2003). Introduction to hierarchical matrices with applications. Engineering analysis with boundary elements, 27(5), 405-422.
 
-[^8] Thompson, T. Ben. (2021). *Integral equation tutorials: 4. Low rank approximation of BEM matrices with adaptive cross approximation (ACA)*. Available at https://tbenthompson.com/book/tdes/low_rank.html, accessed 19 April 2025.
+[^8]: Thompson, T. Ben. (2021). *Integral equation tutorials: 4. Low rank approximation of BEM matrices with adaptive cross approximation (ACA)*. Available at https://tbenthompson.com/book/tdes/low_rank.html, accessed 19 April 2025.
 
-[^9] Grasedyck, L. (2005). Adaptive recompression of H-matrices for BEM. *Computing*, 74, 205-223.
+[^9]: Grasedyck, L. (2005). Adaptive recompression of H-matrices for BEM. *Computing*, 74, 205-223.
 
 <!---
 
