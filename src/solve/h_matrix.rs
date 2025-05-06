@@ -310,7 +310,7 @@ mod tests {
              for ji in j {
                 b.push(a[(i[0],ji)]);
              }
-             return b;
+             b
         }
         else {
             let mut b = Vec::<Cplx>::new();

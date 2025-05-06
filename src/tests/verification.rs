@@ -55,7 +55,7 @@ fn rigid_sphere_plane_wave_ring() {
 
     analysis.set_input(input);
     analysis.run();
-    analysis.write_results_at_frequency(0);
+    analysis.write_results();
 }
 
 #[allow(dead_code)]
@@ -81,7 +81,7 @@ fn rigid_sphere_plane_wave_sweep() {
 
     analysis.set_input(input);
     analysis.run();
-    analysis.write_results_at_point(0);
+    analysis.write_results();
     let _fp = analysis.get_results();
 }
 
@@ -182,7 +182,7 @@ fn rigid_sphere_plane_wave_burton_miller() {
     let fpi = fp[0].scattered.as_ref().unwrap()[0];
     assert_relative_eq!(fpi.norm(),  0.0005407404080455677, epsilon = 1.0e-10);
     assert_relative_eq!(fpi.re, -0.00021387485159944078, epsilon = 1.0e-10);
-    assert_relative_eq!(fpi.im, 0.00049664649072212743, epsilon = 1.0e-10);
+    assert_relative_eq!(fpi.im, 0.000_496_646_490_722_127_4, epsilon = 1.0e-10);
 }
 
 #[test]
@@ -201,8 +201,8 @@ fn monopole_power() {
     assert_relative_eq!(power, 95617.4138092842, epsilon = 1.0e-10);
 }
 
-#[allow(dead_code)]
-//#[test]
+//#[allow(dead_code)]
+#[test]
 fn monopole_power_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
@@ -216,5 +216,5 @@ fn monopole_power_sweep() {
 
     analysis.set_input(input);
     analysis.run();
-    analysis.write_power();
+    analysis.write_results();
 }

@@ -200,7 +200,7 @@ pub fn write_results(predata: &preprocess::PreData, results: &Vec<FPResult>) -> 
 
         let ofpower = format!("{}/{}_power.{}", of_path, of_stem, of_ext);
         if predata.get_output_power_bool() { let _ = write_power(predata, Some(&ofpower), results); }
-        return Ok(())
+        Ok(())
     }
 
 }

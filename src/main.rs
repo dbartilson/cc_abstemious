@@ -5,5 +5,5 @@ fn main() {
     let mut analysis = cc_abstemious::Analysis::new();
     analysis.input_from_file(input_path_str);
     analysis.run();
-    analysis.write_results_at_frequency(0)
+    analysis.write_results();
 }
