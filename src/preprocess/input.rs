@@ -93,10 +93,12 @@ pub struct Output {
     pub o_type: OutputType,
     /// Pressure or velocity potential
     pub field: OutputField,
-    /// Output file name
+    /// Output file name, if empty, no file is written
     pub file: String,
-    /// Vector of field point coordinates
-    pub field_points: Vec<[f64;3]>
+    /// Vector of field point coordinates, if none, no FP results are written
+    pub field_points: Vec<[f64;3]>,
+    /// Whether to output surface power results
+    pub request_power: bool
 }
 
 /// Struct of user inputs

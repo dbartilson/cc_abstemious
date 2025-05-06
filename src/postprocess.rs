@@ -3,6 +3,7 @@ Post-processing steps and writing outputs
 */
 
 use std::error::Error;
+use std::path::Path;
 use csv::Writer;
 use crate::analysis::PrimaryVariables;
 use crate::incident_wave;
@@ -98,9 +99,13 @@ pub fn calculate_surface_power(predata: &preprocess::PreData, incident: &Primary
 }
 
 /// write scattered/total and incident field results to a csv file for all points at one frequency
-pub fn write_results_at_frequency(predata: &preprocess::PreData, result: &FPResult) 
+/// Optional override for input file_name
+pub fn write_results_at_frequency(predata: &preprocess::PreData, file_name: Option<&String>, result: &FPResult) 
     -> Result<(), Box<dyn Error>> {
-    let mut wtr = Writer::from_path(predata.get_output_filename())?;
+    let fname = file_name.unwrap_or(predata.get_output_filename());
+    if fname.is_empty() { return Ok(()) }
+
+    let mut wtr = Writer::from_path(fname)?;
     let scatt = result.scattered.as_ref().unwrap();
     let inc = result.incident.as_ref().unwrap();
     let points = predata.get_field_points();
@@ -152,8 +157,12 @@ pub fn write_results_at_point(predata: &preprocess::PreData, results: &Vec<FPRes
     Ok(())
 }
 
-pub fn write_power(predata: &preprocess::PreData, results: &Vec<FPResult>) -> Result<(), Box<dyn Error>> {
-    let mut wtr = Writer::from_path(predata.get_output_filename())?;
+/// write scattered/radiated and incident power over the surface
+pub fn write_power(predata: &preprocess::PreData, file_name: Option<&String>, results: &Vec<FPResult>) -> Result<(), Box<dyn Error>> {
+    let fname = file_name.unwrap_or(predata.get_output_filename());
+    if fname.is_empty() { return Ok(()) }
+    
+    let mut wtr = Writer::from_path(fname)?;
     let _ = wtr.write_record(["freq",
                               "w_scat",
                               "w_inc"]);
@@ -164,4 +173,37 @@ pub fn write_power(predata: &preprocess::PreData, results: &Vec<FPResult>) -> Re
     }
     wtr.flush()?;
     Ok(())
+}
+
+/// write results to file(s)
+/// If no file name given, write no results
+/// If only one field point, condense it all into one csv
+pub fn write_results(predata: &preprocess::PreData, results: &Vec<FPResult>) -> Result<(), Box<dyn Error>> {
+    if predata.get_output_filename().is_empty() { return Ok(()); }
+
+    if predata.get_field_points().len() == 1 {
+        write_results_at_point(predata, results, 0)
+    }
+    else {
+        // Loop over results, write a file like /path/stem_{i}.ext for each frequency, along with separate file for power
+        
+        // Process specified file path into chunks
+        let output_file = Path::new(predata.get_output_filename());
+        let of_path = output_file.parent().unwrap().to_str().unwrap();
+        let of_stem = output_file.file_stem().unwrap().to_str().unwrap();
+        let of_ext = output_file.extension().unwrap().to_str().unwrap();
+
+        for (i, result) in results.iter().enumerate() {
+            let ofi = format!("{}/{}_{}.{}", of_path, of_stem, i+1, of_ext);
+            let _ = write_results_at_frequency(predata, Some(&ofi), result);
+        }
+
+        let ofpower = format!("{}/{}_power.{}", of_path, of_stem, of_ext);
+        if predata.get_output_power_bool() { let _ = write_power(predata, Some(&ofpower), results); }
+        return Ok(())
+    }
+
+    
+    
+
 }

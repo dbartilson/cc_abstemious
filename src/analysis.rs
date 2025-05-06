@@ -139,7 +139,7 @@ impl <'a>Analysis {
     pub fn get_results(&self) -> &Vec<postprocess::FPResult> { &self.results }
     /// Write results to output file at one frequency for all field points
     pub fn write_results_at_frequency(&self, ifreq: usize) {
-        let _u = postprocess::write_results_at_frequency(self.predata.as_ref().unwrap(), &self.results[ifreq]);
+        let _u = postprocess::write_results_at_frequency(self.predata.as_ref().unwrap(), None, &self.results[ifreq]);
     }
     /// Write results to output file for all field points at one frequency
     pub fn write_results_at_point(&self, index: usize) {
@@ -147,6 +147,6 @@ impl <'a>Analysis {
     }
     /// Write results to output file for all field points at one frequency
     pub fn write_power(&self) {
-        let _u = postprocess::write_power(self.predata.as_ref().unwrap(), &self.results);
+        let _u = postprocess::write_power(self.predata.as_ref().unwrap(), None, &self.results);
     }
 }

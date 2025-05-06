@@ -25,7 +25,8 @@ fn default_input() -> UserInput {
             o_type: OutputType::Scattered,
             field: OutputField::Pressure,
             field_points: Vec::new(),
-            file: "".to_string()
+            file: "".to_string(),
+            request_power: false
         }
     }
 }

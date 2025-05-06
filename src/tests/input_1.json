@@ -38,6 +38,7 @@
                 1.0,
                 1.0
             ]
-        ]
+        ],
+        "request_power": "true"
     }
 }

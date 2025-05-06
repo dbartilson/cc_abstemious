@@ -140,6 +140,9 @@ impl PreData {
     /// Return reference to vector of field points
     #[inline]
     pub fn get_field_points(&self) -> &Vec<[f64; 3]> {&self.input.output.field_points}
+    /// Return bool of whether to write output power results
+    #[inline]
+    pub fn get_output_power_bool(&self) -> bool {self.input.output.request_power}
 }
 
 /// Wrapper of preprocessing steps
