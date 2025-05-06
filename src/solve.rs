@@ -230,7 +230,7 @@ mod tests {
             bi.re = rng.random::<f64>();
             bi.im = rng.random::<f64>();
         }
-        return (a, b)
+        (a, b)
     }
 
     #[test]

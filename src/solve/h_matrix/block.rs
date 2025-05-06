@@ -137,7 +137,7 @@ mod tests {
         }
         let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), 32, &hmap));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
-        assert_eq!(block_tree.children[1].children[1].children[1].admissible, true)
+        assert!(block_tree.children[1].children[1].children[1].admissible)
     }
     #[test]
     fn flatten_block_tree() {
@@ -159,6 +159,6 @@ mod tests {
         let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), 32, &hmap));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let block_list = BlockList::new_from(&block_tree);
-        assert_eq!(block_list.list[5].admissible, true);
+        assert!(block_list.list[5].admissible);
     }
 }

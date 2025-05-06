@@ -203,7 +203,4 @@ pub fn write_results(predata: &preprocess::PreData, results: &Vec<FPResult>) -> 
         return Ok(())
     }
 
-    
-    
-
 }
