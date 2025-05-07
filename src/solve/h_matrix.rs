@@ -302,7 +302,7 @@ mod tests {
                 a[(i,j)] = Cplx::new(1.0 / f64::max(1e-5, dist), 0.0);
             }
         }
-        return (nodes, hmap, a, b)
+        (nodes, hmap, a, b)
     }
     fn get_row_or_column(a: &DMatrix::<Cplx>, i: Vec<usize>, j: Vec<usize>) -> Vec<Cplx> {
         if i.len() == 1 {
@@ -310,15 +310,15 @@ mod tests {
              for ji in j {
                 b.push(a[(i[0],ji)]);
              }
-             return b;
+             b
         }
         else {
             let mut b = Vec::<Cplx>::new();
             for ii in i {
                b.push(a[(ii,j[0])]);
             }
-            return b;
-        }; 
+            b
+        }
     }
     #[test]
     fn get_hmatrix() {
