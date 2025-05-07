@@ -53,6 +53,16 @@ The input file includes:
 
 A file (`input_schema.json`) describing the input file JSON schema is automatically generated during `cargo test` (using the `schemars` crate).
 
+### Output
+
+Results are written in `.csv` format with the following structure:
+
+- If only one field point is specified and the user does not request surface power output, one `.csv` file is written with the specified output file name.
+- In any other case (multiple field points and/or surface power requested):
+   - One `.csv` file is written for each analysis frequency containing the field results. The frequency index is prepended to the file extension. For example, `./output.csv` would become `./output_1.csv`, `./output_2.csv`, etc.
+   - One `.csv` index file is written for the whole analysis, with a name like `./output_index.csv`. This contains a listing of the frequency index, drive frequency, and file name for each output file.
+   - One `.csv` file is written for the whole analysis, with a name like `./output_power.csv` containing the surface power results for all frequencies.
+
 ## Limitations & Future Work
 
 [^1]: Only linear, 3-noded triangles and linear, 4-noded quadrilateral surface elements are supported

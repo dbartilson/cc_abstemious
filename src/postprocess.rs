@@ -177,11 +177,15 @@ pub fn write_power(predata: &preprocess::PreData, file_name: Option<&String>, re
 
 /// write results to file(s)
 /// If no file name given, write no results
-/// If only one field point, condense it all into one csv
+/// If only one field point and no power requested, condense it all into one csv
+/// If multiple field points or power requested:
+///     Write a file for each frequency, with the index appended before the file extension
+///     Write a single file for the power data at all frequencies
+///     Write an index file that contains data on index, file name, and frequency for the output files
 pub fn write_results(predata: &preprocess::PreData, results: &Vec<FPResult>) -> Result<(), Box<dyn Error>> {
     if predata.get_output_filename().is_empty() { return Ok(()); }
 
-    if predata.get_field_points().len() == 1 {
+    if predata.get_field_points().len() == 1 && !predata.get_output_power_bool() {
         write_results_at_point(predata, results, 0)
     }
     else {
@@ -193,14 +197,17 @@ pub fn write_results(predata: &preprocess::PreData, results: &Vec<FPResult>) -> 
         let of_stem = output_file.file_stem().unwrap().to_str().unwrap();
         let of_ext = output_file.extension().unwrap().to_str().unwrap();
 
+        let index_file_name = format!("{}/{}_index.{}", of_path, of_stem, of_ext);
+        let mut wtr = Writer::from_path(index_file_name)?;
+        wtr.write_record(["freq_index", "frequency (Hz)", "file_name"])?;
         for (i, result) in results.iter().enumerate() {
             let ofi = format!("{}/{}_{}.{}", of_path, of_stem, i+1, of_ext);
             let _ = write_results_at_frequency(predata, Some(&ofi), result);
+            wtr.write_record([(i+1).to_string(), result.frequency.to_string(), ofi])?;
         }
-
+        wtr.flush()?;
         let ofpower = format!("{}/{}_power.{}", of_path, of_stem, of_ext);
         if predata.get_output_power_bool() { let _ = write_power(predata, Some(&ofpower), results); }
         Ok(())
     }
-
 }
