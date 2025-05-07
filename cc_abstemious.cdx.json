@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.3",
   "version": 1,
-  "serialNumber": "urn:uuid:a797a9bf-216a-4573-8984-0196ff92709f",
+  "serialNumber": "urn:uuid:b13fb902-a990-42f1-af9b-b0da573226fa",
   "metadata": {
-    "timestamp": "2025-04-22T01:12:25.164871000Z",
+    "timestamp": "2025-05-07T01:34:55.292435000Z",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -14,25 +14,25 @@
     ],
     "component": {
       "type": "application",
-      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.0",
+      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.1",
       "name": "cc_abstemious",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "scope": "required",
-      "purl": "pkg:cargo/cc_abstemious@1.3.0?download_url=file://.",
+      "purl": "pkg:cargo/cc_abstemious@1.3.1?download_url=file://.",
       "components": [
         {
           "type": "library",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.0 bin-target-0",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.1 bin-target-0",
           "name": "cc_abstemious",
-          "version": "1.3.0",
-          "purl": "pkg:cargo/cc_abstemious@1.3.0?download_url=file://.#src/lib.rs"
+          "version": "1.3.1",
+          "purl": "pkg:cargo/cc_abstemious@1.3.1?download_url=file://.#src/lib.rs"
         },
         {
           "type": "application",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.0 bin-target-1",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.1 bin-target-1",
           "name": "cc_abstemious",
-          "version": "1.3.0",
-          "purl": "pkg:cargo/cc_abstemious@1.3.0?download_url=file://.#src/main.rs"
+          "version": "1.3.1",
+          "purl": "pkg:cargo/cc_abstemious@1.3.1?download_url=file://.#src/main.rs"
         }
       ]
     },
@@ -1749,7 +1749,7 @@
   ],
   "dependencies": [
     {
-      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.0",
+      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.1",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#approx@0.5.1",
         "registry+https://github.com/rust-lang/crates.io-index#csv@1.3.1",
