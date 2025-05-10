@@ -195,7 +195,7 @@ impl NIElement <'_> {
         // Calculate using the normal vector, since it is return un-scaled
         match self.element_type {
             ElementType::Tri => 0.5 * self.normal_vector_at_gp(gp).norm(),
-            ElementType::Quad => 0.25 * self.normal_vector_at_gp(gp).norm(),
+            ElementType::Quad => self.normal_vector_at_gp(gp).norm(),
             _ => 0.0
         }
     }
@@ -211,5 +211,76 @@ impl NIElement <'_> {
             result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area, wt: gp.wt })
         }
         result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use approx::assert_relative_eq;
+    use crate::{elements::interpolation::QUADGP1, preprocess::mesh::{Body, CollocationPoint, Coords, Element, ElementType, Mesh, Node}};
+    use super::{interpolation::{Gp, TRIGP1}, NIElement};
+
+    fn setup_dummy_mesh() -> Mesh {
+        let nodes = vec![
+            Node { id: 1, coords: Coords::new(0.0, 0.0, 0.0)},
+            Node { id: 2, coords: Coords::new(1.0, 0.0, 0.0)},
+            Node { id: 3, coords: Coords::new(1.0, 1.0, 0.0)},
+            Node { id: 4, coords: Coords::new(0.0, 1.0, 0.0)},
+        ];
+        let elements = vec![
+            Element { id: 1, body_id: 1, etype: ElementType::Tri, node_ids: vec![0, 1, 2], intpts: Vec::new()},
+            Element { id: 2, body_id: 1, etype: ElementType::Quad, node_ids: vec![0, 1, 2, 3], intpts: Vec::new()},
+        ];
+        let bodies = vec![
+            Body { id: 1, element_ids: vec![1, 2]}
+        ];
+        let cpts: Vec<CollocationPoint> = Vec::new();
+        Mesh {
+            nodes,
+            elements,
+            bodies,
+            cpts
+        }
+    }
+
+    #[test]
+    fn test_tri_shape_function() {
+        let mesh = setup_dummy_mesh();
+        let element = NIElement::new(&mesh, 0);
+        let gp = Gp { coords: [0.25, 0.25], wt: 0.0};
+        let sf = element.shape_functions_at(&gp);
+        assert_relative_eq!(sf[0], 0.5, epsilon=1e-8);
+        assert_relative_eq!(sf[1], 0.25, epsilon=1e-8);
+        assert_relative_eq!(sf[2], 0.25, epsilon=1e-8);
+    }
+
+    #[test]
+    fn test_quad_shape_function() {
+        let mesh = setup_dummy_mesh();
+        let element = NIElement::new(&mesh, 1);
+        let gp = Gp { coords: [0.25, 0.25], wt: 0.0};
+        let sf = element.shape_functions_at(&gp);
+        assert_relative_eq!(sf[0], 0.140625, epsilon=1e-8);
+        assert_relative_eq!(sf[1], 0.234375, epsilon=1e-8);
+        assert_relative_eq!(sf[2], 0.390625, epsilon=1e-8);
+        assert_relative_eq!(sf[3], 0.234375, epsilon=1e-8);
+    }
+
+    #[test]
+    fn test_tri_area() {
+        let mesh = setup_dummy_mesh();
+        let element = NIElement::new(&mesh, 0);
+        let gp = TRIGP1[0];
+        let detj = element.detj_at(&gp);
+        assert_relative_eq!(detj * gp.wt, 0.5, epsilon=1e-9)
+    }
+
+    #[test]
+    fn test_quad_area() {
+        let mesh = setup_dummy_mesh();
+        let element = NIElement::new(&mesh, 1);
+        let gp = QUADGP1[0];
+        let detj = element.detj_at(&gp);
+        assert_relative_eq!(detj * gp.wt, 1.0, epsilon=1e-9)
     }
 }

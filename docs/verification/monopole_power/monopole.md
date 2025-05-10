@@ -2,7 +2,7 @@
 
 ## Theory
 
-For a rigid sphere with a uniform, harmonic surface normal velocity $`v_0`$, the power radiated by the sphere is (Cremer and Heckl, Eq. 7.19): 
+For a rigid sphere with a uniform, harmonic surface normal velocity $`v_0`$, the power radiated by the sphere is ([^1], Eq. 7.19): 
 
 ```math
 W = \frac{1}{2} \int _S \text{Re} (p^*v_n)dS = 2 \pi a^2 \| v_0 \|^2 \rho c \frac{(ka)^2}{1+(ka)^2}
@@ -32,4 +32,4 @@ Results are shown below with good agreement.
 
 ## References
 
-* Cremer, L., & Heckl, M. (2005). *Structure-borne sound: structural vibrations and sound radiation at audio frequencies*. Springer Science & Business Media.
+[^1]: Cremer, L., & Heckl, M. (2005). *Structure-borne sound: structural vibrations and sound radiation at audio frequencies*. Springer Science & Business Media.

@@ -2,7 +2,7 @@
 
 ## Theory
 
-For a rigid sphere (i.e., total normal velocity on the surface is zero), the analytical result for the scattered pressure field at any point $`(r, \theta)`$ outside of the sphere is
+For a rigid sphere (i.e., total normal velocity on the surface is zero), the analytical result for the scattered pressure field at any point $`(r, \theta)`$ outside of the sphere is [^1]
 
 ```math
 p_s(r, \theta) = p_i \sum_{n=0}^\infty (2n+1)i^n P_n(\cos \theta) \frac{j_n'(kR)}{h_n'(kR)}h_n(kr)
@@ -40,4 +40,4 @@ Results are shown below with good agreement.
 
 ## References
 
-* Partridge, C. J. (1993). Sound wave scattering from a rigid sphere. Materials Research Laboratory.
+[^1]: Partridge, C. J. (1993). Sound wave scattering from a rigid sphere. Materials Research Laboratory.
