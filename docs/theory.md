@@ -33,7 +33,9 @@ v_n(\mathbf{x}) = \nabla \phi (\mathbf{x}) \cdot \mathbf{e}_n(\mathbf{x}) = \fra
 Note that these express the *total* field, which can be written as a sum of the scattered (radiated) and incident portions:
 
 ```math
-\phi = \phi_{scatt} + \phi_I \\
+\phi = \phi_{scatt} + \phi_I 
+```
+```math
 v_n = (v_{n})_{scatt} + v_{nI}
 ```
 
@@ -55,7 +57,9 @@ The integral solution to the Helmholtz equation is written as [^0][^4]:
 where $`\phi_I`$ is the incident wave (free-field) velocity potential. $`g`$ and its normal derivative are given as [^0][^5]:
 
 ```math
-g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r} \\
+g(\mathbf{x}, \mathbf{y}) = \frac{e^{ikr}}{4 \pi r} 
+```
+```math
 h(\mathbf{x}, \mathbf{y}) = \frac{\partial g(\mathbf{x}, \mathbf{y})}{\partial n(\mathbf{y})} = \left(ik - \frac{1}{r}\right) g(\mathbf{x}, \mathbf{y}) (-\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{y}))
 ```
 
@@ -80,7 +84,6 @@ The incident sound sources (incident acoustic fields) can be defined similarly:
 ```math
 \phi_I(\mathbf{x}) = A e^{ik(\mathbf{x} \cdot \mathbf{e}_d)}
 ```
-
 ```math
 v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} = ik \left(\frac{\partial \mathbf{x}}{\partial n(\mathbf{x})}\cdot \mathbf{e}_d+\mathbf{x} \cdot \frac{\partial \mathbf{e}_d}{\partial n(\mathbf{x})} \right) \phi_I(\mathbf{x}) = ik (\mathbf{e}_n(\mathbf{x}) \cdot \mathbf{e}_d) \phi_I(\mathbf{x})
 ```
@@ -90,7 +93,6 @@ v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} 
 ```math
 \phi_I(\mathbf{x}) = \frac{A}{4 \pi r}e^{ikr}; \qquad r = \mathbf{x} - \mathbf{x}_I
 ```
-
 ```math
 v_{nI}(\mathbf{x}) = \frac{\partial \phi_I(\mathbf{x})}{\partial n(\mathbf{x})} = \left(ik - \frac{1}{r}\right) (\mathbf{e}_r \cdot \mathbf{e}_n(\mathbf{x})) \phi_I(\mathbf{x})
 ```
@@ -189,7 +191,9 @@ where $`\xi_k`$ is the $`k^{th}`$ Gauss point, expressed in natural coordinate s
 One can note that $`r`$ goes to 0 as $`\mathbf{y}`$ approaches $`\mathbf{x}_i`$. This is problematic and leads to singular integrals. There are a variety of strategies to ameliorate this problem, but the chosen approach is based on Chertock's analytical approximations [^5]. Thus, when $`i=j`$ the following approximations are used:
 
 ```math
-G_{jj} \approx \frac{1}{2 \pi b_j} \\
+G_{jj} \approx \frac{1}{2 \pi b_j} 
+```
+```math
 (dH)_{jj} \approx \frac{-1}{2 \pi b_j^3}
 ```
 where $`\pi b_j^2`$ is the area of the element, i.e., $`b_j = \sqrt \frac{S_j}{\pi}`$.
@@ -207,7 +211,9 @@ Once the velocity potential and normal velocity fields are known on the surface,
 
 ```math
 \int_S \phi (\mathbf{y}) h(\mathbf{x}, \mathbf{y}) - v_n(\mathbf{y}) g(\mathbf{x}, \mathbf{y}) d\mathbf{y} =
-\phi(\mathbf{x})-\phi_I(\mathbf{x}) \\
+\phi(\mathbf{x})-\phi_I(\mathbf{x}) 
+```
+```math
 \mathbf{\phi}_{fp} = \mathbf{M} \mathbf{\phi} - \mathbf{L} \mathbf{v}_n + \mathbf{\phi}_{fpI}
 ```
 
@@ -235,7 +241,9 @@ W = \frac{1}{2} \int _S \text{Re}(p^*v_n)dS
 This represents the total power, equal to the radiated power for radiation problems. For scattering problems, the power can be decomposed into scattered and incident power:
 
 ```math
-W_I = \frac{1}{2} \int _S \text{Re}(p_I^*v_{nI})dS \\
+W_I = \frac{1}{2} \int _S \text{Re}(p_I^*v_{nI})dS 
+```
+```math
 W_{scatt} = \frac{1}{2} \int _S \text{Re}(p_{scatt}^*v_{n,scatt})dS
 ```
 

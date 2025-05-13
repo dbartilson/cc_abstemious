@@ -99,6 +99,7 @@ pub fn calculate_surface_power(predata: &preprocess::PreData, incident: &Primary
 }
 
 /// write scattered/total and incident field results to a csv file for all points at one frequency
+/// 
 /// Optional override for input file_name
 pub fn write_results_at_frequency(predata: &preprocess::PreData, file_name: Option<&String>, result: &FPResult) 
     -> Result<(), Box<dyn Error>> {
@@ -176,6 +177,7 @@ pub fn write_power(predata: &preprocess::PreData, file_name: Option<&String>, re
 }
 
 /// write results to file(s)
+/// 
 /// If no file name given, write no results
 /// If only one field point and no power requested, condense it all into one csv
 /// If multiple field points or power requested:

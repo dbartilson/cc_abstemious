@@ -13,7 +13,7 @@ use crate::elements::NIElement;
 use crate::tools;
 use crate::Cplx;
 
-/// Burton-Miller method
+/// Burton-Miller method switch and factor (frequency dependent)
 pub struct BurtonMiller {
     /// true: use Burton-Miller method
     pub is: bool,
@@ -21,6 +21,9 @@ pub struct BurtonMiller {
     pub factor: Cplx
 }
 
+/// Hash maps for indexing
+/// 
+/// from collocation point index to equation index (and vice versa), collocation point index to equation index (and vice versa)
 pub struct Maps {
     // map frm cpts to elements
     cpt2el: HashMap<usize,usize>, 

@@ -244,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn test_tri_shape_function() {
+    fn tri_shape_function() {
         let mesh = setup_dummy_mesh();
         let element = NIElement::new(&mesh, 0);
         let gp = Gp { coords: [0.25, 0.25], wt: 0.0};
@@ -255,7 +255,7 @@ mod tests {
     }
 
     #[test]
-    fn test_quad_shape_function() {
+    fn quad_shape_function() {
         let mesh = setup_dummy_mesh();
         let element = NIElement::new(&mesh, 1);
         let gp = Gp { coords: [0.25, 0.25], wt: 0.0};
@@ -267,7 +267,7 @@ mod tests {
     }
 
     #[test]
-    fn test_tri_area() {
+    fn tri_area() {
         let mesh = setup_dummy_mesh();
         let element = NIElement::new(&mesh, 0);
         let gp = TRIGP1[0];
@@ -276,7 +276,7 @@ mod tests {
     }
 
     #[test]
-    fn test_quad_area() {
+    fn quad_area() {
         let mesh = setup_dummy_mesh();
         let element = NIElement::new(&mesh, 1);
         let gp = QUADGP1[0];

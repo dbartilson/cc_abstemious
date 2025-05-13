@@ -1,5 +1,5 @@
 /*!
-Solve methods
+Numerical solution methods
 */
 
 pub mod gmres;

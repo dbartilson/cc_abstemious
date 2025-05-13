@@ -29,6 +29,7 @@ pub fn logspace(start: f64, end: f64, npts: usize) -> Vec<f64> {
 }
 
 pub fn get_num_threads() -> usize {
+    //! get the number of threads to use. Default to nthreads / 2, unless that fails, then default to 2
     match std::thread::available_parallelism() {
         Ok(result) => std::cmp::max(result.get() / 2, 2),
         Err(_) => 2
@@ -41,28 +42,28 @@ mod tests {
     use crate::tools::{logspace, linspace};
 
     #[test]
-    fn test_linspace() {
+    fn linspace_3pts() {
         let x = linspace(1.0, 10.0, 3);
         assert_eq!(x.len(), 3);
         assert_eq!(x, vec![1.0, 5.5, 10.0])
     }
 
     #[test]
-    fn test_linspace_2() {
+    fn linspace_2pts() {
         let x = linspace(1.0, 10.0, 2);
         assert_eq!(x.len(), 2);
         assert_eq!(x, vec![1.0, 10.0])
     }
 
     #[test]
-    fn test_logspace() {
+    fn logspace_3pts() {
         let x = logspace(1.0, 10.0, 3);
         assert_eq!(x.len(), 3);
         assert_relative_eq!(x[1], 3.1622776601683795, epsilon=1e-8)
     }
 
     #[test]
-    fn test_logspace_2() {
+    fn logspace_2pts() {
         let x = logspace(1.0, 10.0, 2);
         assert_eq!(x.len(), 2);
         assert_eq!(x, vec![1.0, 10.0])
