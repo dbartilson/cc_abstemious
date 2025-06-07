@@ -32,7 +32,7 @@ mod text_reader {
         }
 
         pub fn get_reader(&mut self) -> &mut std::io::BufReader<File> {
-            return &mut self.reader
+            &mut self.reader
         }
     }
 }
@@ -111,10 +111,11 @@ pub struct Mesh {
     pub cpts: Vec<CollocationPoint>
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(PartialEq)]
 enum VTKFormat {
     Binary,
-    ASCII,
+    ASCII, 
     Null
 }
 
@@ -286,6 +287,9 @@ impl Mesh {
             bodies[body_id].element_ids.push(el.id);
         }
         info!(" Read {} bodies, {} elements, {} nodes", bodies.len(), elements.len(), nodes.len());
+        if !bodies[3].element_ids.is_empty() {
+            warn!(" Unable to process {} elements", bodies[3].element_ids.len())
+        }
         Ok(())
     }
 }
