@@ -8,7 +8,7 @@ use cc_abstemious::preprocess::input::*;
 
 fn default_input() -> UserInput {
     UserInput {
-        mesh_file: "./src/tests/sphere.vtk".to_string(),
+        mesh_file: "./src/tests/sphere_1.vtk".to_string(),
         body_index: 3,
         frequency: FrequencyInput::List { values: vec![100.0] },
         // water

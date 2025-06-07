@@ -36,7 +36,6 @@ fn rigid_sphere_plane_wave_ring() {
 fn rigid_sphere_plane_wave_sweep() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    //input.mesh_file = "./src/tests/refined_sphere.vtk".to_string();
     input.method_type = MethodType::Classical;
     input.frequency = FrequencyInput::LinearSpaced { start: 10.0, end: 1000.0, number: 50 };
     // incident wave
@@ -74,4 +73,9 @@ fn monopole_power_sweep() {
     analysis.set_input(input);
     analysis.run();
     analysis.write_results();
+}
+
+#[test]
+fn speed_test() {
+    
 }
