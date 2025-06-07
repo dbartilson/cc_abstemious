@@ -5,48 +5,52 @@ The cluster tree is used to partition the surface in space until
 the leaves contain fewer nodes than the 'cardinality' parameter of the tree
 */
 
-use std::{collections::HashMap, rc::Rc};
 use crate::preprocess::mesh::CollocationPoint;
+use std::{collections::HashMap, rc::Rc};
 
 /// Cluster Tree, used to partition the surface in space until
 /// they contain fewer nodes than the 'cardinality' parameter of the tree
 #[derive(Clone)]
 pub struct Cluster {
     /// Physical upper bound of the coordinates in the cluster
-    u_bound: [f64;3],
+    u_bound: [f64; 3],
     /// Physical lower bound of the coordinates in the cluster
-    l_bound: [f64;3],
+    l_bound: [f64; 3],
     /// See update_diameter for definition
     diameter: f64,
     /// node indices, not eqn indices
-    indices_contained: Vec<usize>, 
+    indices_contained: Vec<usize>,
     /// References to 'sons' (i.e., subclusters this was split into)
-    sons: Vec<Rc<Cluster>>
+    sons: Vec<Rc<Cluster>>,
 }
 
 impl Cluster {
     /// Build cluster tree from nodal data.
     /// Leaf cardinality is the approximate minimum size of clusters
-    pub fn new_from(cpts: &Vec<CollocationPoint>, 
-                    indices_contained: Vec<usize>, 
-                    leaf_cardinality: usize, 
-                    eqn_map: &HashMap::<usize, usize>) -> Cluster {
+    pub fn new_from(
+        cpts: &Vec<CollocationPoint>,
+        indices_contained: Vec<usize>,
+        leaf_cardinality: usize,
+        eqn_map: &HashMap<usize, usize>,
+    ) -> Cluster {
         let mut cluster = Cluster {
-            u_bound: [f64::NEG_INFINITY;3],
-            l_bound: [f64::INFINITY;3],
+            u_bound: [f64::NEG_INFINITY; 3],
+            l_bound: [f64::INFINITY; 3],
             diameter: 0.0,
             indices_contained,
-            sons: Vec::new()
+            sons: Vec::new(),
         };
         cluster.process_cluster(cpts, leaf_cardinality, eqn_map);
         cluster
     }
     /// Can be called recursively to process current cluster, split if applicable,
     /// then process those clusters
-    fn process_cluster(&mut self, 
-                       nodes: &Vec<CollocationPoint>, 
-                       leaf_cardinality: usize, 
-                       eqn_map: &HashMap::<usize, usize>) {
+    fn process_cluster(
+        &mut self,
+        nodes: &Vec<CollocationPoint>,
+        leaf_cardinality: usize,
+        eqn_map: &HashMap<usize, usize>,
+    ) {
         // Largely adapted from https://doi.org/10.1016/S0955-7997(02)00152-2
         // Example 2.1
         self.update_bounds(nodes);
@@ -63,7 +67,10 @@ impl Cluster {
         let beta = &mut self.u_bound;
         for j in 0_usize..3 {
             let c = beta[j] - alpha[j];
-            if c > diff {jmax = j; diff = c;}
+            if c > diff {
+                jmax = j;
+                diff = c;
+            }
         }
         // Split cluster at gamma in jmax direction
         let gamma = 0.5 * (alpha[jmax] + beta[jmax]);
@@ -72,23 +79,40 @@ impl Cluster {
         for index in &self.indices_contained {
             if nodes[*index].coords[jmax] <= gamma {
                 indx1.push(*index);
-            }
-            else {
+            } else {
                 indx2.push(*index);
             }
         }
         //self.indices_contained = Vec::new();
-        self.sons.push(Rc::new(Cluster::new_from(nodes, indx1, leaf_cardinality, eqn_map)));
-        self.sons.push(Rc::new(Cluster::new_from(nodes, indx2, leaf_cardinality, eqn_map)));
+        self.sons.push(Rc::new(Cluster::new_from(
+            nodes,
+            indx1,
+            leaf_cardinality,
+            eqn_map,
+        )));
+        self.sons.push(Rc::new(Cluster::new_from(
+            nodes,
+            indx2,
+            leaf_cardinality,
+            eqn_map,
+        )));
     }
     /// Check if a cluster is a leaf (has no sons, is not further split)
-    pub fn is_leaf(&self) -> bool { self.sons.is_empty()} 
+    pub fn is_leaf(&self) -> bool {
+        self.sons.is_empty()
+    }
     /// Return reference to indices contained in this cluster (includes sons)
-    pub fn get_indices(&self) -> &Vec<usize> { &self.indices_contained}
+    pub fn get_indices(&self) -> &Vec<usize> {
+        &self.indices_contained
+    }
     /// Return diameter of this cluster
-    pub fn get_diameter(&self) -> f64 { self.diameter }
+    pub fn get_diameter(&self) -> f64 {
+        self.diameter
+    }
     /// Return reference to the sons of this cluster
-    pub fn get_sons(&self) -> &Vec<Rc<Cluster>> { &self.sons }
+    pub fn get_sons(&self) -> &Vec<Rc<Cluster>> {
+        &self.sons
+    }
     /// Update the bounds (maxima/minima in each coordinate direction)
     fn update_bounds(&mut self, cpts: &[CollocationPoint]) {
         let alpha = &mut self.l_bound;
@@ -105,7 +129,7 @@ impl Cluster {
         let diam = &mut self.diameter;
         *diam = 0.0;
         for j in 0..3 {
-            *diam += f64::powi(self.u_bound[j] - self.l_bound[j],2);
+            *diam += f64::powi(self.u_bound[j] - self.l_bound[j], 2);
         }
         *diam = diam.sqrt();
     }
@@ -114,23 +138,25 @@ impl Cluster {
     pub fn get_distance(c1: &Cluster, c2: &Cluster) -> f64 {
         let mut dist = 0.0;
         for j in 0..3 {
-            dist += f64::powi(f64::max(0.0, c1.l_bound[j] - c2.u_bound[j]),2);
-            dist += f64::powi(f64::max(0.0, c2.l_bound[j] - c1.u_bound[j]),2);
+            dist += f64::powi(f64::max(0.0, c1.l_bound[j] - c2.u_bound[j]), 2);
+            dist += f64::powi(f64::max(0.0, c2.l_bound[j] - c1.u_bound[j]), 2);
         }
         dist.sqrt()
     }
     /// Use equation map to go from cpt indices to equations
-    fn map_cpts_to_eqns(&mut self, eqn_map: &HashMap::<usize, usize>) {
+    fn map_cpts_to_eqns(&mut self, eqn_map: &HashMap<usize, usize>) {
         for idx in &mut self.indices_contained {
-            if let Some(new_idx) = eqn_map.get(idx) {*idx = *new_idx;}
+            if let Some(new_idx) = eqn_map.get(idx) {
+                *idx = *new_idx;
+            }
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use na::Vector3;
+    use std::collections::HashMap;
 
     use crate::{preprocess::mesh::CollocationPoint, solve::h_matrix::block::cluster::Cluster};
 
@@ -141,12 +167,13 @@ mod tests {
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                cpts.push(CollocationPoint { 
-                    id: i, 
+                cpts.push(CollocationPoint {
+                    id: i,
                     coords: Vector3::new(j as f64, k as f64, 0.0),
                     normal: Vector3::from_element(0.0),
                     area: 0.0,
-                    wt: 1.0 } );
+                    wt: 1.0,
+                });
                 hmap.insert(i, i);
                 i += 1;
             }
