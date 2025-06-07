@@ -4,9 +4,9 @@ Input processing
 
 use schemars::JsonSchema;
 use serde::Deserialize;
+use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::error::Error;
 use std::path::Path;
 
 /// Frequency input, can be list, linear-spaced, or log-spaced
@@ -14,46 +14,52 @@ use std::path::Path;
 pub enum FrequencyInput {
     List { values: Vec<f64> },
     LinearSpaced { start: f64, end: f64, number: usize },
-    LogSpaced { start: f64, end: f64, number: usize }
+    LogSpaced { start: f64, end: f64, number: usize },
 }
 
 /// Interior or exterior
 #[derive(Deserialize, JsonSchema)]
 pub enum ProblemType {
     Interior,
-    Exterior
+    Exterior,
 }
 
 /// Classical or Burton-Miller
 #[derive(Deserialize, PartialEq, JsonSchema)]
 pub enum MethodType {
     Classical,
-    BurtonMiller
+    BurtonMiller,
 }
 
 /// Solver type and fields
-/// 
+///
 /// Direct = Dense matrix with LU solve
 /// Iterative = Dense matrix, but GMRES iterative solve
 /// Hierarchical (aka ACA) = sparse representation, GMRES solve
 #[derive(Deserialize, JsonSchema)]
 pub enum Solver {
     Direct {},
-    Iterative { tolerance: f64, max_iterations: usize},
-    Hierarchical { tolerance: f64, max_iterations: usize}
+    Iterative {
+        tolerance: f64,
+        max_iterations: usize,
+    },
+    Hierarchical {
+        tolerance: f64,
+        max_iterations: usize,
+    },
 }
 
 /// Incident wave inputs, plane wave or spherical wave
 #[derive(Deserialize, JsonSchema)]
 pub enum IncidentWaveInput {
     PlaneWave {
-        direction: [f64;3],
-        amplitude: [f64;2]    
+        direction: [f64; 3],
+        amplitude: [f64; 2],
     },
     SphericalWave {
-        origin: [f64;3],
-        amplitude: [f64;2]    
-    }
+        origin: [f64; 3],
+        amplitude: [f64; 2],
+    },
 }
 
 /// Surface boundary condition type
@@ -61,7 +67,7 @@ pub enum IncidentWaveInput {
 pub enum BCType {
     Pressure,
     NormalVelocity,
-    Impedance
+    Impedance,
 }
 
 /// Surface boundary condition (one value and type on whole surface)
@@ -69,21 +75,21 @@ pub enum BCType {
 pub struct SurfaceBoundaryCondition {
     pub bc_type: BCType,
     /// Complex value, but split into vec of two real numbers (a + bi)
-    pub value: [f64; 2]
+    pub value: [f64; 2],
 }
 
 /// Output type
 #[derive(Deserialize, PartialEq, JsonSchema)]
 pub enum OutputType {
     Total,
-    Scattered
+    Scattered,
 }
 
 /// Output field
 #[derive(Deserialize, PartialEq, JsonSchema)]
 pub enum OutputField {
     Pressure,
-    VelocityPotential
+    VelocityPotential,
 }
 
 /// Output struct
@@ -96,9 +102,9 @@ pub struct Output {
     /// Output file name, if empty, no file is written
     pub file: String,
     /// Vector of field point coordinates, if none, no FP results are written
-    pub field_points: Vec<[f64;3]>,
+    pub field_points: Vec<[f64; 3]>,
     /// Whether to output surface power results
-    pub request_power: bool
+    pub request_power: bool,
 }
 
 /// Struct of user inputs
@@ -118,7 +124,7 @@ pub struct UserInput {
     pub solver: Solver,
     pub incident_wave: Vec<IncidentWaveInput>,
     pub surface_bc: SurfaceBoundaryCondition,
-    pub output: Output
+    pub output: Output,
 }
 
 /// Read input from json at path
@@ -140,8 +146,8 @@ pub fn read_input_string(str: &str) -> Result<UserInput, Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-    use schemars::schema_for;
     use crate::preprocess::input;
+    use schemars::schema_for;
     use std::{fs::File, io::Write};
 
     #[test]
@@ -156,7 +162,7 @@ mod tests {
     fn write_schema() {
         let schema = schema_for!(input::UserInput);
         let mut file = File::create("input_schema.json").unwrap();
-        let res= file.write_all(serde_json::to_string_pretty(&schema).unwrap().as_bytes());
+        let res = file.write_all(serde_json::to_string_pretty(&schema).unwrap().as_bytes());
         assert!(res.is_ok())
     }
 }

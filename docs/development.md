@@ -26,6 +26,14 @@ cargo clippy
 
 will do linting to provide code formatting warnings and suggestions. Running `cargo clippy --fix --lib -p cc_abstemious` will attempt to automatically fix the code.
 
+### Formatting
+
+```
+cargo fmt
+```
+
+will do formatting automatically. 
+
 ## Documentation
 ```
 cargo doc --no-deps

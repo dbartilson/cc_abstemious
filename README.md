@@ -6,12 +6,13 @@
 
 * Direct boundary integral formulation
 * Collocation representation with analytical integration for singular integrals
-* Support for VTK mesh files
+* Support for VTK mesh files (ASCII and binary UNSTRUCTURED_GRIDs)
 * Multiple solver options:
    * Dense matrix, direct (LU)
    * Dense matrix, iterative (GMRES)
    * Hierarchical matrix decomposition (ACA) with iterative solver
 * Parallel processing of surface influence matrix (dense) and hierarchical decompositions
+* Optional Burton-Miller formulation
 
 More information is available:
 - [Theory Guide](./docs/theory.md)
@@ -40,7 +41,7 @@ cc_abstemious(.exe) my_input.json
 An example input file is available in the `tests` directory. 
 
 The input file includes:
-* The path to the mesh file, in `.vtk` format (ASCII) [^1][^2][^3]
+* The path to the mesh file, in `.vtk` format (ASCII or binary, must be UNSTRUCTURED_GRID) [^1][^2][^3]
 * Body index in the mesh file [^3]
 * Vector of analysis (drive) frequencies [^4]
 * Sound speed and mass density of the acoustic fluid

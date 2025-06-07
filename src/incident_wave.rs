@@ -15,14 +15,21 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> PrimaryVariables {
     let num_eqn = predata.get_num_eqn();
     let mut phi_inc = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     let mut vn_inc = phi_inc.clone();
-    
+
     for incw in predata.get_incident_wave().iter() {
         match *incw {
-            preprocess::input::IncidentWaveInput::PlaneWave { direction, amplitude } => {
+            preprocess::input::IncidentWaveInput::PlaneWave {
+                direction,
+                amplitude,
+            } => {
                 // amplitude in pressure units
                 let p_amp = Cplx::new(amplitude[0], amplitude[1]);
                 // amplitude in velocity potential units (phi = p / (i omega rho))
-                let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+                let amp = p_amp
+                    / Cplx::new(
+                        0.0,
+                        predata.get_angular_frequency() * predata.get_mass_density(),
+                    );
                 let dir3 = Vector3::from_column_slice(&direction).normalize();
                 for cpt in cpts {
                     let coord = &cpt.coords;
@@ -37,7 +44,11 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> PrimaryVariables {
                 // amplitude in pressure units
                 let p_amp = Cplx::new(amplitude[0], amplitude[1]);
                 // amplitude in velocity potential units (phi = p / (i omega rho))
-                let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+                let amp = p_amp
+                    / Cplx::new(
+                        0.0,
+                        predata.get_angular_frequency() * predata.get_mass_density(),
+                    );
                 let origin3 = Vector3::from_column_slice(&origin).normalize();
                 for cpt in cpts {
                     let coord = &cpt.coords;
@@ -53,25 +64,35 @@ pub fn get_incident_surface(predata: &preprocess::PreData) -> PrimaryVariables {
             }
         }
     }
-    PrimaryVariables { phi: phi_inc, vn: vn_inc }
+    PrimaryVariables {
+        phi: phi_inc,
+        vn: vn_inc,
+    }
 }
 
 /// return the incident velocity potential at field points
-pub fn get_incident_field(predata: &preprocess::PreData) -> DVector::<Cplx> {
+pub fn get_incident_field(predata: &preprocess::PreData) -> DVector<Cplx> {
     let k = predata.get_wavenumber();
 
     let field_points = predata.get_field_points();
     let num_fp = field_points.len();
 
     let mut phi_inc_fp = DVector::<Cplx>::from_element(num_fp, Cplx::new(0., 0.));
-    
+
     for incw in predata.get_incident_wave().iter() {
         match *incw {
-            preprocess::input::IncidentWaveInput::PlaneWave { direction, amplitude } => {
+            preprocess::input::IncidentWaveInput::PlaneWave {
+                direction,
+                amplitude,
+            } => {
                 // amplitude in pressure units
                 let p_amp = Cplx::new(amplitude[0], amplitude[1]);
                 // amplitude in velocity potential units (phi = p / (i omega rho))
-                let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+                let amp = p_amp
+                    / Cplx::new(
+                        0.0,
+                        predata.get_angular_frequency() * predata.get_mass_density(),
+                    );
                 let dir3 = Vector3::from_column_slice(&direction).normalize();
                 for (i, fp) in field_points.iter().enumerate() {
                     let coord = Vector3::from_column_slice(fp);
@@ -82,7 +103,11 @@ pub fn get_incident_field(predata: &preprocess::PreData) -> DVector::<Cplx> {
                 // amplitude in pressure units
                 let p_amp = Cplx::new(amplitude[0], amplitude[1]);
                 // amplitude in velocity potential units (phi = p / (i omega rho))
-                let amp = p_amp / Cplx::new(0.0, predata.get_angular_frequency() * predata.get_mass_density());
+                let amp = p_amp
+                    / Cplx::new(
+                        0.0,
+                        predata.get_angular_frequency() * predata.get_mass_density(),
+                    );
                 let origin3 = Vector3::from_column_slice(&origin).normalize();
                 for (i, fp) in field_points.iter().enumerate() {
                     let coord = Vector3::from_column_slice(fp);

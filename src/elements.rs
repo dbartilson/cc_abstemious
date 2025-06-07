@@ -8,84 +8,170 @@ pub mod interpolation {
     #[derive(Clone, Copy)]
     pub struct Gp {
         /// Natural coordinates
-        pub coords: [f64; 2], 
+        pub coords: [f64; 2],
         /// Integration weight
         pub wt: f64,
     }
     /// Natural coordinates and weights at the triangle nodes
     #[allow(dead_code)]
-    pub static TRINODES: [Gp; 3] = [Gp{coords: [0.0, 0.0], wt: 1./3.}, 
-                                    Gp{coords: [1.0, 0.0], wt: 1./3.}, 
-                                    Gp{coords: [0.0, 1.0], wt: 1./3.}];
+    pub static TRINODES: [Gp; 3] = [
+        Gp {
+            coords: [0.0, 0.0],
+            wt: 1. / 3.,
+        },
+        Gp {
+            coords: [1.0, 0.0],
+            wt: 1. / 3.,
+        },
+        Gp {
+            coords: [0.0, 1.0],
+            wt: 1. / 3.,
+        },
+    ];
     /// Integration scheme for 1 point triangle
-    pub static TRIGP1: [Gp; 1] = [Gp{coords: [1./3., 1./3.], wt: 1.0}];
+    pub static TRIGP1: [Gp; 1] = [Gp {
+        coords: [1. / 3., 1. / 3.],
+        wt: 1.0,
+    }];
     /// Integration scheme for 3 point triangle
-    pub static TRIGP3: [Gp; 3] = [Gp{coords: [1./6., 1./6.], wt: 1./3.}, 
-                                  Gp{coords: [1./6., 2./3.], wt: 1./3.}, 
-                                  Gp{coords: [2./3., 1./6.], wt: 1./3.}];
+    pub static TRIGP3: [Gp; 3] = [
+        Gp {
+            coords: [1. / 6., 1. / 6.],
+            wt: 1. / 3.,
+        },
+        Gp {
+            coords: [1. / 6., 2. / 3.],
+            wt: 1. / 3.,
+        },
+        Gp {
+            coords: [2. / 3., 1. / 6.],
+            wt: 1. / 3.,
+        },
+    ];
     /// Integration scheme for 6 point triangle
     #[allow(dead_code)]
-    pub static TRIGP6: [Gp; 6] = [Gp{coords: [0.091576213509771, 0.091576213509771], wt: 0.109951743655322},
-                                  Gp{coords: [0.816847572980459, 0.091576213509771], wt: 0.109951743655322},
-                                  Gp{coords: [0.091576213509771, 0.816847572980459], wt: 0.109951743655322},
-                                  Gp{coords: [0.445948490915965, 0.445948490915965], wt: 0.223381589678011},
-                                  Gp{coords: [0.445948490915965, 0.108103018168070], wt: 0.223381589678011},
-                                  Gp{coords: [0.108103018168070, 0.445948490915965], wt: 0.223381589678011}];
+    pub static TRIGP6: [Gp; 6] = [
+        Gp {
+            coords: [0.091576213509771, 0.091576213509771],
+            wt: 0.109951743655322,
+        },
+        Gp {
+            coords: [0.816847572980459, 0.091576213509771],
+            wt: 0.109951743655322,
+        },
+        Gp {
+            coords: [0.091576213509771, 0.816847572980459],
+            wt: 0.109951743655322,
+        },
+        Gp {
+            coords: [0.445948490915965, 0.445948490915965],
+            wt: 0.223381589678011,
+        },
+        Gp {
+            coords: [0.445948490915965, 0.108103018168070],
+            wt: 0.223381589678011,
+        },
+        Gp {
+            coords: [0.108103018168070, 0.445948490915965],
+            wt: 0.223381589678011,
+        },
+    ];
     static ONEOVERSQRT3: f64 = 0.57735026919;
     /// Natural coordinates and weights at the quadrilateral nodes
     #[allow(dead_code)]
-    pub static QUADNODES: [Gp; 4] = [Gp{coords: [-1.0, -1.0], wt: 1.0}, 
-                                     Gp{coords: [ 1.0, -1.0], wt: 1.0}, 
-                                     Gp{coords: [ 1.0,  1.0], wt: 1.0},
-                                     Gp{coords: [-1.0,  1.0], wt: 1.0}];
+    pub static QUADNODES: [Gp; 4] = [
+        Gp {
+            coords: [-1.0, -1.0],
+            wt: 1.0,
+        },
+        Gp {
+            coords: [1.0, -1.0],
+            wt: 1.0,
+        },
+        Gp {
+            coords: [1.0, 1.0],
+            wt: 1.0,
+        },
+        Gp {
+            coords: [-1.0, 1.0],
+            wt: 1.0,
+        },
+    ];
     /// Integration scheme for 1 point quad
-    pub static QUADGP1: [Gp; 1] = [Gp{coords: [0., 0.], wt: 4.0}];
+    pub static QUADGP1: [Gp; 1] = [Gp {
+        coords: [0., 0.],
+        wt: 4.0,
+    }];
     /// Integration scheme for 4 point quad
-    pub static QUADGP4: [Gp; 4] = [Gp{coords: [ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
-                                   Gp{coords: [-ONEOVERSQRT3, ONEOVERSQRT3], wt: 1.0}, 
-                                   Gp{coords: [ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0},
-                                   Gp{coords: [-ONEOVERSQRT3, -ONEOVERSQRT3], wt: 1.0}];
-}   
+    pub static QUADGP4: [Gp; 4] = [
+        Gp {
+            coords: [ONEOVERSQRT3, ONEOVERSQRT3],
+            wt: 1.0,
+        },
+        Gp {
+            coords: [-ONEOVERSQRT3, ONEOVERSQRT3],
+            wt: 1.0,
+        },
+        Gp {
+            coords: [ONEOVERSQRT3, -ONEOVERSQRT3],
+            wt: 1.0,
+        },
+        Gp {
+            coords: [-ONEOVERSQRT3, -ONEOVERSQRT3],
+            wt: 1.0,
+        },
+    ];
+}
 
+use crate::preprocess::mesh::{CollocationPoint, Coords, ElementType, Mesh};
 use interpolation::*;
 use na::{DMatrix, Vector3};
-use crate::preprocess::mesh::{CollocationPoint, Coords, ElementType, Mesh};
 
 /// Numerically integrated elements
-/// 
+///
 /// Contains reference to the mesh and a copy of the integration scheme
-pub struct NIElement <'a> {
+pub struct NIElement<'a> {
     /// Vector of Gauss Points (integration scheme)
     integration: Vec<Gp>,
     mesh: &'a Mesh,
     pub element_id: usize,
-    element_type: ElementType
+    element_type: ElementType,
 }
-impl NIElement <'_> {
-    pub fn new(meshdata: &Mesh, element: usize) -> NIElement <'_> {
+impl NIElement<'_> {
+    pub fn new(meshdata: &Mesh, element: usize) -> NIElement<'_> {
         let etype = &meshdata.elements[element].etype;
         let int = match etype.clone() {
             ElementType::Tri => TRIGP3.to_vec(),
             ElementType::Quad => QUADGP4.to_vec(),
-            _ => {error!("Invalid numerically integrated element"); Vec::new()}
+            _ => {
+                error!("Invalid numerically integrated element");
+                Vec::new()
+            }
         };
-        NIElement{integration: int, 
-                  mesh: meshdata, 
-                  element_id: element,
-                  element_type: etype.clone()}
+        NIElement {
+            integration: int,
+            mesh: meshdata,
+            element_id: element,
+            element_type: etype.clone(),
+        }
     }
     /// Set up element with one integration point (for the collocation point setup)
-    pub fn new_1_point_integration(meshdata: &Mesh, element: usize) -> NIElement <'_> {
+    pub fn new_1_point_integration(meshdata: &Mesh, element: usize) -> NIElement<'_> {
         let etype = &meshdata.elements[element].etype;
         let int = match etype.clone() {
             ElementType::Tri => TRIGP1.to_vec(),
             ElementType::Quad => QUADGP1.to_vec(),
-            _ => {error!("Invalid numerically integrated element"); Vec::new()}
+            _ => {
+                error!("Invalid numerically integrated element");
+                Vec::new()
+            }
         };
-        NIElement{integration: int, 
-            mesh: meshdata, 
+        NIElement {
+            integration: int,
+            mesh: meshdata,
             element_id: element,
-            element_type: etype.clone()}
+            element_type: etype.clone(),
+        }
     }
     /// Get number of nodes for element
     #[inline]
@@ -93,7 +179,7 @@ impl NIElement <'_> {
         match self.element_type {
             ElementType::Tri => 3,
             ElementType::Quad => 4,
-            _ => 0
+            _ => 0,
         }
     }
     /// Get shape functions for this element at the given natural coordinates
@@ -102,36 +188,27 @@ impl NIElement <'_> {
         let eta = &gp.coords[1];
         match self.element_type {
             ElementType::Tri => {
-                vec![1.0 - *xi - *eta,
-                *xi,
-                *eta]
-            },
+                vec![1.0 - *xi - *eta, *xi, *eta]
+            }
             ElementType::Quad => {
-                vec![0.25*(1.-*xi)*(1.-*eta),
-                     0.25*(1.+*xi)*(1.-*eta),
-                     0.25*(1.+*xi)*(1.+*eta),
-                     0.25*(1.-*xi)*(1.+*eta)]
-            },
-            _ => vec![0.0]
+                vec![
+                    0.25 * (1. - *xi) * (1. - *eta),
+                    0.25 * (1. + *xi) * (1. - *eta),
+                    0.25 * (1. + *xi) * (1. + *eta),
+                    0.25 * (1. - *xi) * (1. + *eta),
+                ]
+            }
+            _ => vec![0.0],
         }
     }
     /// Get shape function derivatives for this element at the given natural coordinates
     fn shape_derivatives_at(&self, _gp: &Gp) -> DMatrix<f64> {
         match self.element_type {
-            ElementType::Tri => {
-                DMatrix::from_row_slice(3, 2,
-                    &[-1.0, -1.0,
-                            1.0, 0.0,
-                            0.0, 1.0])
-            },
+            ElementType::Tri => DMatrix::from_row_slice(3, 2, &[-1.0, -1.0, 1.0, 0.0, 0.0, 1.0]),
             ElementType::Quad => {
-                DMatrix::from_row_slice(4, 2,
-                    &[-0.25, -0.25,
-                            0.25, -0.25,
-                            0.25, 0.25,
-                           -0.25, 0.25])
-            },
-            _ => DMatrix::from_element(1, 1, 0.0)
+                DMatrix::from_row_slice(4, 2, &[-0.25, -0.25, 0.25, -0.25, 0.25, 0.25, -0.25, 0.25])
+            }
+            _ => DMatrix::from_element(1, 1, 0.0),
         }
     }
     /// Get physical coordinates at the given natural coordinates, using shape functions
@@ -150,13 +227,12 @@ impl NIElement <'_> {
     #[allow(dead_code)]
     pub fn natural_coordinates_at_node(&self, i: usize) -> Gp {
         match self.element_type {
-            ElementType::Tri => {
-                TRINODES[i]
+            ElementType::Tri => TRINODES[i],
+            ElementType::Quad => QUADNODES[i],
+            _ => Gp {
+                coords: [0.0, 0.0],
+                wt: 0.0,
             },
-            ElementType::Quad => {
-                QUADNODES[i]
-            },
-            _ => Gp {coords: [0.0, 0.0], wt: 0.0}
         }
     }
     /// Get normal vector (non-normalized) at the given natural coordinates
@@ -170,7 +246,7 @@ impl NIElement <'_> {
                 let a = e1 - e0;
                 let b = e2 - e0;
                 a.cross(&b)
-            },
+            }
             // for quads or higher, use shape functions to calculate the derivative dx / dxi,
             // i.e., change in physical coordinates w.r.t. natural coordinates
             _ => {
@@ -181,26 +257,26 @@ impl NIElement <'_> {
                 for i in 0..self.get_num_nodes() {
                     let node_index = &element.node_ids[i];
                     let icoord = &self.mesh.nodes[*node_index].coords;
-                    dndxi += dn[(i,0)] * icoord;
-                    dndeta += dn[(i,1)] * icoord;
+                    dndxi += dn[(i, 0)] * icoord;
+                    dndeta += dn[(i, 1)] * icoord;
                 }
                 // normal vector is then the cross product of dx/dxi and dx/deta
                 dndxi.cross(&dndeta)
             }
         }
     }
-    /// Get the determinant of the transformation from natural to physical coordinates at the given 
+    /// Get the determinant of the transformation from natural to physical coordinates at the given
     /// natural coordinates
     fn detj_at(&self, gp: &Gp) -> f64 {
         // Calculate using the normal vector, since it is return un-scaled
         match self.element_type {
             ElementType::Tri => 0.5 * self.normal_vector_at_gp(gp).norm(),
             ElementType::Quad => self.normal_vector_at_gp(gp).norm(),
-            _ => 0.0
+            _ => 0.0,
         }
     }
     /// Define a set of collocation points corresponding to the integration scheme of the element
-    /// 
+    ///
     /// Sets up physical coordinates, normal vector, area (detj), and weight from the natural coordinates
     pub fn get_integration_points_and_normals(&self) -> Vec<CollocationPoint> {
         let mut result: Vec<CollocationPoint> = Vec::new();
@@ -208,7 +284,13 @@ impl NIElement <'_> {
             let y = self.coordinates_at(gp);
             let n_y = self.normal_vector_at_gp(gp);
             let area = self.detj_at(gp);
-            result.push(CollocationPoint { id: 0, coords: y, normal: n_y.normalize(), area, wt: gp.wt })
+            result.push(CollocationPoint {
+                id: 0,
+                coords: y,
+                normal: n_y.normalize(),
+                area,
+                wt: gp.wt,
+            })
         }
         result
     }
@@ -216,30 +298,61 @@ impl NIElement <'_> {
 
 #[cfg(test)]
 mod tests {
+    use super::{
+        NIElement,
+        interpolation::{Gp, TRIGP1},
+    };
+    use crate::{
+        elements::interpolation::QUADGP1,
+        preprocess::mesh::{Body, CollocationPoint, Coords, Element, ElementType, Mesh, Node},
+    };
     use approx::assert_relative_eq;
-    use crate::{elements::interpolation::QUADGP1, preprocess::mesh::{Body, CollocationPoint, Coords, Element, ElementType, Mesh, Node}};
-    use super::{interpolation::{Gp, TRIGP1}, NIElement};
 
     fn setup_dummy_mesh() -> Mesh {
         let nodes = vec![
-            Node { id: 1, coords: Coords::new(0.0, 0.0, 0.0)},
-            Node { id: 2, coords: Coords::new(1.0, 0.0, 0.0)},
-            Node { id: 3, coords: Coords::new(1.0, 1.0, 0.0)},
-            Node { id: 4, coords: Coords::new(0.0, 1.0, 0.0)},
+            Node {
+                id: 1,
+                coords: Coords::new(0.0, 0.0, 0.0),
+            },
+            Node {
+                id: 2,
+                coords: Coords::new(1.0, 0.0, 0.0),
+            },
+            Node {
+                id: 3,
+                coords: Coords::new(1.0, 1.0, 0.0),
+            },
+            Node {
+                id: 4,
+                coords: Coords::new(0.0, 1.0, 0.0),
+            },
         ];
         let elements = vec![
-            Element { id: 1, body_id: 1, etype: ElementType::Tri, node_ids: vec![0, 1, 2], intpts: Vec::new()},
-            Element { id: 2, body_id: 1, etype: ElementType::Quad, node_ids: vec![0, 1, 2, 3], intpts: Vec::new()},
+            Element {
+                id: 1,
+                body_id: 1,
+                etype: ElementType::Tri,
+                node_ids: vec![0, 1, 2],
+                intpts: Vec::new(),
+            },
+            Element {
+                id: 2,
+                body_id: 1,
+                etype: ElementType::Quad,
+                node_ids: vec![0, 1, 2, 3],
+                intpts: Vec::new(),
+            },
         ];
-        let bodies = vec![
-            Body { id: 1, element_ids: vec![1, 2]}
-        ];
+        let bodies = vec![Body {
+            id: 1,
+            element_ids: vec![1, 2],
+        }];
         let cpts: Vec<CollocationPoint> = Vec::new();
         Mesh {
             nodes,
             elements,
             bodies,
-            cpts
+            cpts,
         }
     }
 
@@ -247,23 +360,29 @@ mod tests {
     fn tri_shape_function() {
         let mesh = setup_dummy_mesh();
         let element = NIElement::new(&mesh, 0);
-        let gp = Gp { coords: [0.25, 0.25], wt: 0.0};
+        let gp = Gp {
+            coords: [0.25, 0.25],
+            wt: 0.0,
+        };
         let sf = element.shape_functions_at(&gp);
-        assert_relative_eq!(sf[0], 0.5, epsilon=1e-8);
-        assert_relative_eq!(sf[1], 0.25, epsilon=1e-8);
-        assert_relative_eq!(sf[2], 0.25, epsilon=1e-8);
+        assert_relative_eq!(sf[0], 0.5, epsilon = 1e-8);
+        assert_relative_eq!(sf[1], 0.25, epsilon = 1e-8);
+        assert_relative_eq!(sf[2], 0.25, epsilon = 1e-8);
     }
 
     #[test]
     fn quad_shape_function() {
         let mesh = setup_dummy_mesh();
         let element = NIElement::new(&mesh, 1);
-        let gp = Gp { coords: [0.25, 0.25], wt: 0.0};
+        let gp = Gp {
+            coords: [0.25, 0.25],
+            wt: 0.0,
+        };
         let sf = element.shape_functions_at(&gp);
-        assert_relative_eq!(sf[0], 0.140625, epsilon=1e-8);
-        assert_relative_eq!(sf[1], 0.234375, epsilon=1e-8);
-        assert_relative_eq!(sf[2], 0.390625, epsilon=1e-8);
-        assert_relative_eq!(sf[3], 0.234375, epsilon=1e-8);
+        assert_relative_eq!(sf[0], 0.140625, epsilon = 1e-8);
+        assert_relative_eq!(sf[1], 0.234375, epsilon = 1e-8);
+        assert_relative_eq!(sf[2], 0.390625, epsilon = 1e-8);
+        assert_relative_eq!(sf[3], 0.234375, epsilon = 1e-8);
     }
 
     #[test]
@@ -272,7 +391,7 @@ mod tests {
         let element = NIElement::new(&mesh, 0);
         let gp = TRIGP1[0];
         let detj = element.detj_at(&gp);
-        assert_relative_eq!(detj * gp.wt, 0.5, epsilon=1e-9)
+        assert_relative_eq!(detj * gp.wt, 0.5, epsilon = 1e-9)
     }
 
     #[test]
@@ -281,6 +400,6 @@ mod tests {
         let element = NIElement::new(&mesh, 1);
         let gp = QUADGP1[0];
         let detj = element.detj_at(&gp);
-        assert_relative_eq!(detj * gp.wt, 1.0, epsilon=1e-9)
+        assert_relative_eq!(detj * gp.wt, 1.0, epsilon = 1e-9)
     }
 }

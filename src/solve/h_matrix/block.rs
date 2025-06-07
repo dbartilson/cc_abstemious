@@ -8,13 +8,13 @@ an approximated matrix (ACA)
 The block tree is built from the cluster tree based on admissibility criteria between
 the clusters
 
-The block list is a flattened version of the block tree to make parallel computation 
+The block list is a flattened version of the block tree to make parallel computation
 more amenable
 */
 
 pub mod cluster;
 
-use cluster::Cluster as Cluster;
+use cluster::Cluster;
 use std::rc::Rc;
 
 /// Block Tree, which is used to compare distances between clusters and determine
@@ -23,7 +23,7 @@ pub struct BlockTree {
     rows: Rc<Cluster>,
     columns: Rc<Cluster>,
     admissible: bool,
-    children: Vec<BlockTree>
+    children: Vec<BlockTree>,
 }
 
 impl BlockTree {
@@ -35,7 +35,7 @@ impl BlockTree {
             rows,
             columns,
             admissible: false,
-            children: Vec::new()
+            children: Vec::new(),
         };
         tree.process_block(eta);
         tree
@@ -47,23 +47,32 @@ impl BlockTree {
     }
     /// Return if block is admissible
     #[inline]
-    fn is_admissible(&self) -> bool { self.admissible }
-    fn get_children(&self) -> &Vec<BlockTree> { &self.children }
-    fn get_row_indices(&self) -> &Vec<usize> { self.rows.get_indices() }
-    fn get_column_indices(&self) -> &Vec<usize> { self.columns.get_indices() }
+    fn is_admissible(&self) -> bool {
+        self.admissible
+    }
+    fn get_children(&self) -> &Vec<BlockTree> {
+        &self.children
+    }
+    fn get_row_indices(&self) -> &Vec<usize> {
+        self.rows.get_indices()
+    }
+    fn get_column_indices(&self) -> &Vec<usize> {
+        self.columns.get_indices()
+    }
     fn process_block(&mut self, eta: f64) {
-        // update admissibility 
+        // update admissibility
         let diam1 = self.rows.get_diameter();
         let diam2 = self.columns.get_diameter();
         let dist12 = Cluster::get_distance(&self.rows, &self.columns);
-        // admissibiliy criterion 
+        // admissibiliy criterion
         self.admissible = f64::min(diam1, diam2) <= eta * dist12;
         // check divisibility, if divisible, do so
         if self.is_divisible() {
             // divide into 4 blocks according to sons of row/son clusters
             for rson in self.rows.get_sons() {
                 for cson in self.columns.get_sons() {
-                    self.children.push(BlockTree::new_from(rson.clone(), cson.clone(), eta));
+                    self.children
+                        .push(BlockTree::new_from(rson.clone(), cson.clone(), eta));
                 }
             }
         }
@@ -74,18 +83,24 @@ impl BlockTree {
 pub struct Block {
     rows: Vec<usize>,
     columns: Vec<usize>,
-    admissible: bool
+    admissible: bool,
 }
 
 impl Block {
-    pub fn get_row_indices(&self) -> &Vec<usize> { &self.rows}
-    pub fn get_column_indices(&self) -> &Vec<usize> { &self.columns }
-    pub fn is_admissible(&self) -> bool { self.admissible }
+    pub fn get_row_indices(&self) -> &Vec<usize> {
+        &self.rows
+    }
+    pub fn get_column_indices(&self) -> &Vec<usize> {
+        &self.columns
+    }
+    pub fn is_admissible(&self) -> bool {
+        self.admissible
+    }
 }
 
 /// Flattened version of block tree, all held in one vector
 pub struct BlockList {
-    list: Vec<Block>
+    list: Vec<Block>,
 }
 
 impl BlockList {
@@ -98,25 +113,33 @@ impl BlockList {
     /// Recursive call to load children from the block tree into vector
     fn load_from(&mut self, block: &BlockTree) {
         if block.get_children().is_empty() {
-            self.list.push(Block { 
-                rows: block.get_row_indices().clone(), 
-                columns: block.get_column_indices().clone(), 
-                admissible: block.is_admissible() });
-        }
-        else {
+            self.list.push(Block {
+                rows: block.get_row_indices().clone(),
+                columns: block.get_column_indices().clone(),
+                admissible: block.is_admissible(),
+            });
+        } else {
             for child in block.get_children() {
                 self.load_from(child);
             }
         }
     }
-    pub fn get_list(&self) -> &Vec<Block> { &self.list }
+    pub fn get_list(&self) -> &Vec<Block> {
+        &self.list
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, rc::Rc};
+    use crate::{
+        preprocess::mesh::CollocationPoint,
+        solve::h_matrix::{
+            Cluster,
+            block::{BlockList, BlockTree},
+        },
+    };
     use na::Vector3;
-    use crate::{preprocess::mesh::CollocationPoint, solve::h_matrix::{block::{BlockList, BlockTree}, Cluster}};
+    use std::{collections::HashMap, rc::Rc};
 
     #[test]
     fn build_block_tree() {
@@ -125,17 +148,23 @@ mod tests {
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                cpts.push(CollocationPoint { 
-                    id: i, 
+                cpts.push(CollocationPoint {
+                    id: i,
                     coords: Vector3::new(j as f64, k as f64, 0.0),
                     normal: Vector3::from_element(0.0),
                     area: 0.0,
-                    wt: 0.0});
+                    wt: 0.0,
+                });
                 hmap.insert(i, i);
                 i += 1;
             }
         }
-        let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), 32, &hmap));
+        let cluster_tree = Rc::new(Cluster::new_from(
+            &cpts,
+            (0..cpts.len()).collect(),
+            32,
+            &hmap,
+        ));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         assert!(block_tree.children[1].children[1].children[1].admissible)
     }
@@ -146,17 +175,23 @@ mod tests {
         let mut i = 0;
         for j in 0..25 {
             for k in 0..25 {
-                cpts.push(CollocationPoint { 
-                    id: i, 
+                cpts.push(CollocationPoint {
+                    id: i,
                     coords: Vector3::new(j as f64, k as f64, 0.0),
                     normal: Vector3::from_element(0.0),
                     area: 0.0,
-                    wt: 0.0});
+                    wt: 0.0,
+                });
                 hmap.insert(i, i);
                 i += 1;
             }
         }
-        let cluster_tree = Rc::new(Cluster::new_from(&cpts, (0..cpts.len()).collect(), 32, &hmap));
+        let cluster_tree = Rc::new(Cluster::new_from(
+            &cpts,
+            (0..cpts.len()).collect(),
+            32,
+            &hmap,
+        ));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let block_list = BlockList::new_from(&block_tree);
         assert!(block_list.list[5].admissible);

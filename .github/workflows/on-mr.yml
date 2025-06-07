@@ -3,20 +3,23 @@ name: on-mr
 on:
   pull_request:
     branches: [ "main" ]
+    types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
     - name: Run clippy (linting)
       run: cargo clippy
+    - name: Run rustfmt (formatting)
+      run: cargo fmt --check
+    - name: Run tests
+      run: cargo test

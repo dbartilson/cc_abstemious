@@ -3,8 +3,8 @@ Hierarchical matrix decomposition
 
 This build a matrix decomposition using the following steps
     1. Building the cluster tree from node locations
-    2. Building a block tree indicating admissibility of the blocks 
-        (i.e., whether the clusters are distant enough apart to have their 
+    2. Building a block tree indicating admissibility of the blocks
+        (i.e., whether the clusters are distant enough apart to have their
          block of equations/interactions approximated by an ACA approximation)
     3. Flattening the block tree into a block list
     4. Forming the admissible and inadmissible blocks into the HMatrix in parallel
@@ -14,38 +14,53 @@ This build a matrix decomposition using the following steps
 This results in a much smaller memory footprint and faster matrix-vector multiplies
 */
 
-pub mod block;
 pub mod aca;
+pub mod block;
 
-use std::{collections::HashMap, rc::Rc, sync::{Arc, Mutex}};
+use crate::{Cplx, preprocess::mesh::CollocationPoint, tools};
+use block::cluster::Cluster;
+use block::{BlockList, BlockTree};
 use na::{DMatrix, DVector};
 use scoped_threadpool::Pool;
-use crate::{preprocess::mesh::CollocationPoint, tools, Cplx};
-use block::cluster::Cluster;
-use block::{BlockTree, BlockList};
+use std::{
+    collections::HashMap,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 /// Matrix represented in reduced format: ACA
 #[derive(Debug)]
 struct AdmissibleBlock {
     rows: Vec<usize>,
     columns: Vec<usize>,
-    values: aca::ACA
+    values: aca::ACA,
 }
 impl AdmissibleBlock {
-    fn new<F>(rows: Vec<usize>, columns: Vec<usize>, get_row_or_column: F, tolerance: f64) -> AdmissibleBlock
-    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> {
-        let aca = aca::ACA::new(tolerance, rows.len(), columns.len(), 
-        &|i| get_row_or_column(vec![rows[i]], columns.clone()),
-        &|j| get_row_or_column(rows.clone(), vec![columns[j]]));
+    fn new<F>(
+        rows: Vec<usize>,
+        columns: Vec<usize>,
+        get_row_or_column: F,
+        tolerance: f64,
+    ) -> AdmissibleBlock
+    where
+        F: Fn(Vec<usize>, Vec<usize>) -> Vec<Cplx>,
+    {
+        let aca = aca::ACA::new(
+            tolerance,
+            rows.len(),
+            columns.len(),
+            &|i| get_row_or_column(vec![rows[i]], columns.clone()),
+            &|j| get_row_or_column(rows.clone(), vec![columns[j]]),
+        );
         AdmissibleBlock {
             rows,
             columns,
-            values: aca
+            values: aca,
         }
     }
     /// Perform gather, multiply, scatter for this contribution to b = alpha * self * x + beta * b
     /// Note that beta is not used, assumed to be done on top level of hierarchical matrix
-    fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, _beta: Cplx, b: &mut DVector::<Cplx>) {
+    fn gemv(&self, alpha: Cplx, x: &DVector<Cplx>, _beta: Cplx, b: &mut DVector<Cplx>) {
         // gather x
         let czero = Cplx::new(0.0, 0.0);
         let mut x1 = DVector::<Cplx>::from_element(self.columns.len(), czero);
@@ -61,11 +76,11 @@ impl AdmissibleBlock {
         }
     }
     /// For testing/debugging
-    fn to_full(&self, a: &mut DMatrix::<Cplx>) {
+    fn to_full(&self, a: &mut DMatrix<Cplx>) {
         let ai = self.values.to_full();
         for (i, row) in self.rows.iter().enumerate() {
             for (j, column) in self.columns.iter().enumerate() {
-                a[(*row, *column)] += ai[(i,j)];
+                a[(*row, *column)] += ai[(i, j)];
             }
         }
     }
@@ -76,27 +91,30 @@ impl AdmissibleBlock {
 struct InadmissibleBlock {
     rows: Vec<usize>,
     columns: Vec<usize>,
-    values: DMatrix::<Cplx>
+    values: DMatrix<Cplx>,
 }
 impl InadmissibleBlock {
     fn new<F>(rows: Vec<usize>, columns: Vec<usize>, get_row: &F) -> InadmissibleBlock
-    where F: Fn(usize) -> Vec::<Cplx> {
-        let mut values = DMatrix::<Cplx>::from_element(rows.len(), columns.len(), Cplx::new(0.0,0.0));
+    where
+        F: Fn(usize) -> Vec<Cplx>,
+    {
+        let mut values =
+            DMatrix::<Cplx>::from_element(rows.len(), columns.len(), Cplx::new(0.0, 0.0));
         for (i, row_index) in rows.iter().enumerate() {
             let row = get_row(*row_index);
             for (j, val) in row.iter().enumerate() {
-                values[(i,j)] = *val;
+                values[(i, j)] = *val;
             }
         }
         InadmissibleBlock {
             rows,
             columns,
-            values
+            values,
         }
     }
     /// Perform gather, multiply, scatter for this contribution to b = alpha * self * x + beta * b
     /// Note that beta is not used, assumed to be done on top level of hierarchical matrix
-    fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, _beta: Cplx, b: &mut DVector::<Cplx>) {
+    fn gemv(&self, alpha: Cplx, x: &DVector<Cplx>, _beta: Cplx, b: &mut DVector<Cplx>) {
         // gather x
         let czero = Cplx::new(0.0, 0.0);
         let mut x1 = DVector::<Cplx>::from_element(self.columns.len(), czero);
@@ -112,10 +130,10 @@ impl InadmissibleBlock {
         }
     }
     #[allow(dead_code)]
-    fn to_full(&self, a: &mut DMatrix::<Cplx>) {
+    fn to_full(&self, a: &mut DMatrix<Cplx>) {
         for (i, row) in self.rows.iter().enumerate() {
             for (j, column) in self.columns.iter().enumerate() {
-                a[(*row, *column)] += self.values[(i,j)];
+                a[(*row, *column)] += self.values[(i, j)];
             }
         }
     }
@@ -126,7 +144,7 @@ pub struct HMatrix {
     num_eqn: usize,
     norm: f64,
     admissible_blocks: Vec<AdmissibleBlock>,
-    inadmissible_blocks: Vec<InadmissibleBlock>
+    inadmissible_blocks: Vec<InadmissibleBlock>,
 }
 
 impl Default for HMatrix {
@@ -136,44 +154,59 @@ impl Default for HMatrix {
 }
 
 impl HMatrix {
-    /// Default 
+    /// Default
     pub fn new() -> HMatrix {
-        HMatrix{
+        HMatrix {
             num_eqn: 0,
             norm: 0.0,
             admissible_blocks: Vec::new(),
-            inadmissible_blocks: Vec::new()
+            inadmissible_blocks: Vec::new(),
         }
     }
     /// Generate a hierarchical matrix from collocation points and functional
-    pub fn new_from<F>(n: usize, 
-                   get_row_or_column: &F, 
-                   cpts: &Vec<CollocationPoint>, 
-                   eqn_map: &HashMap::<usize, usize>,
-                   leaf_cardinality: usize, 
-                   tolerance: f64) -> HMatrix 
-    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
+    pub fn new_from<F>(
+        n: usize,
+        get_row_or_column: &F,
+        cpts: &Vec<CollocationPoint>,
+        eqn_map: &HashMap<usize, usize>,
+        leaf_cardinality: usize,
+        tolerance: f64,
+    ) -> HMatrix
+    where
+        F: Fn(Vec<usize>, Vec<usize>) -> Vec<Cplx> + std::marker::Sync,
+    {
         info!("  Building hierarchical matrix decomposition...");
-        let cluster_tree = Rc::new(Cluster::new_from(cpts, (0..cpts.len()).collect(), leaf_cardinality, eqn_map));
+        let cluster_tree = Rc::new(Cluster::new_from(
+            cpts,
+            (0..cpts.len()).collect(),
+            leaf_cardinality,
+            eqn_map,
+        ));
         let block_tree = BlockTree::new_from(cluster_tree.clone(), cluster_tree.clone(), 4.0);
         let block_list = BlockList::new_from(&block_tree);
         let mut mat = HMatrix {
             num_eqn: n,
             norm: 0.0,
             admissible_blocks: Vec::new(),
-            inadmissible_blocks: Vec::new()
+            inadmissible_blocks: Vec::new(),
         };
         mat.load_from(block_list, get_row_or_column, tolerance);
         mat.update_norm();
         mat.print_stats();
         mat
     }
-    pub fn get_num_eqn(&self) -> usize { self.num_eqn }
+    pub fn get_num_eqn(&self) -> usize {
+        self.num_eqn
+    }
     /// Get matrix norm, used for iterative stopping criterion
-    pub fn get_norm(&self) -> f64 { self.norm }
+    pub fn get_norm(&self) -> f64 {
+        self.norm
+    }
     /// Process block tree into admissible and inadmissible blocks
     fn load_from<F>(&mut self, blocklist: BlockList, get_row_or_column: &F, tolerance: f64)
-    where F: Fn(Vec<usize>, Vec<usize>) -> Vec::<Cplx> + std::marker::Sync {
+    where
+        F: Fn(Vec<usize>, Vec<usize>) -> Vec<Cplx> + std::marker::Sync,
+    {
         let num_threads = tools::get_num_threads();
         // use a parallel pool of threads
         info!("  Using {} threads...", num_threads);
@@ -188,17 +221,17 @@ impl HMatrix {
                             block.get_row_indices().clone(),
                             block.get_column_indices().clone(),
                             get_row_or_column,
-                            tolerance
+                            tolerance,
                         );
                         let mut ad = ad.lock().unwrap();
                         ad.push(a);
-                    }
-                    else {
+                    } else {
                         let ia = InadmissibleBlock::new(
                             block.get_row_indices().clone(),
                             block.get_column_indices().clone(),
-                            &|i: usize| -> Vec<Cplx> {get_row_or_column(vec![i], 
-                                block.get_column_indices().clone())}
+                            &|i: usize| -> Vec<Cplx> {
+                                get_row_or_column(vec![i], block.get_column_indices().clone())
+                            },
                         );
                         let mut iad = iad.lock().unwrap();
                         iad.push(ia);
@@ -238,13 +271,15 @@ impl HMatrix {
         info!("   Compression ratio: {:4.1}%", compression_ratio);
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
-    pub fn gemv(&self, alpha: Cplx, x: &DVector::<Cplx>, beta: Cplx, b: &mut DVector::<Cplx>) {
-        if beta != Cplx::new(1.0,0.0) {
+    pub fn gemv(&self, alpha: Cplx, x: &DVector<Cplx>, beta: Cplx, b: &mut DVector<Cplx>) {
+        if beta != Cplx::new(1.0, 0.0) {
             for i in 0..b.len() {
                 b[i] *= beta;
             }
         }
-        if self.inadmissible_blocks.is_empty() && self.admissible_blocks.is_empty() {return;}
+        if self.inadmissible_blocks.is_empty() && self.admissible_blocks.is_empty() {
+            return;
+        }
         if self.num_eqn != b.len() || self.num_eqn != x.len() {
             error!("Dimension mismatch in H matrix gemv");
         }
@@ -256,9 +291,8 @@ impl HMatrix {
         }
     }
     #[allow(dead_code)]
-    fn to_full(&self) -> DMatrix::<Cplx> {
-        let mut h = DMatrix::<Cplx>::from_element(
-            self.num_eqn, self.num_eqn, Cplx::new(0.0,0.0));
+    fn to_full(&self) -> DMatrix<Cplx> {
+        let mut h = DMatrix::<Cplx>::from_element(self.num_eqn, self.num_eqn, Cplx::new(0.0, 0.0));
         for block in &self.inadmissible_blocks {
             block.to_full(&mut h);
         }
@@ -271,51 +305,61 @@ impl HMatrix {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    use crate::{
+        Cplx,
+        preprocess::mesh::CollocationPoint,
+        solve::{h_matrix, tests::generate_random_ab},
+    };
     use na::{DMatrix, DVector, Vector3};
-    use crate::{preprocess::mesh::CollocationPoint, solve::{h_matrix, tests::generate_random_ab}, Cplx};
+    use std::collections::HashMap;
 
-    fn get_hyperbolic_matrix(n: usize) -> (Vec::<CollocationPoint>, HashMap::<usize, usize>,
-        DMatrix::<Cplx>, DVector::<Cplx>) {
+    fn get_hyperbolic_matrix(
+        n: usize,
+    ) -> (
+        Vec<CollocationPoint>,
+        HashMap<usize, usize>,
+        DMatrix<Cplx>,
+        DVector<Cplx>,
+    ) {
         let mut hmap = HashMap::<usize, usize>::new();
         let mut nodes = Vec::<CollocationPoint>::new();
         let mut i = 0;
         for j in 0..n {
             for k in 0..n {
-                nodes.push(CollocationPoint { 
-                    id: i, 
+                nodes.push(CollocationPoint {
+                    id: i,
                     coords: Vector3::new(j as f64 / n as f64, k as f64 / n as f64, 0.0),
                     normal: Vector3::from_element(0.0),
                     area: 0.0,
-                    wt: 0.0});
+                    wt: 0.0,
+                });
                 hmap.insert(i, i);
                 i += 1;
             }
         }
-        let n2 = n*n;
+        let n2 = n * n;
         let (mut a, b) = generate_random_ab(n2, n2, 10);
         for i in 0..n2 {
             for j in 0..n2 {
                 let ii = &nodes[i].coords;
                 let jj = &nodes[j].coords;
-                let dist = (ii-jj).norm_squared();
-                a[(i,j)] = Cplx::new(1.0 / f64::max(1e-5, dist), 0.0);
+                let dist = (ii - jj).norm_squared();
+                a[(i, j)] = Cplx::new(1.0 / f64::max(1e-5, dist), 0.0);
             }
         }
         (nodes, hmap, a, b)
     }
-    fn get_row_or_column(a: &DMatrix::<Cplx>, i: Vec<usize>, j: Vec<usize>) -> Vec<Cplx> {
+    fn get_row_or_column(a: &DMatrix<Cplx>, i: Vec<usize>, j: Vec<usize>) -> Vec<Cplx> {
         if i.len() == 1 {
-             let mut b = Vec::<Cplx>::new();
-             for ji in j {
-                b.push(a[(i[0],ji)]);
-             }
-             b
-        }
-        else {
+            let mut b = Vec::<Cplx>::new();
+            for ji in j {
+                b.push(a[(i[0], ji)]);
+            }
+            b
+        } else {
             let mut b = Vec::<Cplx>::new();
             for ii in i {
-               b.push(a[(ii,j[0])]);
+                b.push(a[(ii, j[0])]);
             }
             b
         }
@@ -323,7 +367,7 @@ mod tests {
     #[test]
     fn get_hmatrix() {
         let (cpts, hmap, a, b) = get_hyperbolic_matrix(10);
-        let get_row_or_column = |i,j| get_row_or_column(&a, i, j);
+        let get_row_or_column = |i, j| get_row_or_column(&a, i, j);
         // build ACA of matrix and compare norms
         let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &cpts, &hmap, 20, 1e-4);
         let a_hm = hm.to_full();
@@ -333,7 +377,7 @@ mod tests {
     #[test]
     fn mult_hmatrix() {
         let (cpts, hmap, a, b) = get_hyperbolic_matrix(20);
-        let get_row_or_column = |i,j| get_row_or_column(&a, i, j);
+        let get_row_or_column = |i, j| get_row_or_column(&a, i, j);
         // build ACA of matrix and compare norms
         let hm = h_matrix::HMatrix::new_from(b.len(), &get_row_or_column, &cpts, &hmap, 20, 1e-4);
         // compare matrix multiplication against random vector for both

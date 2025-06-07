@@ -7,28 +7,28 @@ use simplelog::*;
 use std::fs::File;
 use std::path::Path;
 
-use crate::preprocess;
-use crate::incident_wave;
-use crate::solve;
-use crate::postprocess;
 use crate::Cplx;
+use crate::incident_wave;
+use crate::postprocess;
+use crate::preprocess;
+use crate::solve;
 
-/// Enumerate the analysis states for tracking 
+/// Enumerate the analysis states for tracking
 enum AnalysisState {
     PostInput,
     PostSolve,
-    Null
+    Null,
 }
 
 /// Struct containing velocity potential (phi) and normal velocity (vn), on surface
 /// can be total, incident, or scattered
 pub struct PrimaryVariables {
-    pub phi: DVector::<Cplx>,
-    pub vn: DVector::<Cplx>
+    pub phi: DVector<Cplx>,
+    pub vn: DVector<Cplx>,
 }
 
 ///This contains all data related to the analysis and the main wrapper functions
-/// 
+///
 /// Methods:
 /// - create an Analysis
 /// - input
@@ -40,7 +40,7 @@ pub struct Analysis {
     predata: Option<preprocess::PreData>,
     analysis_state: AnalysisState,
     freq_index: usize,
-    results: Vec<postprocess::FPResult>
+    results: Vec<postprocess::FPResult>,
 }
 
 impl Default for Analysis {
@@ -49,7 +49,7 @@ impl Default for Analysis {
     }
 }
 
-impl <'a>Analysis {
+impl<'a> Analysis {
     pub fn new() -> Analysis {
         Analysis {
             temp_input: None,
@@ -57,7 +57,7 @@ impl <'a>Analysis {
             predata: None,
             analysis_state: AnalysisState::Null,
             freq_index: 0,
-            results: Vec::new()
+            results: Vec::new(),
         }
     }
     /// Input from json file at path (string)
@@ -79,36 +79,53 @@ impl <'a>Analysis {
         self.analysis_state = AnalysisState::PostInput;
     }
     /// Run the analysis, writing out to the log file if created
-    /// 
+    ///
     /// Analysis stages:
     ///     - Preamble
     ///     - Loop over frequencies
     ///         - Solve for surface and field results
     ///         - Save results internally
     pub fn run(&'a mut self) {
-        
         if self.temp_input.is_none() {
             panic!("No input found");
         }
 
         // set up logger, if no input file, just output to stdout
         if self.log_file.is_empty() {
-            let _ = TermLogger::init(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto);
-        }
-        else {
-            let logfile = File::create(format!("{}{}",self.log_file,".log")).unwrap();
-            let _ = CombinedLogger::init(
-                vec![
-                    TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
-                    WriteLogger::new(LevelFilter::Info, Config::default(), logfile),
-                ]
+            let _ = TermLogger::init(
+                LevelFilter::Info,
+                Config::default(),
+                TerminalMode::Mixed,
+                ColorChoice::Auto,
             );
+        } else {
+            let logfile = File::create(format!("{}{}", self.log_file, ".log")).unwrap();
+            let _ = CombinedLogger::init(vec![
+                TermLogger::new(
+                    LevelFilter::Info,
+                    Config::default(),
+                    TerminalMode::Mixed,
+                    ColorChoice::Auto,
+                ),
+                WriteLogger::new(LevelFilter::Info, Config::default(), logfile),
+            ]);
         }
 
         info!("=== cc_abstemious <=> BEM-ACOUSTICS ===");
-        info!("Ver. {}.{}.{}", crate::VER_MAJOR, crate::VER_MINOR, crate::VER_SUBMINOR);
-        info!(" Current directory: {}", std::env::current_dir().unwrap().display());
-        info!(" Starting analysis... (see log file: {}{})", self.log_file,".log");
+        info!(
+            "Ver. {}.{}.{}",
+            crate::VER_MAJOR,
+            crate::VER_MINOR,
+            crate::VER_SUBMINOR
+        );
+        info!(
+            " Current directory: {}",
+            std::env::current_dir().unwrap().display()
+        );
+        info!(
+            " Starting analysis... (see log file: {}{})",
+            self.log_file, ".log"
+        );
 
         // preprocess
         self.predata = Some(preprocess::preprocess(self.temp_input.take().unwrap()));
@@ -119,7 +136,7 @@ impl <'a>Analysis {
             // set up frequency index
             predata.set_frequency_index(&i);
             let freq = predata.get_frequency();
-            info!(" Analyzing frequency: {} ({} of {})...", freq, i+1, nfreq);
+            info!(" Analyzing frequency: {} ({} of {})...", freq, i + 1, nfreq);
             self.freq_index = i;
 
             let incident = incident_wave::get_incident_surface(predata);
@@ -136,7 +153,9 @@ impl <'a>Analysis {
         info!(" Complete!");
     }
     /// Return ref to field results from analysis
-    pub fn get_results(&self) -> &Vec<postprocess::FPResult> { &self.results }
+    pub fn get_results(&self) -> &Vec<postprocess::FPResult> {
+        &self.results
+    }
     /// Write results to output file(s)
     pub fn write_results(&self) {
         let _u = postprocess::write_results(self.predata.as_ref().unwrap(), &self.results);
