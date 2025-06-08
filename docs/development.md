@@ -54,4 +54,4 @@ cargo cyclonedx -f json
 There are two actions:
 
 1. **On Merge Request** (to main branch): Run tests
-2. **On Push** (to main branch): Run tests and deploy documentation to GitHub Pages.
+2. **On Push** (to main branch): Deploy documentation to GitHub Pages.

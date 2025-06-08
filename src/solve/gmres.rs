@@ -127,7 +127,7 @@ impl GMRES {
             if error.is_nan() {
                 error!("GMRES error is NaN!");
             }
-            info!("   Iteration: {}, Error: {:10.3e}", k, error);
+            info!("   Iteration: {}, Error: {:8.3e}", k, error);
             self.arnoldi(&q, k, &mut qk1, &mut hk1);
             Self::apply_givens_rotation(&mut hk1, &mut cs, &mut sn, k);
             for i in 0..k + 2 {
@@ -150,7 +150,7 @@ impl GMRES {
                 if error < self.thresh {
                     flag = ExitFlag::Tolerance;
                     info!(
-                        "  GMRES tolerance acheived! ({:10.3e} < {:10.3e})",
+                        "  GMRES tolerance acheived! ({:8.3e} < {:8.3e})",
                         error, self.thresh
                     );
                     break;

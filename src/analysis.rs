@@ -6,6 +6,7 @@ use na::DVector;
 use simplelog::*;
 use std::fs::File;
 use std::path::Path;
+use std::time::Instant;
 
 use crate::Cplx;
 use crate::incident_wave;
@@ -127,6 +128,7 @@ impl<'a> Analysis {
             self.log_file, ".log"
         );
 
+        let now = Instant::now();
         // preprocess
         self.predata = Some(preprocess::preprocess(self.temp_input.take().unwrap()));
         let predata = self.predata.as_mut().unwrap();
@@ -151,6 +153,8 @@ impl<'a> Analysis {
         self.analysis_state = AnalysisState::PostSolve;
 
         info!(" Complete!");
+        predata.get_mut_usage().wall_time = now.elapsed().as_secs_f64();
+        predata.get_usage().print();
     }
     /// Return ref to field results from analysis
     pub fn get_results(&self) -> &Vec<postprocess::FPResult> {

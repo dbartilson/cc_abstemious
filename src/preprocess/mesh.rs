@@ -311,8 +311,7 @@ impl Mesh {
             bodies[body_id].element_ids.push(el.id);
         }
         info!(
-            " Read {} bodies, {} elements, {} nodes",
-            bodies.len(),
+            " Read {} elements, {} nodes",
             elements.len(),
             nodes.len()
         );

@@ -84,4 +84,20 @@ fn monopole_power_sweep() {
 }
 
 #[test]
-fn speed_test() {}
+fn speed_test() {
+    for i in 8..9 {
+        let mut analysis = cc_abstemious::Analysis::new();
+        let mut input = default_input();
+        input.mesh_file = format!("./src/tests/sphere_{}.vtk", i+1);
+        input.solver = Solver::Hierarchical {
+            max_iterations: 1000,
+            tolerance: 1.0e-5,
+        };
+        input.incident_wave = vec![IncidentWaveInput::PlaneWave {
+            direction: [1.0, 0.0, 0.0],
+            amplitude: [1.0, 0.0],
+        }];
+        analysis.set_input(input);
+        analysis.run();
+    }
+}

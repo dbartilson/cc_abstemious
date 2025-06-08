@@ -95,12 +95,20 @@ fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx,
 ///
 /// These matrices are complex-valued, square, and non-symmetric in general
 /// Use parallel processes by default
-pub fn get_dense_surface_matrices(predata: &preprocess::PreData) -> (DMatrix<Cplx>, DMatrix<Cplx>) {
+pub fn get_dense_surface_matrices(predata: &mut preprocess::PreData) -> (DMatrix<Cplx>, DMatrix<Cplx>) {
     info!(" Assembling surface BEM influence matrices...");
 
     let num_eqn = predata.get_num_eqn();
     let ncpts = predata.get_cpts().len();
 
+    // Approx. 100 MB
+    if num_eqn >= 2500 {
+        let (f, str) = tools::report_memory(num_eqn * num_eqn * size_of::<Cplx>());
+        info!("  Approx. {:4.2} {} memory required for matrix", f, str )
+    }
+    predata.get_mut_usage().max_mem = num_eqn * num_eqn * size_of::<Cplx>();
+
+    let pd = &*predata; // Downgrade to immutable reference
     let hdiag = predata.get_hdiag();
     let gdiag = predata.get_gdiag();
     let num_threads = tools::get_num_threads();
@@ -119,7 +127,7 @@ pub fn get_dense_surface_matrices(predata: &preprocess::PreData) -> (DMatrix<Cpl
             let g_share = g_share.clone();
             scope.execute(move || {
                 for i in 0..ncpts {
-                    let (g_ij, h_ij) = get_gh_functions(predata, i, j);
+                    let (g_ij, h_ij) = get_gh_functions(pd, i, j);
                     let mut hi = h_share.lock().unwrap();
                     let mut gi = g_share.lock().unwrap();
                     hi[(i, j)] += h_ij;
