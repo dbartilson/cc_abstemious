@@ -153,6 +153,32 @@ impl Default for HMatrix {
     }
 }
 
+impl Drop for HMatrix {
+    fn drop(&mut self) {
+        // Parallelize deallocation
+        let num_threads = tools::get_num_threads();
+        let mut pool = Pool::new(num_threads as u32);
+        pool.scoped(|scope| {
+            for block in &mut self.admissible_blocks {
+                scope.execute(|| {
+                    block.columns = Vec::new();
+                    block.rows = Vec::new();
+                    block.values = aca::ACA::new();
+                });
+            }
+        });
+        pool.scoped(|scope| {
+            for block in &mut self.inadmissible_blocks {
+                scope.execute(|| {
+                    block.columns = Vec::new();
+                    block.rows = Vec::new();
+                    block.values = DMatrix::<Cplx>::zeros(1, 1)
+                });
+            }
+        });
+    }
+}
+
 impl HMatrix {
     /// Default
     pub fn new() -> HMatrix {
@@ -274,8 +300,8 @@ impl HMatrix {
         let denominator = self.num_eqn * self.num_eqn * size_of::<Cplx>();
         let compression_ratio = 100.0 * (numerator as f64 / denominator as f64);
         info!("  Hierarchical decomposition info:");
-        info!("   Admissible block ratio: {:7.4}%", admissible_ratio);
-        info!("   Compression ratio: {:7.4}%", compression_ratio);
+        info!("   Admissible block ratio: {:6.3}%", admissible_ratio);
+        info!("   Compression ratio:      {:6.3}%", compression_ratio);
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector<Cplx>, beta: Cplx, b: &mut DVector<Cplx>) {

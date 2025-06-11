@@ -310,11 +310,7 @@ impl Mesh {
             el.body_id = body_id;
             bodies[body_id].element_ids.push(el.id);
         }
-        info!(
-            " Read {} elements, {} nodes",
-            elements.len(),
-            nodes.len()
-        );
+        info!(" Read {} elements, {} nodes", elements.len(), nodes.len());
         if !bodies[3].element_ids.is_empty() {
             warn!(
                 " Unable to process {} elements",

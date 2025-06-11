@@ -39,30 +39,30 @@ pub fn get_num_threads() -> usize {
 struct MemRange {
     limit: usize,
     divisor: usize,
-    unit: &'static str
+    unit: &'static str,
 }
 
 static MEM_RANGES: [MemRange; 4] = [
     MemRange {
         limit: 1e3 as usize,
         divisor: 1,
-        unit: "B"
+        unit: "B",
     },
     MemRange {
         limit: 1e6 as usize,
         divisor: 1e3 as usize,
-        unit: "KB"
+        unit: "KB",
     },
     MemRange {
         limit: 1e9 as usize,
         divisor: 1e6 as usize,
-        unit: "MB"
+        unit: "MB",
     },
     MemRange {
         limit: 1e12 as usize,
         divisor: 1e9 as usize,
-        unit: "GB"
-    }
+        unit: "GB",
+    },
 ];
 
 /// Convert from a usize number of bytes to a pair of f64 and string, something like
@@ -70,10 +70,10 @@ static MEM_RANGES: [MemRange; 4] = [
 pub fn report_memory(nbytes: usize) -> (f64, String) {
     for mr in &MEM_RANGES {
         if nbytes < mr.limit {
-            return (nbytes as f64 / mr.divisor as f64, mr.unit.to_string())
+            return (nbytes as f64 / mr.divisor as f64, mr.unit.to_string());
         }
     }
-    return (nbytes as f64, MEM_RANGES[0].unit.to_string())
+    (nbytes as f64, MEM_RANGES[0].unit.to_string())
 }
 
 #[cfg(test)]

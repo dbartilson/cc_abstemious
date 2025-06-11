@@ -95,7 +95,9 @@ fn get_gh_functions(predata: &preprocess::PreData, i: usize, j: usize) -> (Cplx,
 ///
 /// These matrices are complex-valued, square, and non-symmetric in general
 /// Use parallel processes by default
-pub fn get_dense_surface_matrices(predata: &mut preprocess::PreData) -> (DMatrix<Cplx>, DMatrix<Cplx>) {
+pub fn get_dense_surface_matrices(
+    predata: &mut preprocess::PreData,
+) -> (DMatrix<Cplx>, DMatrix<Cplx>) {
     info!(" Assembling surface BEM influence matrices...");
 
     let num_eqn = predata.get_num_eqn();
@@ -104,7 +106,7 @@ pub fn get_dense_surface_matrices(predata: &mut preprocess::PreData) -> (DMatrix
     // Approx. 100 MB
     if num_eqn >= 2500 {
         let (f, str) = tools::report_memory(num_eqn * num_eqn * size_of::<Cplx>());
-        info!("  Approx. {:4.2} {} memory required for matrix", f, str )
+        info!("  Approx. {:4.2} {} memory required for matrix", f, str)
     }
     predata.get_mut_usage().max_mem = num_eqn * num_eqn * size_of::<Cplx>();
 

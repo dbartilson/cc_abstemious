@@ -26,6 +26,12 @@ pub struct ACA {
     norm: f64,
 }
 
+impl Default for ACA {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ACA {
     pub fn new() -> ACA {
         ACA {

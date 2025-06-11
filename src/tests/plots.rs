@@ -1,5 +1,5 @@
 use cc_abstemious::preprocess::input::*;
-use std::f64::consts::PI;
+use std::{f64::consts::PI, io::{BufWriter, Write}};
 
 use crate::default_input;
 
@@ -85,19 +85,42 @@ fn monopole_power_sweep() {
 
 #[test]
 fn speed_test() {
-    for i in 8..9 {
-        let mut analysis = cc_abstemious::Analysis::new();
-        let mut input = default_input();
-        input.mesh_file = format!("./src/tests/sphere_{}.vtk", i+1);
-        input.solver = Solver::Hierarchical {
+    let solvers = [
+        Solver::Direct {  },
+        Solver::Iterative {
             max_iterations: 1000,
             tolerance: 1.0e-5,
-        };
-        input.incident_wave = vec![IncidentWaveInput::PlaneWave {
-            direction: [1.0, 0.0, 0.0],
-            amplitude: [1.0, 0.0],
-        }];
-        analysis.set_input(input);
-        analysis.run();
+        },
+        Solver::Hierarchical {
+            max_iterations: 1000,
+            tolerance: 1.0e-5,
+        }
+    ];
+    let write_file = std::fs::File::create("benchmark.csv").unwrap();
+    let mut writer = BufWriter::new(&write_file);
+
+    for (j, solver) in solvers.iter().enumerate() {
+        writeln!(&mut writer, " Method {}", j).unwrap();
+        writeln!(&mut writer,"neqn, time, mem").unwrap();
+        for i in 0..10 {
+            let mut analysis = cc_abstemious::Analysis::new();
+            let mut input = default_input();
+            input.mesh_file = format!("./src/tests/sphere_{}.vtk", i + 1);
+            input.solver = solver.clone();
+            match solver {
+                Solver::Direct {  } => {if i >= 5 {continue}},
+                Solver::Iterative { .. } => {if i >= 6 {continue}}
+                Solver::Hierarchical { .. } => {},
+            }
+            input.incident_wave = vec![IncidentWaveInput::PlaneWave {
+                direction: [1.0, 0.0, 0.0],
+                amplitude: [1.0, 0.0],
+            }];
+            analysis.set_input(input);
+            analysis.run();
+            let usage = analysis.get_usage();
+            writeln!(&mut writer," {}, {}, {}", usage.num_eqn, usage.wall_time, usage.max_mem).unwrap();
+        }
+        writeln!(&mut writer, "\n").unwrap();
     }
 }

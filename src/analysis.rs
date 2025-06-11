@@ -164,4 +164,8 @@ impl<'a> Analysis {
     pub fn write_results(&self) {
         let _u = postprocess::write_results(self.predata.as_ref().unwrap(), &self.results);
     }
+    /// Get usage statistics
+    pub fn get_usage(&self) -> &preprocess::Usage {
+        self.predata.as_ref().unwrap().get_usage()
+    }
 }
