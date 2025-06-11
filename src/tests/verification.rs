@@ -38,9 +38,6 @@ fn default_input() -> UserInput {
 fn rigid_sphere_plane_wave_lu() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = FrequencyInput::List {
-        values: vec![100.0],
-    };
     input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
         amplitude: [1.0, 0.0],
@@ -64,9 +61,6 @@ fn rigid_sphere_plane_wave_lu() {
 fn rigid_sphere_plane_wave_iterative() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = FrequencyInput::List {
-        values: vec![100.0],
-    };
     // incident wave
     input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
@@ -94,9 +88,6 @@ fn rigid_sphere_plane_wave_iterative() {
 fn rigid_sphere_plane_wave_hmatrix() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = FrequencyInput::List {
-        values: vec![100.0],
-    };
     // incident wave
     input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
@@ -125,9 +116,6 @@ fn rigid_sphere_plane_wave_burton_miller() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.method_type = MethodType::BurtonMiller;
-    input.frequency = FrequencyInput::List {
-        values: vec![100.0],
-    };
     // incident wave
     input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
@@ -152,9 +140,6 @@ fn rigid_sphere_plane_wave_burton_miller() {
 fn monopole_power() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
-    input.frequency = FrequencyInput::List {
-        values: vec![100.0],
-    };
     input.surface_bc = SurfaceBoundaryCondition {
         bc_type: BCType::NormalVelocity,
         value: [1.0, 0.0],

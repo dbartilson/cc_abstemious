@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.3",
   "version": 1,
-  "serialNumber": "urn:uuid:0ef1cf4d-533a-4f7b-a949-b29d43a9ed61",
+  "serialNumber": "urn:uuid:d919e1e7-31b0-4e08-b12a-d7d2612312d0",
   "metadata": {
-    "timestamp": "2025-06-07T22:17:40.326607600Z",
+    "timestamp": "2025-06-11T02:29:28.961045500Z",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -14,25 +14,25 @@
     ],
     "component": {
       "type": "application",
-      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.2",
+      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.3",
       "name": "cc_abstemious",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "scope": "required",
-      "purl": "pkg:cargo/cc_abstemious@1.3.2?download_url=file://.",
+      "purl": "pkg:cargo/cc_abstemious@1.3.3?download_url=file://.",
       "components": [
         {
           "type": "library",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.2 bin-target-0",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.3 bin-target-0",
           "name": "cc_abstemious",
-          "version": "1.3.2",
-          "purl": "pkg:cargo/cc_abstemious@1.3.2?download_url=file://.#src/lib.rs"
+          "version": "1.3.3",
+          "purl": "pkg:cargo/cc_abstemious@1.3.3?download_url=file://.#src/lib.rs"
         },
         {
           "type": "application",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.2 bin-target-1",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.3 bin-target-1",
           "name": "cc_abstemious",
-          "version": "1.3.2",
-          "purl": "pkg:cargo/cc_abstemious@1.3.2?download_url=file://.#src/main.rs"
+          "version": "1.3.3",
+          "purl": "pkg:cargo/cc_abstemious@1.3.3?download_url=file://.#src/main.rs"
         }
       ]
     },
@@ -112,16 +112,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.0",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1",
       "author": "Lokathor <zefria@gmail.com>",
       "name": "bytemuck",
-      "version": "1.23.0",
+      "version": "1.23.1",
       "description": "A crate for mucking around with piles of bytes.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9134a6ef01ce4b366b50689c94f82c14bc72bc5d0386829828a2e2752ef7958c"
+          "content": "5c76a5792e44e4abe34d3abf15636779261d45a7450612059293d1d2cfc63422"
         }
       ],
       "licenses": [
@@ -129,7 +129,7 @@
           "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
-      "purl": "pkg:cargo/bytemuck@1.23.0",
+      "purl": "pkg:cargo/bytemuck@1.23.1",
       "externalReferences": [
         {
           "type": "vcs",
@@ -139,16 +139,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.0",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.1",
       "author": "Alex Crichton <alex@alexcrichton.com>",
       "name": "cfg-if",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "A macro to ergonomically define an item depending on a large number of #[cfg] parameters. Structured like an if-else chain, the first matching branch is the item that gets emitted. ",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+          "content": "9555578bc9e57714c812a1f84e4fc5b4d21fcb063490c624de019f7464c91268"
         }
       ],
       "licenses": [
@@ -156,19 +156,11 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/cfg-if@1.0.0",
+      "purl": "pkg:cargo/cfg-if@1.0.1",
       "externalReferences": [
         {
-          "type": "documentation",
-          "url": "https://docs.rs/cfg-if"
-        },
-        {
-          "type": "website",
-          "url": "https://github.com/alexcrichton/cfg-if"
-        },
-        {
           "type": "vcs",
-          "url": "https://github.com/alexcrichton/cfg-if"
+          "url": "https://github.com/rust-lang/cfg-if"
         }
       ]
     },
@@ -1365,16 +1357,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.101",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.102",
       "author": "David Tolnay <dtolnay@gmail.com>",
       "name": "syn",
-      "version": "2.0.101",
+      "version": "2.0.102",
       "description": "Parser for Rust source code",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ce2b7fc941b3a24138a0a7cf8e858bfc6a992e7978a068a5c760deb0ed43caf"
+          "content": "f6397daf94fa90f058bd0fd88429dd9e5738999cca8d701813c80723add80462"
         }
       ],
       "licenses": [
@@ -1382,7 +1374,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/syn@2.0.101",
+      "purl": "pkg:cargo/syn@2.0.102",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1749,7 +1741,7 @@
   ],
   "dependencies": [
     {
-      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.2",
+      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.3.3",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#approx@0.5.1",
         "registry+https://github.com/rust-lang/crates.io-index#csv@1.3.1",
@@ -1774,11 +1766,11 @@
       "dependsOn": []
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1",
       "dependsOn": []
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.1",
       "dependsOn": []
     },
     {
@@ -1809,7 +1801,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#getrandom@0.3.3",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.0"
+        "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.1"
       ]
     },
     {
@@ -1836,7 +1828,7 @@
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.101"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.102"
       ]
     },
     {
@@ -1946,7 +1938,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#safe_arch@0.7.4",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.0"
+        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1"
       ]
     },
     {
@@ -1964,7 +1956,7 @@
         "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#serde_derive_internals@0.29.1",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.101"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.102"
       ]
     },
     {
@@ -1982,7 +1974,7 @@
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.101"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.102"
       ]
     },
     {
@@ -1990,7 +1982,7 @@
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.101"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.102"
       ]
     },
     {
@@ -2021,7 +2013,7 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.101",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.102",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
@@ -2068,7 +2060,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#wide@0.7.32",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.0",
+        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1",
         "registry+https://github.com/rust-lang/crates.io-index#safe_arch@0.7.4"
       ]
     },

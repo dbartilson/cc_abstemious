@@ -35,6 +35,28 @@ pub struct Maps {
     eqn2cpt: HashMap<usize, usize>,
 }
 
+/// Memory use and time
+pub struct Usage {
+    pub num_eqn: usize,
+    pub max_mem: usize, // Bytes
+    pub wall_time: f64, // seconds
+}
+
+impl Usage {
+    /// Update memory use and wall time with new data (consumed)
+    pub fn update(&mut self, new_usage: Usage) {
+        self.max_mem = usize::max(self.max_mem, new_usage.max_mem);
+        self.wall_time += new_usage.wall_time
+    }
+    pub fn print(&self) {
+        let (nb, f) = tools::report_memory(self.max_mem);
+        info!(
+            " Duration: {:7.4} s, Peak memory used: {:4.2} {}",
+            self.wall_time, nb, f
+        )
+    }
+}
+
 /// Preprocessing data, held by analysis
 pub struct PreData {
     input: input::UserInput,
@@ -42,6 +64,7 @@ pub struct PreData {
     maps: Maps,
     frequency_list: Vec<f64>,
     ifreq: usize, // current frequency index
+    usage: Usage,
 }
 
 impl PreData {
@@ -204,6 +227,16 @@ impl PreData {
     pub fn get_output_power_bool(&self) -> bool {
         self.input.output.request_power
     }
+    /// Return reference to resource usage data
+    #[inline]
+    pub fn get_usage(&self) -> &Usage {
+        &self.usage
+    }
+    /// Return mutable reference to resource usage data
+    #[inline]
+    pub fn get_mut_usage(&mut self) -> &mut Usage {
+        &mut self.usage
+    }
 }
 
 /// Wrapper of preprocessing steps
@@ -220,6 +253,12 @@ pub fn preprocess(input: input::UserInput) -> PreData {
 
     process_elements(&mut mesh, *body_id);
 
+    let usage = Usage {
+        num_eqn: mesh.cpts.len(),
+        max_mem: 0,
+        wall_time: 0.0,
+    };
+
     // take ownership of input data
     PreData {
         input,
@@ -227,6 +266,7 @@ pub fn preprocess(input: input::UserInput) -> PreData {
         maps,
         frequency_list,
         ifreq: 0,
+        usage,
     }
 }
 

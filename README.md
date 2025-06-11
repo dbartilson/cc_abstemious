@@ -14,6 +14,12 @@
 * Parallel processing of surface influence matrix (dense) and hierarchical decompositions
 * Optional Burton-Miller formulation
 
+`cc_abstemious` is able to solve large problems (~1 million elements) quickly on modest compute resources when using hierarchical decomposition and multithreading. 
+
+<img src=./docs/wall_time.svg width="600">
+
+<img src=./docs/memory.svg width="600">
+
 More information is available:
 - [Theory Guide](./docs/theory.md)
 - [Development Guide](./docs/development.md)

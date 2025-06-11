@@ -26,9 +26,23 @@ pub struct ACA {
     norm: f64,
 }
 
+impl Default for ACA {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ACA {
+    pub fn new() -> ACA {
+        ACA {
+            num_rows: 0,
+            num_columns: 0,
+            uv: Vec::new(),
+            norm: 0.0,
+        }
+    }
     /// Decompose a matrix using ACA using functional and tolerance
-    pub fn new<F, G>(tol: f64, m: usize, n: usize, get_row: &F, get_column: &G) -> ACA
+    pub fn new_from<F, G>(tol: f64, m: usize, n: usize, get_row: &F, get_column: &G) -> ACA
     where
         F: Fn(usize) -> Vec<Cplx>,
         G: Fn(usize) -> Vec<Cplx>,
@@ -351,7 +365,7 @@ mod tests {
         let get_row = |i: usize| -> Vec<Cplx> { a.clone().row(i).iter().cloned().collect() };
         let get_col = |i: usize| -> Vec<Cplx> { a.clone().column(i).iter().cloned().collect() };
         // build ACA of matrix and compare norms
-        let aca = ACA::new(1.0e-6, m, n, &get_row, &get_col);
+        let aca = ACA::new_from(1.0e-6, m, n, &get_row, &get_col);
         approx::assert_relative_eq!(aca.get_norm(), a.norm(), max_relative = 0.05);
         // compare matrix multiplication against random vector for both
         let mut x1 = DVector::<Cplx>::from_element(m, Cplx::new(0.0, 0.0));

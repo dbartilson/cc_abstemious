@@ -45,7 +45,7 @@ impl AdmissibleBlock {
     where
         F: Fn(Vec<usize>, Vec<usize>) -> Vec<Cplx>,
     {
-        let aca = aca::ACA::new(
+        let aca = aca::ACA::new_from(
             tolerance,
             rows.len(),
             columns.len(),
@@ -153,6 +153,32 @@ impl Default for HMatrix {
     }
 }
 
+impl Drop for HMatrix {
+    fn drop(&mut self) {
+        // Parallelize deallocation
+        let num_threads = tools::get_num_threads();
+        let mut pool = Pool::new(num_threads as u32);
+        pool.scoped(|scope| {
+            for block in &mut self.admissible_blocks {
+                scope.execute(|| {
+                    block.columns = Vec::new();
+                    block.rows = Vec::new();
+                    block.values = aca::ACA::new();
+                });
+            }
+        });
+        pool.scoped(|scope| {
+            for block in &mut self.inadmissible_blocks {
+                scope.execute(|| {
+                    block.columns = Vec::new();
+                    block.rows = Vec::new();
+                    block.values = DMatrix::<Cplx>::zeros(1, 1)
+                });
+            }
+        });
+    }
+}
+
 impl HMatrix {
     /// Default
     pub fn new() -> HMatrix {
@@ -242,6 +268,7 @@ impl HMatrix {
         self.admissible_blocks = Arc::try_unwrap(ad).unwrap().into_inner().unwrap();
         self.inadmissible_blocks = Arc::try_unwrap(iad).unwrap().into_inner().unwrap();
     }
+    /// Update the matrix norm, used for iterative solution
     fn update_norm(&mut self) {
         for block in &self.inadmissible_blocks {
             self.norm += block.values.norm();
@@ -250,6 +277,18 @@ impl HMatrix {
             self.norm += block.values.get_norm();
         }
     }
+    /// Return approximate memory use in bytes
+    pub fn get_memory_size(&self) -> usize {
+        let mut nentries: usize = 0;
+        for a in &self.admissible_blocks {
+            nentries += a.values.get_num_uv() * (a.columns.len() + a.rows.len());
+        }
+        for ia in &self.inadmissible_blocks {
+            nentries += ia.columns.len() * ia.rows.len();
+        }
+        nentries * size_of::<Cplx>() // Bytes
+    }
+    /// Print statistics of block admissibility and compression relative to dense
     fn print_stats(&self) {
         let adl = self.admissible_blocks.len();
         let iadl = self.inadmissible_blocks.len();
@@ -257,18 +296,12 @@ impl HMatrix {
         // calculate compression ratio
         // equal to storage size for ACA + full blocks
         // divided by total size of matrix in full form
-        let mut numerator: usize = 0;
-        let denominator = self.num_eqn * self.num_eqn;
-        for a in &self.admissible_blocks {
-            numerator += a.values.get_num_uv() * (a.columns.len() + a.rows.len());
-        }
-        for ia in &self.inadmissible_blocks {
-            numerator += ia.columns.len() * ia.rows.len();
-        }
-        let compression_ratio = 100.0 * (1.0 - (numerator as f64 / denominator as f64));
-        info!("  Decomposition info:");
-        info!("   Admissible block ratio: {:4.1}%", admissible_ratio);
-        info!("   Compression ratio: {:4.1}%", compression_ratio);
+        let numerator = self.get_memory_size();
+        let denominator = self.num_eqn * self.num_eqn * size_of::<Cplx>();
+        let compression_ratio = 100.0 * (numerator as f64 / denominator as f64);
+        info!("  Hierarchical decomposition info:");
+        info!("   Admissible block ratio: {:6.3}%", admissible_ratio);
+        info!("   Compression ratio:      {:6.3}%", compression_ratio);
     }
     /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     pub fn gemv(&self, alpha: Cplx, x: &DVector<Cplx>, beta: Cplx, b: &mut DVector<Cplx>) {

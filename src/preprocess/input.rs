@@ -36,7 +36,7 @@ pub enum MethodType {
 /// Direct = Dense matrix with LU solve
 /// Iterative = Dense matrix, but GMRES iterative solve
 /// Hierarchical (aka ACA) = sparse representation, GMRES solve
-#[derive(Deserialize, JsonSchema)]
+#[derive(Clone, Deserialize, JsonSchema)]
 pub enum Solver {
     Direct {},
     Iterative {

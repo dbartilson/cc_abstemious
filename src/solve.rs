@@ -15,7 +15,7 @@ use na::{DMatrix, DVector};
 /// Solve for surface fields (velocity potential, normal velocity) from a given RHS vector.
 /// This is a wrapper over the individual solve methods
 pub fn solve_for_surface(
-    predata: &preprocess::PreData,
+    predata: &mut preprocess::PreData,
     incident: &PrimaryVariables,
 ) -> PrimaryVariables {
     let rhs_inc = &get_rhs_from_incident(predata, incident);
@@ -45,7 +45,10 @@ fn get_rhs_from_incident(
 }
 
 /// Solve for surface by using dense matrix and LU solver
-fn get_surface_dense(predata: &preprocess::PreData, rhs_inc: &DVector<Cplx>) -> PrimaryVariables {
+fn get_surface_dense(
+    predata: &mut preprocess::PreData,
+    rhs_inc: &DVector<Cplx>,
+) -> PrimaryVariables {
     let (h, g) = influence_matrix::get_dense_surface_matrices(predata);
     info!(" Solving system of equations...");
     let omega = predata.get_angular_frequency();
@@ -93,7 +96,10 @@ fn get_surface_dense(predata: &preprocess::PreData, rhs_inc: &DVector<Cplx>) -> 
 }
 
 /// Solve for surface by using hierarchical matrix and iterative solver
-fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector<Cplx>) -> PrimaryVariables {
+fn get_surface_hmatrix(
+    predata: &mut preprocess::PreData,
+    rhs_inc: &DVector<Cplx>,
+) -> PrimaryVariables {
     let num_eqn = predata.get_num_eqn();
     let mut phi = DVector::<Cplx>::from_element(num_eqn, Cplx::new(0., 0.));
     let mut vn = phi.clone();
@@ -144,6 +150,8 @@ fn get_surface_hmatrix(predata: &preprocess::PreData, rhs_inc: &DVector<Cplx>) -
         32,
         1e-4,
     );
+    predata.get_mut_usage().max_mem =
+        usize::max(predata.get_usage().max_mem, hmatrix.get_memory_size());
     if let input::Solver::Hierarchical {
         tolerance,
         max_iterations,
