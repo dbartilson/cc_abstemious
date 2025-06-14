@@ -12,28 +12,35 @@ enum ExitFlag {
     Iterations,
 }
 
+pub enum ItMatrix {
+    Dense(DMatrix<Cplx>),
+    Hierarchical(h_matrix::HMatrix),
+    None,
+}
+
 /// GMRES solver information, can use dense matrix or Hmatrix
 pub struct GMRES {
     max_it: usize,
     max_it_per_restart: usize,
     thresh: f64,
     num_mv: usize,
-    /// Dense matrix
-    pub a: Option<DMatrix<Cplx>>,
-    /// Hierarchical matrix
-    pub hmatrix: Option<h_matrix::HMatrix>,
+    matrix: ItMatrix,
+    preconditioner: Option<DVector<Cplx>>
 }
 
 impl GMRES {
-    pub fn new(max_it: usize, thresh: f64) -> GMRES {
-        GMRES {
+    pub fn new(max_it: usize, thresh: f64, matrix: ItMatrix) -> GMRES {
+        let mut g = GMRES {
             max_it,
             max_it_per_restart: 0,
             thresh,
             num_mv: 0,
-            a: None,
-            hmatrix: None,
-        }
+            matrix,
+            preconditioner: None
+        };
+        let prec = g.get_jacobi_preconditioner();
+        g.preconditioner = Some(prec);
+        g
     }
     /// Solve the system of equations in-place for a given RHS 'x'
     /// This uses the GMRES(k) method, restarting after k iterations
@@ -56,6 +63,13 @@ impl GMRES {
         let k = (self.max_it as f64).sqrt().ceil() as usize;
         let max_restarts = self.max_it / k;
         self.max_it_per_restart = k;
+
+        if self.preconditioner.is_some()  {
+            if let ItMatrix::Dense (mat) = &mut self.matrix {
+                let m = DMatrix::<Cplx>::from_diagonal(&self.preconditioner.clone().unwrap());
+                *mat *= m;
+            }
+        }
         for i in 0..max_restarts {
             info!("  GMRES restart: {}", i);
             // run GMRES algorithm, return updated solution
@@ -64,37 +78,51 @@ impl GMRES {
                 break;
             }
         }
+        if self.preconditioner.is_some()  {
+            if let ItMatrix::Dense (_) = self.matrix {
+                let m = DMatrix::<Cplx>::from_diagonal(&self.preconditioner.clone().unwrap());
+                *x =  m * x.clone();
+            }
+        }
         info!("  Number of matrix-vector products: {}", self.num_mv);
     }
-    ///Set up gemv, get_num_eqn, and get_norm as methods which can access either the
-    ///full (dense) representation or the approximate (ACA) representation
+    // Set up gemv, get_num_eqn, and get_norm as methods which can access either the
+    // full (dense) representation or the approximate (ACA) representation
+
+    /// Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
     fn gemv(&mut self, alpha: Cplx, x: &DVector<Cplx>, beta: Cplx, b: &mut DVector<Cplx>) {
-        // Computes b = alpha * self * x + beta * b, where a is a matrix, x a vector, and alpha, beta two scalars
         self.num_mv += 1; // keep track of number of matrix-vector products
-        if self.a.is_some() {
-            b.gemv(alpha, self.a.as_ref().unwrap(), x, beta)
-        }
-        if self.hmatrix.is_some() {
-            self.hmatrix.as_ref().unwrap().gemv(alpha, x, beta, b)
+        match &self.matrix {
+            ItMatrix::Dense(mat) => b.gemv(alpha, mat, x, beta),
+            ItMatrix::Hierarchical(mat) => mat.gemv(alpha, x, beta, b),
+            _ => {}
         }
     }
     fn get_num_eqn(&self) -> usize {
-        if self.a.is_some() {
-            return self.a.as_ref().unwrap().shape().0;
+        match &self.matrix {
+            ItMatrix::Dense(mat) => mat.shape().0,
+            ItMatrix::Hierarchical(mat) => mat.get_num_eqn(),
+            _ => 0,
         }
-        if self.hmatrix.is_some() {
-            return self.hmatrix.as_ref().unwrap().get_num_eqn();
-        }
-        0
     }
     fn get_norm(&self) -> f64 {
-        if self.a.is_some() {
-            return self.a.as_ref().unwrap().norm();
+        match &self.matrix {
+            ItMatrix::Dense(mat) => mat.norm(),
+            ItMatrix::Hierarchical(mat) => mat.get_norm(),
+            _ => 0.0,
         }
-        if self.hmatrix.is_some() {
-            return self.hmatrix.as_ref().unwrap().get_norm();
+    }
+    fn get_jacobi_preconditioner(&self) -> DVector<Cplx> {
+        let mut dv = match &self.matrix {
+            ItMatrix::Dense(mat) => mat.diagonal(),
+            ItMatrix::Hierarchical(mat) => mat.get_diagonal(),
+            ItMatrix::None => unimplemented!(),
+        };
+        // Element-wise inversion
+        for j in &mut dv {
+            *j = Cplx::new(1.0, 0.0) / *j;
         }
-        0.0
+        dv
     }
     fn gmres(&mut self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {
         //! see the example code at

@@ -334,6 +334,21 @@ impl HMatrix {
         }
         h
     }
+    /// For Jacobi preconditioner
+    pub fn get_diagonal(&self) -> DVector<Cplx> {
+        let mut a = DVector::<Cplx>::from_element(self.get_num_eqn(), Cplx::new(0.0, 0.0));
+        // Assume that no diagonals are contained in admissible blocks
+        for block in &self.inadmissible_blocks {
+            for (i, row) in block.rows.iter().enumerate() {
+                // Locate diagonal, if it exists
+                let j = block.columns.iter().position(|&x| x == *row);
+                if j.is_some() {
+                    a[*row] = block.values[(i, j.unwrap())];
+                }
+            }
+        }
+        a
+    }
 }
 
 #[cfg(test)]

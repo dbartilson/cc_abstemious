@@ -159,8 +159,7 @@ fn get_surface_hmatrix(
     {
         let max_it = max_iterations;
         let tol = tolerance;
-        let mut gm = gmres::GMRES::new(*max_it, *tol);
-        gm.hmatrix = Some(hmatrix);
+        let mut gm = gmres::GMRES::new(*max_it, *tol, gmres::ItMatrix::Hierarchical(hmatrix));
         info!(" Solving system of equations...");
         gm.solve(&mut rhs);
     }
@@ -195,8 +194,7 @@ fn solve_dense(predata: &preprocess::PreData, a: &DMatrix<Cplx>, x: &mut DVector
             tolerance,
             max_iterations,
         } => {
-            let mut gm = gmres::GMRES::new(*max_iterations, *tolerance);
-            gm.a = Some(a.clone());
+            let mut gm = gmres::GMRES::new(*max_iterations, *tolerance, gmres::ItMatrix::Dense(a.clone()));
             gm.solve(x);
         }
         _ => {}
@@ -273,8 +271,7 @@ mod tests {
     fn solve_gmres() {
         let n = 100;
         let (a, mut b) = generate_random_ab(n, n, 10);
-        let mut gm = gmres::GMRES::new(100, 1.0e-8);
-        gm.a = Some(a);
+        let mut gm = gmres::GMRES::new(100, 1.0e-8, gmres::ItMatrix::Dense(a));
         gm.solve(&mut b);
         approx::assert_relative_eq!(b[0].re, 0.0035386336544537098, epsilon = 1.0e-6);
         approx::assert_relative_eq!(b[0].im, 0.0017794290945383035, epsilon = 1.0e-6);

@@ -20,6 +20,9 @@ target/
 *.csv
 *.log
 
+src/tests/sphere_[!1].vtk
+src/tests/sphere_10.vtk
+
 # Ignore the generated schema.json file
 *schema.json
 /.vscode/launch.json

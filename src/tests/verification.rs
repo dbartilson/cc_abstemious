@@ -116,6 +116,10 @@ fn rigid_sphere_plane_wave_burton_miller() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.method_type = MethodType::BurtonMiller;
+    input.solver = Solver::Iterative {
+        max_iterations: 1000,
+        tolerance: 1.0e-5,
+    };
     // incident wave
     input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
