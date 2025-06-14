@@ -8,7 +8,7 @@ use na::{DMatrix, DVector, Normed, UniformNorm};
 
 /// Jacobi preconditioner, equal to M^-1, where M is the diagonal of A
 struct JacobiPreconditioner {
-    minv: DVector<Cplx>
+    minv: DVector<Cplx>,
 }
 
 impl JacobiPreconditioner {
@@ -56,19 +56,19 @@ pub struct GMRES {
     thresh: f64,
     num_mv: usize,
     matrix: ItMatrix,
-    preconditioner: JacobiPreconditioner
+    preconditioner: JacobiPreconditioner,
 }
 
 impl GMRES {
     pub fn new(max_it: usize, thresh: f64, matrix: ItMatrix) -> GMRES {
         let diagonal = Self::get_diagonal(&matrix);
-         GMRES {
+        GMRES {
             max_it,
             max_it_per_restart: 0,
             thresh,
             num_mv: 0,
             matrix,
-            preconditioner: JacobiPreconditioner::new(diagonal)
+            preconditioner: JacobiPreconditioner::new(diagonal),
         }
     }
     /// Solve the system of equations in-place for a given RHS 'x'
@@ -171,7 +171,8 @@ impl GMRES {
             beta[k + 1] = -sn[k].conj() * beta[k];
             beta[k] *= cs[k];
 
-            error = Self::backward_error(beta[k + 1].norm(), alpha * prec_norm, x, b_norm * prec_norm);
+            error =
+                Self::backward_error(beta[k + 1].norm(), alpha * prec_norm, x, b_norm * prec_norm);
             e.push(error);
 
             if error < self.thresh || k == m - 1 {
@@ -213,9 +214,11 @@ impl GMRES {
         let hkklu = hkk.lu();
         let betak = beta.rows(0, k);
         // y = H^-1 * beta
-        let y = hkklu.solve(&betak).expect("Failed during GMRES factor-solve");
+        let y = hkklu
+            .solve(&betak)
+            .expect("Failed during GMRES factor-solve");
         // x = x + Q * y, if preconditioning, do x = x + M^-1 * Q * y
-        let mut z = &q.columns(0, k) * y;
+        let mut z = q.columns(0, k) * y;
         self.preconditioner.apply_mut(&mut z);
         *x += z;
     }
