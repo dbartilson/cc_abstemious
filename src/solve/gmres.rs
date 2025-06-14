@@ -4,7 +4,38 @@ GMRES(k) iterative solver
 
 use crate::Cplx;
 use crate::solve::h_matrix;
-use na::{DMatrix, DVector, Normed};
+use na::{DMatrix, DVector, Normed, UniformNorm};
+
+/// Jacobi preconditioner, equal to M^-1, where M is the diagonal of A
+struct JacobiPreconditioner {
+    minv: DVector<Cplx>
+}
+
+impl JacobiPreconditioner {
+    fn new(mut diagonal: DVector<Cplx>) -> JacobiPreconditioner {
+        // Element-wise inversion
+        for j in &mut diagonal {
+            *j = Cplx::new(1.0, 0.0) / *j;
+        }
+        JacobiPreconditioner { minv: diagonal }
+    }
+    /// L2 norm of diagonal matrix is the infinity/uniform norm (max value)
+    fn get_norm(&self) -> f64 {
+        self.minv.apply_norm(&UniformNorm)
+    }
+    /// Use (right) preconditioner (M^-1) to multiply a vector in-place: z = M^-1 * z
+    fn apply_mut(&self, z: &mut DVector<Cplx>) {
+        for (i, zi) in z.iter_mut().enumerate() {
+            *zi *= self.minv[i];
+        }
+    }
+    /// Use (right) preconditioner to multiply a vector and return a new result
+    fn apply(&self, v: &DVector<Cplx>) -> DVector<Cplx> {
+        let mut z = v.clone();
+        self.apply_mut(&mut z);
+        z
+    }
+}
 
 enum ExitFlag {
     Error,
@@ -25,22 +56,20 @@ pub struct GMRES {
     thresh: f64,
     num_mv: usize,
     matrix: ItMatrix,
-    preconditioner: Option<DVector<Cplx>>
+    preconditioner: JacobiPreconditioner
 }
 
 impl GMRES {
     pub fn new(max_it: usize, thresh: f64, matrix: ItMatrix) -> GMRES {
-        let mut g = GMRES {
+        let diagonal = Self::get_diagonal(&matrix);
+         GMRES {
             max_it,
             max_it_per_restart: 0,
             thresh,
             num_mv: 0,
             matrix,
-            preconditioner: None
-        };
-        let prec = g.get_jacobi_preconditioner();
-        g.preconditioner = Some(prec);
-        g
+            preconditioner: JacobiPreconditioner::new(diagonal)
+        }
     }
     /// Solve the system of equations in-place for a given RHS 'x'
     /// This uses the GMRES(k) method, restarting after k iterations
@@ -64,24 +93,12 @@ impl GMRES {
         let max_restarts = self.max_it / k;
         self.max_it_per_restart = k;
 
-        if self.preconditioner.is_some()  {
-            if let ItMatrix::Dense (mat) = &mut self.matrix {
-                let m = DMatrix::<Cplx>::from_diagonal(&self.preconditioner.clone().unwrap());
-                *mat *= m;
-            }
-        }
         for i in 0..max_restarts {
             info!("  GMRES restart: {}", i);
             // run GMRES algorithm, return updated solution
             let flag = self.gmres(x, &b);
             if let ExitFlag::Tolerance = flag {
                 break;
-            }
-        }
-        if self.preconditioner.is_some()  {
-            if let ItMatrix::Dense (_) = self.matrix {
-                let m = DMatrix::<Cplx>::from_diagonal(&self.preconditioner.clone().unwrap());
-                *x =  m * x.clone();
             }
         }
         info!("  Number of matrix-vector products: {}", self.num_mv);
@@ -112,18 +129,6 @@ impl GMRES {
             _ => 0.0,
         }
     }
-    fn get_jacobi_preconditioner(&self) -> DVector<Cplx> {
-        let mut dv = match &self.matrix {
-            ItMatrix::Dense(mat) => mat.diagonal(),
-            ItMatrix::Hierarchical(mat) => mat.get_diagonal(),
-            ItMatrix::None => unimplemented!(),
-        };
-        // Element-wise inversion
-        for j in &mut dv {
-            *j = Cplx::new(1.0, 0.0) / *j;
-        }
-        dv
-    }
     fn gmres(&mut self, x: &mut DVector<Cplx>, b: &DVector<Cplx>) -> ExitFlag {
         //! see the example code at
         //! https://en.wikipedia.org/wiki/Generalized_minimal_residual_method#Regular_GMRES_(MATLAB_/_GNU_Octave)
@@ -139,6 +144,7 @@ impl GMRES {
         self.gemv(-c_one, x, c_one, &mut r);
 
         let alpha = self.get_norm();
+        let prec_norm = self.preconditioner.get_norm();
         let mut error = Self::backward_error(r.norm(), alpha, x, b_norm);
 
         let mut sn = DVector::<Cplx>::from_element(m, c_zero);
@@ -165,13 +171,13 @@ impl GMRES {
             beta[k + 1] = -sn[k].conj() * beta[k];
             beta[k] *= cs[k];
 
-            error = Self::backward_error(beta[k + 1].norm(), alpha, x, b_norm);
+            error = Self::backward_error(beta[k + 1].norm(), alpha * prec_norm, x, b_norm * prec_norm);
             e.push(error);
 
             if error < self.thresh || k == m - 1 {
                 // recompute backward error using exact arithmetic
                 r = b.clone();
-                Self::get_x(&h, &q, &beta, k + 1, x);
+                self.get_x(&h, &q, &beta, k + 1, x);
                 self.gemv(-c_one, x, c_one, &mut r);
                 error = Self::backward_error(r.norm(), alpha, x, b_norm);
                 *e.last_mut().unwrap() = error;
@@ -196,20 +202,29 @@ impl GMRES {
     }
     /// After GMRES iterations, calculate the result from the Hessenberg matrix
     fn get_x(
+        &self,
         h: &DMatrix<Cplx>,
         q: &DMatrix<Cplx>,
         beta: &DVector<Cplx>,
         k: usize,
         x: &mut DVector<Cplx>,
     ) {
-        let c_one = Cplx::new(1.0, 0.0);
         let hkk = h.view((0, 0), (k, k));
         let hkklu = hkk.lu();
         let betak = beta.rows(0, k);
         // y = H^-1 * beta
-        let y = hkklu.solve(&betak);
-        // x = x + Q * y
-        x.gemv(c_one, &q.columns(0, k), y.as_ref().unwrap(), c_one);
+        let y = hkklu.solve(&betak).expect("Failed during GMRES factor-solve");
+        // x = x + Q * y, if preconditioning, do x = x + M^-1 * Q * y
+        let mut z = &q.columns(0, k) * y;
+        self.preconditioner.apply_mut(&mut z);
+        *x += z;
+    }
+    fn get_diagonal(a: &ItMatrix) -> DVector<Cplx> {
+        match a {
+            ItMatrix::Dense(mat) => mat.diagonal(),
+            ItMatrix::Hierarchical(mat) => mat.get_diagonal(),
+            ItMatrix::None => unimplemented!(),
+        }
     }
     /// Arndoli method
     fn arnoldi(
@@ -223,7 +238,9 @@ impl GMRES {
         let c_one = Cplx::new(1.0, 0.0);
         // zero out and set qk1 = A * Q (Krylov vector)
         let qk = q.column(k).clone_owned();
-        self.gemv(c_one, &qk, c_zero, qk1);
+        // if preconditioning, set zk = M^-1 * qk first
+        let zk = self.preconditioner.apply(&qk);
+        self.gemv(c_one, &zk, c_zero, qk1);
         hk1.fill(c_zero);
         // Modified Gram-Schmidt, keeping the Hessenberg matrix
         for i in 0..k + 1 {
