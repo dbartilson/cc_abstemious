@@ -43,7 +43,7 @@ is run to generate the documentation. See the relevant GitHub Action which utili
 
 ## Dependency/SBOM Generation
 
-[cargo cyclonedx](https://github.com/CycloneDX/cyclonedx-rust-cargo?tab=readme-ov-file) is used to generated the CyclondeDX JSON SBOM with this command:
+[cargo cyclonedx](https://github.com/CycloneDX/cyclonedx-rust-cargo?tab=readme-ov-file) is used to generate the CyclondeDX JSON SBOM with this command:
 
 ```
 cargo cyclonedx -f json

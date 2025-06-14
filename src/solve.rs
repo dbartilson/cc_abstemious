@@ -194,7 +194,11 @@ fn solve_dense(predata: &preprocess::PreData, a: &DMatrix<Cplx>, x: &mut DVector
             tolerance,
             max_iterations,
         } => {
-            let mut gm = gmres::GMRES::new(*max_iterations, *tolerance, gmres::ItMatrix::Dense(a.clone()));
+            let mut gm = gmres::GMRES::new(
+                *max_iterations,
+                *tolerance,
+                gmres::ItMatrix::Dense(a.clone()),
+            );
             gm.solve(x);
         }
         _ => {}

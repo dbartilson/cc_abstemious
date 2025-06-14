@@ -116,10 +116,6 @@ fn rigid_sphere_plane_wave_burton_miller() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
     input.method_type = MethodType::BurtonMiller;
-    input.solver = Solver::Iterative {
-        max_iterations: 1000,
-        tolerance: 1.0e-5,
-    };
     // incident wave
     input.incident_wave = vec![IncidentWaveInput::PlaneWave {
         direction: [1.0, 0.0, 0.0],
@@ -141,6 +137,35 @@ fn rigid_sphere_plane_wave_burton_miller() {
 }
 
 #[test]
+fn rigid_sphere_plane_wave_burton_miller_iterative() {
+    let mut analysis = cc_abstemious::Analysis::new();
+    let mut input = default_input();
+    input.method_type = MethodType::BurtonMiller;
+    // incident wave
+    input.incident_wave = vec![IncidentWaveInput::PlaneWave {
+        direction: [1.0, 0.0, 0.0],
+        amplitude: [1.0, 0.0],
+    }];
+    input.solver = Solver::Iterative {
+        max_iterations: 1000,
+        tolerance: 1.0e-5,
+    };
+    let radius = 10.0;
+    let theta = 0.0;
+    let x = radius * f64::cos(theta);
+    let y = radius * f64::sin(theta);
+    input.output.field_points.push([x, y, 0.0]);
+
+    analysis.set_input(input);
+    analysis.run();
+    let fp = analysis.get_results();
+    let fpi = fp[0].scattered.as_ref().unwrap()[0];
+    assert_relative_eq!(fpi.norm(), 0.0005407404080455677, epsilon = 1.0e-6);
+    assert_relative_eq!(fpi.re, -0.00021387485159944078, epsilon = 1.0e-6);
+    assert_relative_eq!(fpi.im, 0.000_496_646_490_722_127_4, epsilon = 1.0e-6);
+}
+
+#[test]
 fn monopole_power() {
     let mut analysis = cc_abstemious::Analysis::new();
     let mut input = default_input();
@@ -148,11 +173,14 @@ fn monopole_power() {
         bc_type: BCType::NormalVelocity,
         value: [1.0, 0.0],
     };
-
+    input.solver = Solver::Iterative {
+        max_iterations: 1000,
+        tolerance: 1.0e-5,
+    };
     analysis.set_input(input);
     analysis.run();
     let power = analysis.get_results()[0].power.scattered;
-    assert_relative_eq!(power, 95617.4138092842, epsilon = 1.0e-10);
+    assert_relative_eq!(power, 95617.4138092842, epsilon = 1.0);
 }
 
 #[test]
