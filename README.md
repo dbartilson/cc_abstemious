@@ -1,4 +1,5 @@
-# cc_abstemious 
+
+<img src=./docs/logo.svg width="300">
 
 `cc_abstemious` is an anagram of BEM-Acoustics.
 
