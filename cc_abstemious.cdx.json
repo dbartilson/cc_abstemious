@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.3",
   "version": 1,
-  "serialNumber": "urn:uuid:cfc8e86d-656c-4da5-9e71-3d4476913dd7",
+  "serialNumber": "urn:uuid:00b45155-5dc8-47cd-9dbc-836eb20b4274",
   "metadata": {
-    "timestamp": "2025-06-14T13:32:22.896559000Z",
+    "timestamp": "2025-06-19T13:07:33.557425700Z",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -81,16 +81,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.4.0",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.5.0",
       "author": "Josh Stone <cuviper@gmail.com>",
       "name": "autocfg",
-      "version": "1.4.0",
+      "version": "1.5.0",
       "description": "Automatic cfg for Rust compiler features",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
+          "content": "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
         }
       ],
       "licenses": [
@@ -98,7 +98,7 @@
           "expression": "Apache-2.0 OR MIT"
         }
       ],
-      "purl": "pkg:cargo/autocfg@1.4.0",
+      "purl": "pkg:cargo/autocfg@1.5.0",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1775,16 +1775,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#zerocopy@0.8.25",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#zerocopy@0.8.26",
       "author": "Joshua Liebow-Feeser <joshlf@google.com>, Jack Wrenn <jswrenn@amazon.com>",
       "name": "zerocopy",
-      "version": "0.8.25",
+      "version": "0.8.26",
       "description": "Zerocopy makes zero-cost memory manipulation effortless. We write \"unsafe\" so you don't have to.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1702d9583232ddb9174e01bb7c15a2ab8fb1bc6f227aa1233858c351a3ba0cb"
+          "content": "1039dd0d3c310cf05de012d8a39ff557cb0d23087fd44cad61df08fc31907a2f"
         }
       ],
       "licenses": [
@@ -1792,7 +1792,7 @@
           "expression": "BSD-2-Clause OR Apache-2.0 OR MIT"
         }
       ],
-      "purl": "pkg:cargo/zerocopy@0.8.25",
+      "purl": "pkg:cargo/zerocopy@0.8.26",
       "externalReferences": [
         {
           "type": "vcs",
@@ -1824,7 +1824,7 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.4.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.5.0",
       "dependsOn": []
     },
     {
@@ -1877,7 +1877,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#matrixmultiply@0.3.10",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.4.0",
+        "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.5.0",
         "registry+https://github.com/rust-lang/crates.io-index#rawpointer@0.2.1"
       ]
     },
@@ -1940,7 +1940,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#num-traits@0.2.19",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.4.0"
+        "registry+https://github.com/rust-lang/crates.io-index#autocfg@1.5.0"
       ]
     },
     {
@@ -1954,7 +1954,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#ppv-lite86@0.2.21",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#zerocopy@0.8.25"
+        "registry+https://github.com/rust-lang/crates.io-index#zerocopy@0.8.26"
       ]
     },
     {
@@ -2164,7 +2164,7 @@
       "dependsOn": []
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#zerocopy@0.8.25",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#zerocopy@0.8.26",
       "dependsOn": []
     }
   ]
