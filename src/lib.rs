@@ -14,7 +14,7 @@ extern crate nalgebra as na;
 extern crate simplelog;
 #[macro_use]
 extern crate log;
-extern crate scoped_threadpool;
+extern crate rayon;
 
 pub mod elements;
 pub mod incident_wave;

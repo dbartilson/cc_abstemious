@@ -87,7 +87,7 @@ fn monopole_power_sweep() {
 }
 
 #[allow(dead_code)]
-//#[test]
+#[test]
 fn speed_test() {
     let solvers = [
         Solver::Direct {},

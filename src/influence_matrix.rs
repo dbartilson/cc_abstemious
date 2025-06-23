@@ -3,9 +3,8 @@ Computes the surface and field influence matrices
 */
 
 use na::{DMatrix, DVector, Vector3};
-use scoped_threadpool::Pool;
+use rayon::prelude::*;
 use std::f64::consts::PI;
-use std::sync::{Arc, Mutex};
 
 use crate::preprocess::mesh::Coords;
 use crate::preprocess::{self, BurtonMiller};
@@ -111,35 +110,27 @@ pub fn get_dense_surface_matrices(
     predata.get_mut_usage().max_mem = num_eqn * num_eqn * size_of::<Cplx>();
 
     let pd = &*predata; // Downgrade to immutable reference
+    // column-major
+    let mut hv = vec![Cplx::new(0.0, 0.0); num_eqn * num_eqn];
+    let mut gv = hv.clone();
+    let pool = tools::get_threadpool();
+    pool.install(|| {
+        hv.par_chunks_mut(num_eqn).zip(gv.par_chunks_mut(num_eqn)).enumerate().for_each( |(j, (hc, gc))| {
+            for i in 0..ncpts {
+                let (g_ij, h_ij) = get_gh_functions(pd, i, j);
+                hc[i] += h_ij;
+                gc[i] += g_ij;
+            }
+        });
+    });
+    let mut h = DMatrix::<Cplx>::from_vec(num_eqn, num_eqn, hv);
+    let mut g = DMatrix::<Cplx>::from_vec(num_eqn, num_eqn, gv);
     let hdiag = predata.get_hdiag();
     let gdiag = predata.get_gdiag();
-    let num_threads = tools::get_num_threads();
-    // use a parallel pool of threads
-    info!(" Using {} threads...", num_threads);
-    let mut pool = Pool::new(num_threads as u32);
-    let h_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(
-        num_eqn, num_eqn, hdiag,
-    )));
-    let g_share = Arc::new(Mutex::new(DMatrix::<Cplx>::from_diagonal_element(
-        num_eqn, num_eqn, gdiag,
-    )));
-    pool.scoped(|scope| {
-        for j in 0..ncpts {
-            let h_share = h_share.clone();
-            let g_share = g_share.clone();
-            scope.execute(move || {
-                for i in 0..ncpts {
-                    let (g_ij, h_ij) = get_gh_functions(pd, i, j);
-                    let mut hi = h_share.lock().unwrap();
-                    let mut gi = g_share.lock().unwrap();
-                    hi[(i, j)] += h_ij;
-                    gi[(i, j)] += g_ij;
-                }
-            });
-        }
-    });
-    let h = Arc::try_unwrap(h_share).unwrap().into_inner().unwrap();
-    let g = Arc::try_unwrap(g_share).unwrap().into_inner().unwrap();
+    for i in 0..num_eqn {
+        h[(i,i)] += hdiag;
+        g[(i,i)] += gdiag;
+    }
     (h, g)
 }
 

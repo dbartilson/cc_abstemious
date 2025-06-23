@@ -17,15 +17,15 @@ This results in a much smaller memory footprint and faster matrix-vector multipl
 pub mod aca;
 pub mod block;
 
+use crate::tools::get_threadpool;
 use crate::{Cplx, preprocess::mesh::CollocationPoint, tools};
 use block::cluster::Cluster;
 use block::{BlockList, BlockTree};
 use na::{DMatrix, DVector};
-use scoped_threadpool::Pool;
+use rayon::prelude::*;
 use std::{
     collections::HashMap,
     rc::Rc,
-    sync::{Arc, Mutex},
 };
 
 /// Matrix represented in reduced format: ACA
@@ -156,25 +156,18 @@ impl Default for HMatrix {
 impl Drop for HMatrix {
     fn drop(&mut self) {
         // Parallelize deallocation
-        let num_threads = tools::get_num_threads();
-        let mut pool = Pool::new(num_threads as u32);
-        pool.scoped(|scope| {
-            for block in &mut self.admissible_blocks {
-                scope.execute(|| {
-                    block.columns = Vec::new();
-                    block.rows = Vec::new();
-                    block.values = aca::ACA::new();
-                });
-            }
-        });
-        pool.scoped(|scope| {
-            for block in &mut self.inadmissible_blocks {
-                scope.execute(|| {
-                    block.columns = Vec::new();
-                    block.rows = Vec::new();
-                    block.values = DMatrix::<Cplx>::zeros(1, 1)
-                });
-            }
+        let pool = get_threadpool();
+        pool.install(|| {
+            self.admissible_blocks.par_iter_mut().for_each(|block| {
+                block.columns = Vec::new();
+                block.rows = Vec::new();
+                block.values = aca::ACA::new();
+            });
+            self.inadmissible_blocks.par_iter_mut().for_each( |block| {
+                block.columns = Vec::new();
+                block.rows = Vec::new();
+                block.values = DMatrix::<Cplx>::zeros(1, 1)
+            });
         });
     }
 }
@@ -233,40 +226,38 @@ impl HMatrix {
     where
         F: Fn(Vec<usize>, Vec<usize>) -> Vec<Cplx> + std::marker::Sync,
     {
-        let num_threads = tools::get_num_threads();
-        // use a parallel pool of threads
-        info!("  Using {} threads...", num_threads);
-        let mut pool = Pool::new(num_threads as u32);
-        let ad = Arc::new(Mutex::new(Vec::<AdmissibleBlock>::new()));
-        let iad = Arc::new(Mutex::new(Vec::<InadmissibleBlock>::new()));
-        pool.scoped(|scope| {
-            for block in blocklist.get_list() {
-                scope.execute(|| {
-                    if block.is_admissible() {
-                        let a = AdmissibleBlock::new(
-                            block.get_row_indices().clone(),
-                            block.get_column_indices().clone(),
-                            get_row_or_column,
-                            tolerance,
-                        );
-                        let mut ad = ad.lock().unwrap();
-                        ad.push(a);
-                    } else {
-                        let ia = InadmissibleBlock::new(
-                            block.get_row_indices().clone(),
-                            block.get_column_indices().clone(),
-                            &|i: usize| -> Vec<Cplx> {
-                                get_row_or_column(vec![i], block.get_column_indices().clone())
-                            },
-                        );
-                        let mut iad = iad.lock().unwrap();
-                        iad.push(ia);
-                    }
-                });
-            }
+        let pool = tools::get_threadpool();
+        let mut ad = Vec::<AdmissibleBlock>::new();
+        let mut iad = Vec::<InadmissibleBlock>::new();
+        pool.install(|| {
+            ad = blocklist.get_list().into_par_iter().map( |block| -> Option<AdmissibleBlock> {
+                if block.is_admissible() {
+                    Some(AdmissibleBlock::new(
+                        block.get_row_indices().clone(),
+                        block.get_column_indices().clone(),
+                        get_row_or_column,
+                        tolerance,
+                    ))
+                } else {
+                    None
+                }
+            }).filter_map(std::convert::identity).collect::<Vec<AdmissibleBlock>>();
+            iad = blocklist.get_list().into_par_iter().map( |block| -> Option<InadmissibleBlock> {
+                if !block.is_admissible() {
+                    Some(InadmissibleBlock::new(
+                                block.get_row_indices().clone(),
+                                block.get_column_indices().clone(),
+                                &|i: usize| -> Vec<Cplx> {
+                                    get_row_or_column(vec![i], block.get_column_indices().clone())
+                                },
+                            ))
+                } else {
+                    None
+                }
+            }).filter_map(std::convert::identity).collect::<Vec<InadmissibleBlock>>();
         });
-        self.admissible_blocks = Arc::try_unwrap(ad).unwrap().into_inner().unwrap();
-        self.inadmissible_blocks = Arc::try_unwrap(iad).unwrap().into_inner().unwrap();
+        self.admissible_blocks = ad;
+        self.inadmissible_blocks = iad;
     }
     /// Update the matrix norm, used for iterative solution
     fn update_norm(&mut self) {
