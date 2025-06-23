@@ -23,10 +23,7 @@ use block::cluster::Cluster;
 use block::{BlockList, BlockTree};
 use na::{DMatrix, DVector};
 use rayon::prelude::*;
-use std::{
-    collections::HashMap,
-    rc::Rc,
-};
+use std::{collections::HashMap, rc::Rc};
 
 /// Matrix represented in reduced format: ACA
 #[derive(Debug)]
@@ -163,7 +160,7 @@ impl Drop for HMatrix {
                 block.rows = Vec::new();
                 block.values = aca::ACA::new();
             });
-            self.inadmissible_blocks.par_iter_mut().for_each( |block| {
+            self.inadmissible_blocks.par_iter_mut().for_each(|block| {
                 block.columns = Vec::new();
                 block.rows = Vec::new();
                 block.values = DMatrix::<Cplx>::zeros(1, 1)
@@ -230,31 +227,41 @@ impl HMatrix {
         let mut ad = Vec::<AdmissibleBlock>::new();
         let mut iad = Vec::<InadmissibleBlock>::new();
         pool.install(|| {
-            ad = blocklist.get_list().into_par_iter().map( |block| -> Option<AdmissibleBlock> {
-                if block.is_admissible() {
-                    Some(AdmissibleBlock::new(
-                        block.get_row_indices().clone(),
-                        block.get_column_indices().clone(),
-                        get_row_or_column,
-                        tolerance,
-                    ))
-                } else {
-                    None
-                }
-            }).filter_map(std::convert::identity).collect::<Vec<AdmissibleBlock>>();
-            iad = blocklist.get_list().into_par_iter().map( |block| -> Option<InadmissibleBlock> {
-                if !block.is_admissible() {
-                    Some(InadmissibleBlock::new(
-                                block.get_row_indices().clone(),
-                                block.get_column_indices().clone(),
-                                &|i: usize| -> Vec<Cplx> {
-                                    get_row_or_column(vec![i], block.get_column_indices().clone())
-                                },
-                            ))
-                } else {
-                    None
-                }
-            }).filter_map(std::convert::identity).collect::<Vec<InadmissibleBlock>>();
+            ad = blocklist
+                .get_list()
+                .into_par_iter()
+                .map(|block| -> Option<AdmissibleBlock> {
+                    if block.is_admissible() {
+                        Some(AdmissibleBlock::new(
+                            block.get_row_indices().clone(),
+                            block.get_column_indices().clone(),
+                            get_row_or_column,
+                            tolerance,
+                        ))
+                    } else {
+                        None
+                    }
+                })
+                .filter_map(std::convert::identity)
+                .collect::<Vec<AdmissibleBlock>>();
+            iad = blocklist
+                .get_list()
+                .into_par_iter()
+                .map(|block| -> Option<InadmissibleBlock> {
+                    if !block.is_admissible() {
+                        Some(InadmissibleBlock::new(
+                            block.get_row_indices().clone(),
+                            block.get_column_indices().clone(),
+                            &|i: usize| -> Vec<Cplx> {
+                                get_row_or_column(vec![i], block.get_column_indices().clone())
+                            },
+                        ))
+                    } else {
+                        None
+                    }
+                })
+                .filter_map(std::convert::identity)
+                .collect::<Vec<InadmissibleBlock>>();
         });
         self.admissible_blocks = ad;
         self.inadmissible_blocks = iad;

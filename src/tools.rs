@@ -39,7 +39,10 @@ pub fn get_num_threads() -> usize {
 pub fn get_threadpool() -> rayon::ThreadPool {
     //! return Rayon threadpool
     let nthreads = get_num_threads();
-    rayon::ThreadPoolBuilder::new().num_threads(nthreads).build().unwrap()
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(nthreads)
+        .build()
+        .unwrap()
 }
 
 struct MemRange {

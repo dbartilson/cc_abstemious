@@ -115,21 +115,24 @@ pub fn get_dense_surface_matrices(
     let mut gv = hv.clone();
     let pool = tools::get_threadpool();
     pool.install(|| {
-        hv.par_chunks_mut(num_eqn).zip(gv.par_chunks_mut(num_eqn)).enumerate().for_each( |(j, (hc, gc))| {
-            for i in 0..ncpts {
-                let (g_ij, h_ij) = get_gh_functions(pd, i, j);
-                hc[i] += h_ij;
-                gc[i] += g_ij;
-            }
-        });
+        hv.par_chunks_mut(num_eqn)
+            .zip(gv.par_chunks_mut(num_eqn))
+            .enumerate()
+            .for_each(|(j, (hc, gc))| {
+                for i in 0..ncpts {
+                    let (g_ij, h_ij) = get_gh_functions(pd, i, j);
+                    hc[i] += h_ij;
+                    gc[i] += g_ij;
+                }
+            });
     });
     let mut h = DMatrix::<Cplx>::from_vec(num_eqn, num_eqn, hv);
     let mut g = DMatrix::<Cplx>::from_vec(num_eqn, num_eqn, gv);
     let hdiag = predata.get_hdiag();
     let gdiag = predata.get_gdiag();
     for i in 0..num_eqn {
-        h[(i,i)] += hdiag;
-        g[(i,i)] += gdiag;
+        h[(i, i)] += hdiag;
+        g[(i, i)] += gdiag;
     }
     (h, g)
 }
