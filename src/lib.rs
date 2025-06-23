@@ -8,13 +8,13 @@
 
 pub const VER_MAJOR: usize = 1;
 pub const VER_MINOR: usize = 4;
-pub const VER_SUBMINOR: usize = 0;
+pub const VER_SUBMINOR: usize = 1;
 
 extern crate nalgebra as na;
 extern crate simplelog;
 #[macro_use]
 extern crate log;
-extern crate scoped_threadpool;
+extern crate rayon;
 
 pub mod elements;
 pub mod incident_wave;

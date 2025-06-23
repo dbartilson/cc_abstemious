@@ -253,6 +253,8 @@ pub fn preprocess(input: input::UserInput) -> PreData {
 
     process_elements(&mut mesh, *body_id);
 
+    info!(" Using {} threads...", tools::get_num_threads());
+
     let usage = Usage {
         num_eqn: mesh.cpts.len(),
         max_mem: 0,

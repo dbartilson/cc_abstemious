@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.3",
   "version": 1,
-  "serialNumber": "urn:uuid:00b45155-5dc8-47cd-9dbc-836eb20b4274",
+  "serialNumber": "urn:uuid:0e2b7a8e-ab2d-4312-a30d-cd0a172e0e04",
   "metadata": {
-    "timestamp": "2025-06-19T13:07:33.557425700Z",
+    "timestamp": "2025-06-23T18:42:38.758635800Z",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -14,25 +14,25 @@
     ],
     "component": {
       "type": "application",
-      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.0",
+      "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.1",
       "name": "cc_abstemious",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "scope": "required",
-      "purl": "pkg:cargo/cc_abstemious@1.4.0?download_url=file://.",
+      "purl": "pkg:cargo/cc_abstemious@1.4.1?download_url=file://.",
       "components": [
         {
           "type": "library",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.0 bin-target-0",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.1 bin-target-0",
           "name": "cc_abstemious",
-          "version": "1.4.0",
-          "purl": "pkg:cargo/cc_abstemious@1.4.0?download_url=file://.#src/lib.rs"
+          "version": "1.4.1",
+          "purl": "pkg:cargo/cc_abstemious@1.4.1?download_url=file://.#src/lib.rs"
         },
         {
           "type": "application",
-          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.0 bin-target-1",
+          "bom-ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.1 bin-target-1",
           "name": "cc_abstemious",
-          "version": "1.4.0",
-          "purl": "pkg:cargo/cc_abstemious@1.4.0?download_url=file://.#src/main.rs"
+          "version": "1.4.1",
+          "purl": "pkg:cargo/cc_abstemious@1.4.1?download_url=file://.#src/main.rs"
         }
       ]
     },
@@ -166,6 +166,96 @@
     },
     {
       "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#crossbeam-deque@0.8.6",
+      "name": "crossbeam-deque",
+      "version": "0.8.6",
+      "description": "Concurrent work-stealing deque",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9dd111b7b7f7d55b72c0a6ae361660ee5853c9af73f70c3c2ef6858b950e2e51"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/crossbeam-deque@0.8.6",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/crossbeam-rs/crossbeam/tree/master/crossbeam-deque"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/crossbeam-rs/crossbeam"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#crossbeam-epoch@0.9.18",
+      "name": "crossbeam-epoch",
+      "version": "0.9.18",
+      "description": "Epoch-based garbage collection",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b82ac4a3c2ca9c3460964f020e1402edd5753411d7737aa39c3714ad1b5420e"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/crossbeam-epoch@0.9.18",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/crossbeam-rs/crossbeam/tree/master/crossbeam-epoch"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/crossbeam-rs/crossbeam"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#crossbeam-utils@0.8.21",
+      "name": "crossbeam-utils",
+      "version": "0.8.21",
+      "description": "Utilities for concurrent programming",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/crossbeam-utils@0.8.21",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/crossbeam-rs/crossbeam/tree/master/crossbeam-utils"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/crossbeam-rs/crossbeam"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#csv-core@0.1.12",
       "author": "Andrew Gallant <jamslam@gmail.com>",
       "name": "csv-core",
@@ -289,6 +379,37 @@
         {
           "type": "vcs",
           "url": "https://github.com/dtolnay/dyn-clone"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#either@1.15.0",
+      "author": "bluss",
+      "name": "either",
+      "version": "1.15.0",
+      "description": "The enum `Either` with variants `Left` and `Right` is a general purpose sum type with two cases. ",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/either@1.15.0",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/either/1/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rayon-rs/either"
         }
       ]
     },
@@ -1008,6 +1129,72 @@
     },
     {
       "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.12.1",
+      "author": "Niko Matsakis <niko@alum.mit.edu>, Josh Stone <cuviper@gmail.com>",
+      "name": "rayon-core",
+      "version": "1.12.1",
+      "description": "Core APIs for Rayon",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/rayon-core@1.12.1",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/rayon/"
+        },
+        {
+          "type": "other",
+          "url": "rayon-core"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rayon-rs/rayon"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.10.0",
+      "author": "Niko Matsakis <niko@alum.mit.edu>, Josh Stone <cuviper@gmail.com>",
+      "name": "rayon",
+      "version": "1.10.0",
+      "description": "Simple work-stealing parallelism for Rust",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/rayon@1.10.0",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/rayon/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rayon-rs/rayon"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#ref-cast-impl@1.0.24",
       "author": "David Tolnay <dtolnay@gmail.com>",
       "name": "ref-cast-impl",
@@ -1185,37 +1372,6 @@
         {
           "type": "vcs",
           "url": "https://github.com/GREsau/schemars"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#scoped_threadpool@0.1.9",
-      "author": "Marvin Löbel <loebel.marvin@gmail.com>",
-      "name": "scoped_threadpool",
-      "version": "0.1.9",
-      "description": "A library for scoped and cached threadpools.",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "1d51f5df5af43ab3f1360b429fa5e0152ac5ce8c0bd6485cae490332e96846a8"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "purl": "pkg:cargo/scoped_threadpool@0.1.9",
-      "externalReferences": [
-        {
-          "type": "documentation",
-          "url": "http://kimundi.github.io/scoped-threadpool-rs/scoped_threadpool/index.html"
-        },
-        {
-          "type": "vcs",
-          "url": "https://github.com/Kimundi/scoped-threadpool-rs"
         }
       ]
     },
@@ -1803,15 +1959,15 @@
   ],
   "dependencies": [
     {
-      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.0",
+      "ref": "path+file:///D:/Repositories/cc-abstemious#cc_abstemious@1.4.1",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#approx@0.5.1",
         "registry+https://github.com/rust-lang/crates.io-index#csv@1.3.1",
         "registry+https://github.com/rust-lang/crates.io-index#log@0.4.27",
         "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.33.2",
         "registry+https://github.com/rust-lang/crates.io-index#rand@0.9.1",
+        "registry+https://github.com/rust-lang/crates.io-index#rayon@1.10.0",
         "registry+https://github.com/rust-lang/crates.io-index#schemars@0.9.0",
-        "registry+https://github.com/rust-lang/crates.io-index#scoped_threadpool@0.1.9",
         "registry+https://github.com/rust-lang/crates.io-index#serde@1.0.219",
         "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.140",
         "registry+https://github.com/rust-lang/crates.io-index#simplelog@0.12.2"
@@ -1833,6 +1989,23 @@
     },
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#crossbeam-deque@0.8.6",
+      "dependsOn": [
+        "registry+https://github.com/rust-lang/crates.io-index#crossbeam-epoch@0.9.18",
+        "registry+https://github.com/rust-lang/crates.io-index#crossbeam-utils@0.8.21"
+      ]
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#crossbeam-epoch@0.9.18",
+      "dependsOn": [
+        "registry+https://github.com/rust-lang/crates.io-index#crossbeam-utils@0.8.21"
+      ]
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#crossbeam-utils@0.8.21",
       "dependsOn": []
     },
     {
@@ -1858,6 +2031,10 @@
     },
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#dyn-clone@1.0.19",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#either@1.15.0",
       "dependsOn": []
     },
     {
@@ -1994,6 +2171,20 @@
       "dependsOn": []
     },
     {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.12.1",
+      "dependsOn": [
+        "registry+https://github.com/rust-lang/crates.io-index#crossbeam-deque@0.8.6",
+        "registry+https://github.com/rust-lang/crates.io-index#crossbeam-utils@0.8.21"
+      ]
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.10.0",
+      "dependsOn": [
+        "registry+https://github.com/rust-lang/crates.io-index#either@1.15.0",
+        "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.12.1"
+      ]
+    },
+    {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#ref-cast-impl@1.0.24",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
@@ -2035,10 +2226,6 @@
         "registry+https://github.com/rust-lang/crates.io-index#serde_derive_internals@0.29.1",
         "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.103"
       ]
-    },
-    {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#scoped_threadpool@0.1.9",
-      "dependsOn": []
     },
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#serde@1.0.219",
