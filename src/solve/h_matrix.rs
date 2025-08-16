@@ -340,8 +340,8 @@ impl HMatrix {
             for (i, row) in block.rows.iter().enumerate() {
                 // Locate diagonal, if it exists
                 let j = block.columns.iter().position(|&x| x == *row);
-                if j.is_some() {
-                    a[*row] = block.values[(i, j.unwrap())];
+                if let Some(j) = j {
+                    a[*row] = block.values[(i, j)];
                 }
             }
         }
