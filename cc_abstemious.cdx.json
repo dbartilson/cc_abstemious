@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.3",
   "version": 1,
-  "serialNumber": "urn:uuid:908ec093-f95f-4b02-9f29-3a058884dd68",
+  "serialNumber": "urn:uuid:00a5904b-32f5-40ba-a911-8a10b17b8229",
   "metadata": {
-    "timestamp": "2025-06-28T23:05:08.473753600Z",
+    "timestamp": "2025-08-16T00:38:43.644310200Z",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -14,25 +14,25 @@
     ],
     "component": {
       "type": "application",
-      "bom-ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.1",
+      "bom-ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.3",
       "name": "cc_abstemious",
-      "version": "1.4.1",
+      "version": "1.4.3",
       "scope": "required",
-      "purl": "pkg:cargo/cc_abstemious@1.4.1?download_url=file://.",
+      "purl": "pkg:cargo/cc_abstemious@1.4.3?download_url=file://.",
       "components": [
         {
           "type": "library",
-          "bom-ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.1 bin-target-0",
+          "bom-ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.3 bin-target-0",
           "name": "cc_abstemious",
-          "version": "1.4.1",
-          "purl": "pkg:cargo/cc_abstemious@1.4.1?download_url=file://.#src/lib.rs"
+          "version": "1.4.3",
+          "purl": "pkg:cargo/cc_abstemious@1.4.3?download_url=file://.#src/lib.rs"
         },
         {
           "type": "application",
-          "bom-ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.1 bin-target-1",
+          "bom-ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.3 bin-target-1",
           "name": "cc_abstemious",
-          "version": "1.4.1",
-          "purl": "pkg:cargo/cc_abstemious@1.4.1?download_url=file://.#src/main.rs"
+          "version": "1.4.3",
+          "purl": "pkg:cargo/cc_abstemious@1.4.3?download_url=file://.#src/main.rs"
         }
       ]
     },
@@ -112,16 +112,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.2",
       "author": "Lokathor <zefria@gmail.com>",
       "name": "bytemuck",
-      "version": "1.23.1",
+      "version": "1.23.2",
       "description": "A crate for mucking around with piles of bytes.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c76a5792e44e4abe34d3abf15636779261d45a7450612059293d1d2cfc63422"
+          "content": "3995eaeebcdf32f91f980d360f78732ddc061097ab4e39991ae7a6ace9194677"
         }
       ],
       "licenses": [
@@ -129,7 +129,7 @@
           "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
-      "purl": "pkg:cargo/bytemuck@1.23.1",
+      "purl": "pkg:cargo/bytemuck@1.23.2",
       "externalReferences": [
         {
           "type": "vcs",
@@ -353,16 +353,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#dyn-clone@1.0.19",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#dyn-clone@1.0.20",
       "author": "David Tolnay <dtolnay@gmail.com>",
       "name": "dyn-clone",
-      "version": "1.0.19",
+      "version": "1.0.20",
       "description": "Clone trait that is dyn-compatible",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c7a8fb8a9fbf66c1f703fe16184d10ca0ee9d23be5b4436400408ba54a95005"
+          "content": "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
         }
       ],
       "licenses": [
@@ -370,7 +370,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/dyn-clone@1.0.19",
+      "purl": "pkg:cargo/dyn-clone@1.0.20",
       "externalReferences": [
         {
           "type": "documentation",
@@ -441,6 +441,438 @@
         {
           "type": "vcs",
           "url": "https://github.com/rust-random/getrandom"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.14.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.14.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "333928d5eb103c5d4050533cec0384302db6be8ef7d3cebd30ec6a35350353da"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.14.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.15.2",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.15.2",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3abb554f8ee44336b72d522e0a7fe86a29e09f839a36022fa869a7dfe941a54b"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.15.2",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.16.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.16.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4126c0479ccf7e8664c36a2d719f5f2c140fbb4f9090008098d2c291fa5b3f16"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.16.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.17.3",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.17.3",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e01732b97afd8508eee3333a541b9f7610f454bb818669e66e90f5f57c93a776"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.17.3",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.18.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.18.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "525a3e490ba77b8e326fb67d4b44b4bd2f920f44d4cc73ccec50adc68e3bee34"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.18.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.19.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.19.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2b8509e6791516e81c1a630d0bd7fbac36d2fa8712a9da8662e716b52d5051ca"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.19.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.20.5",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.20.5",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f43e957e744be03f5801a55472f593d43fabdebf25a4585db250f04d86b1675f"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.20.5",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.21.3",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.21.3",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "518faa5064866338b013ff9b2350dc318e14cc4fcd6cb8206d7e7c9886c98815"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.21.3",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.22.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.22.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "12f597d56c1bd55a811a1be189459e8fad2bbc272616375602443bdfb37fa774"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.22.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.23.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.23.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8e4afd9ad95555081e109fe1d21f2a30c691b5f0919c67dfa690a2e1eb6bd51c"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.23.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.24.2",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.24.2",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b5418c17512bdf42730f9032c74e1ae39afc408745ebb2acf72fbc4691c17945"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.24.2",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.25.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.25.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "151665d9be52f9bb40fc7966565d39666f2d1e69233571b71b87791c7e0528b3"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.25.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.27.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.27.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.27.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.28.0",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.28.0",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.28.0",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.29.3",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.29.3",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8babf46d4c1c9d92deac9f7be466f76dfc4482b6452fc5024b5e8daf6ffeb3ee"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.29.3",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.30.5",
+      "author": "Cameron Hart <cameron.hart@gmail.com>",
+      "name": "glam",
+      "version": "0.30.5",
+      "description": "A simple and fast 3D math library for games and graphics",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f2d1aab06663bdce00d6ca5e5ed586ec8d18033a771906c993a1e3755b368d85"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/glam@0.30.5",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitshifter/glam-rs"
         }
       ]
     },
@@ -574,16 +1006,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra-macros@0.2.2",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra-macros@0.3.0",
       "author": "Andreas Longva, Sébastien Crozet <developer@crozet.re>",
       "name": "nalgebra-macros",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "description": "Procedural macros for nalgebra",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
+          "content": "973e7178a678cfd059ccec50887658d482ce16b0aa9da3888ddeab5cd5eb4889"
         }
       ],
       "licenses": [
@@ -591,15 +1023,15 @@
           "expression": "Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/nalgebra-macros@0.2.2",
+      "purl": "pkg:cargo/nalgebra-macros@0.3.0",
       "externalReferences": [
         {
           "type": "documentation",
-          "url": "https://www.nalgebra.org/docs"
+          "url": "https://www.nalgebra.rs/docs"
         },
         {
           "type": "website",
-          "url": "https://nalgebra.org"
+          "url": "https://nalgebra.rs"
         },
         {
           "type": "vcs",
@@ -609,16 +1041,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.33.2",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.34.0",
       "author": "Sébastien Crozet <developer@crozet.re>",
       "name": "nalgebra",
-      "version": "0.33.2",
+      "version": "0.34.0",
       "description": "General-purpose linear algebra library with transformations and statically-sized or dynamically-sized matrices.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "26aecdf64b707efd1310e3544d709c5c0ac61c13756046aaaba41be5c4f66a3b"
+          "content": "9cd59afb6639828b33677758314a4a1a745c15c02bc597095b851c8fd915cf49"
         }
       ],
       "licenses": [
@@ -626,15 +1058,15 @@
           "expression": "Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/nalgebra@0.33.2",
+      "purl": "pkg:cargo/nalgebra@0.34.0",
       "externalReferences": [
         {
           "type": "documentation",
-          "url": "https://www.nalgebra.org/docs"
+          "url": "https://www.nalgebra.rs/docs"
         },
         {
           "type": "website",
-          "url": "https://nalgebra.org"
+          "url": "https://nalgebra.rs"
         },
         {
           "type": "vcs",
@@ -931,16 +1363,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
       "author": "David Tolnay <dtolnay@gmail.com>, Alex Crichton <alex@alexcrichton.com>",
       "name": "proc-macro2",
-      "version": "1.0.95",
+      "version": "1.0.97",
       "description": "A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
+          "content": "d61789d7719defeb74ea5fe81f2fdfdbd28a803847077cecce2ff14e1472f6f1"
         }
       ],
       "licenses": [
@@ -948,7 +1380,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/proc-macro2@1.0.95",
+      "purl": "pkg:cargo/proc-macro2@1.0.97",
       "externalReferences": [
         {
           "type": "documentation",
@@ -993,16 +1425,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.9.1",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.9.2",
       "author": "The Rand Project Developers, The Rust Project Developers",
       "name": "rand",
-      "version": "0.9.1",
+      "version": "0.9.2",
       "description": "Random number generators and other randomness functionality. ",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9fbfd9d094a40bf3ae768db9361049ace4c0e04a4fd6b359518bd7b73a73dd97"
+          "content": "6db2770f06117d490610c7488547d543617b21bfa07796d7a12f6f1bd53850d1"
         }
       ],
       "licenses": [
@@ -1010,7 +1442,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/rand@0.9.1",
+      "purl": "pkg:cargo/rand@0.9.2",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1129,16 +1561,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.12.1",
-      "author": "Niko Matsakis <niko@alum.mit.edu>, Josh Stone <cuviper@gmail.com>",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.13.0",
       "name": "rayon-core",
-      "version": "1.12.1",
+      "version": "1.13.0",
       "description": "Core APIs for Rayon",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
+          "content": "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
         }
       ],
       "licenses": [
@@ -1146,11 +1577,11 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/rayon-core@1.12.1",
+      "purl": "pkg:cargo/rayon-core@1.13.0",
       "externalReferences": [
         {
           "type": "documentation",
-          "url": "https://docs.rs/rayon/"
+          "url": "https://docs.rs/rayon-core/"
         },
         {
           "type": "other",
@@ -1164,16 +1595,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.10.0",
-      "author": "Niko Matsakis <niko@alum.mit.edu>, Josh Stone <cuviper@gmail.com>",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.11.0",
       "name": "rayon",
-      "version": "1.10.0",
+      "version": "1.11.0",
       "description": "Simple work-stealing parallelism for Rust",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
+          "content": "368f01d005bf8fd9b1206fb6fa653e6c4a81ceb1466406b81792d87c5677a58f"
         }
       ],
       "licenses": [
@@ -1181,7 +1611,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/rayon@1.10.0",
+      "purl": "pkg:cargo/rayon@1.11.0",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1315,16 +1745,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#schemars@1.0.3",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#schemars@1.0.4",
       "author": "Graham Esau <gesau@hotmail.co.uk>",
       "name": "schemars",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "description": "Generate JSON Schemas from Rust code",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1375ba8ef45a6f15d83fa8748f1079428295d403d6ea991d09ab100155fbc06d"
+          "content": "82d20c4491bc164fa2f6c5d44565947a52ad80b9505d8e36f8d54c27c739fcd0"
         }
       ],
       "licenses": [
@@ -1332,7 +1762,7 @@
           "expression": "MIT"
         }
       ],
-      "purl": "pkg:cargo/schemars@1.0.3",
+      "purl": "pkg:cargo/schemars@1.0.4",
       "externalReferences": [
         {
           "type": "website",
@@ -1346,16 +1776,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#schemars_derive@1.0.3",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#schemars_derive@1.0.4",
       "author": "Graham Esau <gesau@hotmail.co.uk>",
       "name": "schemars_derive",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "description": "Macros for #[derive(JsonSchema)], for use with schemars",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2b13ed22d6d49fe23712e068770b5c4df4a693a2b02eeff8e7ca3135627a24f6"
+          "content": "33d020396d1d138dc19f1165df7545479dcd58d93810dc5d646a16e55abefa80"
         }
       ],
       "licenses": [
@@ -1363,7 +1793,7 @@
           "expression": "MIT"
         }
       ],
-      "purl": "pkg:cargo/schemars_derive@1.0.3",
+      "purl": "pkg:cargo/schemars_derive@1.0.4",
       "externalReferences": [
         {
           "type": "website",
@@ -1482,16 +1912,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.140",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.142",
       "author": "Erick Tryzelaar <erick.tryzelaar@gmail.com>, David Tolnay <dtolnay@gmail.com>",
       "name": "serde_json",
-      "version": "1.0.140",
+      "version": "1.0.142",
       "description": "A JSON serialization file format",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
+          "content": "030fedb782600dcbd6f02d479bf0d817ac3bb40d644745b769d6a96bc3afc5a7"
         }
       ],
       "licenses": [
@@ -1499,7 +1929,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/serde_json@1.0.140",
+      "purl": "pkg:cargo/serde_json@1.0.142",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1575,16 +2005,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.104",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.105",
       "author": "David Tolnay <dtolnay@gmail.com>",
       "name": "syn",
-      "version": "2.0.104",
+      "version": "2.0.105",
       "description": "Parser for Rust source code",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17b6f705963418cdb9927482fa304bc562ece2fdd4f616084c50b7023b435a40"
+          "content": "7bc3fcb250e53458e712715cf74285c1f889686520d79294a9ef3bd7aa1fc619"
         }
       ],
       "licenses": [
@@ -1592,7 +2022,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/syn@2.0.104",
+      "purl": "pkg:cargo/syn@2.0.105",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1959,17 +2389,17 @@
   ],
   "dependencies": [
     {
-      "ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.1",
+      "ref": "path+file:///C:/Repositories/cc-abstemious#cc_abstemious@1.4.3",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#approx@0.5.1",
         "registry+https://github.com/rust-lang/crates.io-index#csv@1.3.1",
         "registry+https://github.com/rust-lang/crates.io-index#log@0.4.27",
-        "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.33.2",
-        "registry+https://github.com/rust-lang/crates.io-index#rand@0.9.1",
-        "registry+https://github.com/rust-lang/crates.io-index#rayon@1.10.0",
-        "registry+https://github.com/rust-lang/crates.io-index#schemars@1.0.3",
+        "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.34.0",
+        "registry+https://github.com/rust-lang/crates.io-index#rand@0.9.2",
+        "registry+https://github.com/rust-lang/crates.io-index#rayon@1.11.0",
+        "registry+https://github.com/rust-lang/crates.io-index#schemars@1.0.4",
         "registry+https://github.com/rust-lang/crates.io-index#serde@1.0.219",
-        "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.140",
+        "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.142",
         "registry+https://github.com/rust-lang/crates.io-index#simplelog@0.12.2"
       ]
     },
@@ -1984,7 +2414,7 @@
       "dependsOn": []
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.2",
       "dependsOn": []
     },
     {
@@ -2030,7 +2460,7 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#dyn-clone@1.0.19",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#dyn-clone@1.0.20",
       "dependsOn": []
     },
     {
@@ -2042,6 +2472,70 @@
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.1"
       ]
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.14.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.15.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.16.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.17.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.18.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.19.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.20.5",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.21.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.22.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.23.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.24.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.25.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.27.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.28.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.29.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#glam@0.30.5",
+      "dependsOn": []
     },
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#itoa@1.0.15",
@@ -2063,19 +2557,35 @@
       "dependsOn": []
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra-macros@0.2.2",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra-macros@0.3.0",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.104"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.105"
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.33.2",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.34.0",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#approx@0.5.1",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.14.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.15.2",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.16.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.17.3",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.18.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.19.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.20.5",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.21.3",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.22.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.23.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.24.2",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.25.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.27.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.28.0",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.29.3",
+        "registry+https://github.com/rust-lang/crates.io-index#glam@0.30.5",
         "registry+https://github.com/rust-lang/crates.io-index#matrixmultiply@0.3.10",
-        "registry+https://github.com/rust-lang/crates.io-index#nalgebra-macros@0.2.2",
+        "registry+https://github.com/rust-lang/crates.io-index#nalgebra-macros@0.3.0",
         "registry+https://github.com/rust-lang/crates.io-index#num-complex@0.4.6",
         "registry+https://github.com/rust-lang/crates.io-index#num-rational@0.4.2",
         "registry+https://github.com/rust-lang/crates.io-index#num-traits@0.2.19",
@@ -2135,7 +2645,7 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#unicode-ident@1.0.18"
       ]
@@ -2143,11 +2653,11 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95"
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97"
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.9.1",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.9.2",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#rand_chacha@0.9.0",
         "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.9.3"
@@ -2171,25 +2681,25 @@
       "dependsOn": []
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.12.1",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.13.0",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#crossbeam-deque@0.8.6",
         "registry+https://github.com/rust-lang/crates.io-index#crossbeam-utils@0.8.21"
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.10.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.11.0",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#either@1.15.0",
-        "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.12.1"
+        "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.13.0"
       ]
     },
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#ref-cast-impl@1.0.24",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.104"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.105"
       ]
     },
     {
@@ -2205,26 +2715,26 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#safe_arch@0.7.4",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1"
+        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.2"
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#schemars@1.0.3",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#schemars@1.0.4",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#dyn-clone@1.0.19",
+        "registry+https://github.com/rust-lang/crates.io-index#dyn-clone@1.0.20",
         "registry+https://github.com/rust-lang/crates.io-index#ref-cast@1.0.24",
-        "registry+https://github.com/rust-lang/crates.io-index#schemars_derive@1.0.3",
+        "registry+https://github.com/rust-lang/crates.io-index#schemars_derive@1.0.4",
         "registry+https://github.com/rust-lang/crates.io-index#serde@1.0.219",
-        "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.140"
+        "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.142"
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#schemars_derive@1.0.3",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#schemars_derive@1.0.4",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#serde_derive_internals@0.29.1",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.104"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.105"
       ]
     },
     {
@@ -2236,21 +2746,21 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#serde_derive@1.0.219",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.104"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.105"
       ]
     },
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#serde_derive_internals@0.29.1",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
-        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.104"
+        "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.105"
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.140",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.142",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#itoa@1.0.15",
         "registry+https://github.com/rust-lang/crates.io-index#memchr@2.7.5",
@@ -2277,9 +2787,9 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.104",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#syn@2.0.105",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.95",
+        "registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.97",
         "registry+https://github.com/rust-lang/crates.io-index#quote@1.0.40",
         "registry+https://github.com/rust-lang/crates.io-index#unicode-ident@1.0.18"
       ]
@@ -2324,7 +2834,7 @@
     {
       "ref": "registry+https://github.com/rust-lang/crates.io-index#wide@0.7.33",
       "dependsOn": [
-        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.1",
+        "registry+https://github.com/rust-lang/crates.io-index#bytemuck@1.23.2",
         "registry+https://github.com/rust-lang/crates.io-index#safe_arch@0.7.4"
       ]
     },
