@@ -246,7 +246,7 @@ mod tests {
         n: usize,
         seed: u64,
     ) -> (na::DMatrix<Cplx>, na::DVector<Cplx>) {
-        use rand::{Rng, SeedableRng, rngs::StdRng};
+        use rand::{RngExt, SeedableRng, rngs::StdRng};
         let mut a = na::DMatrix::<Cplx>::from_diagonal_element(m, n, Cplx::new(n as f64, 0.0));
 
         let mut rng = StdRng::seed_from_u64(seed);
