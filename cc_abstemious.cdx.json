@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.3",
   "version": 1,
-  "serialNumber": "urn:uuid:5ae26061-5fd5-40d0-828d-f226518e1c63",
+  "serialNumber": "urn:uuid:4881e287-3930-4517-8c15-e8c52d7fd4bf",
   "metadata": {
-    "timestamp": "2026-04-05T19:35:58.915407273Z",
+    "timestamp": "2026-05-09T15:28:36.285754818Z",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -14,25 +14,25 @@
     ],
     "component": {
       "type": "application",
-      "bom-ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.5",
+      "bom-ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.6",
       "name": "cc_abstemious",
-      "version": "1.4.5",
+      "version": "1.4.6",
       "scope": "required",
-      "purl": "pkg:cargo/cc_abstemious@1.4.5?download_url=file://.",
+      "purl": "pkg:cargo/cc_abstemious@1.4.6?download_url=file://.",
       "components": [
         {
           "type": "library",
-          "bom-ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.5 bin-target-0",
+          "bom-ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.6 bin-target-0",
           "name": "cc_abstemious",
-          "version": "1.4.5",
-          "purl": "pkg:cargo/cc_abstemious@1.4.5?download_url=file://.#src/lib.rs"
+          "version": "1.4.6",
+          "purl": "pkg:cargo/cc_abstemious@1.4.6?download_url=file://.#src/lib.rs"
         },
         {
           "type": "application",
-          "bom-ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.5 bin-target-1",
+          "bom-ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.6 bin-target-1",
           "name": "cc_abstemious",
-          "version": "1.4.5",
-          "purl": "pkg:cargo/cc_abstemious@1.4.5?download_url=file://.#src/main.rs"
+          "version": "1.4.6",
+          "purl": "pkg:cargo/cc_abstemious@1.4.6?download_url=file://.#src/main.rs"
         }
       ]
     },
@@ -1025,16 +1025,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.184",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.186",
       "author": "The Rust Project Developers",
       "name": "libc",
-      "version": "0.2.184",
+      "version": "0.2.186",
       "description": "Raw FFI bindings to platform libraries like libc.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48f5d2a454e16a5ea0f4ced81bd44e4cfc7bd3a507b61887c99fd3538b28e4af"
+          "content": "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
         }
       ],
       "licenses": [
@@ -1042,7 +1042,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/libc@0.2.184",
+      "purl": "pkg:cargo/libc@0.2.186",
       "externalReferences": [
         {
           "type": "vcs",
@@ -1568,16 +1568,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.10.0",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.10.1",
       "author": "The Rand Project Developers, The Rust Project Developers",
       "name": "rand",
-      "version": "0.10.0",
+      "version": "0.10.1",
       "description": "Random number generators and other randomness functionality. ",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc266eb313df6c5c09c1c7b1fbe2510961e5bcd3add930c1e31f7ed9da0feff8"
+          "content": "d2e8e8bcc7961af1fdac401278c6a831614941f6164ee3bf4ce61b7edb162207"
         }
       ],
       "licenses": [
@@ -1585,7 +1585,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/rand@0.10.0",
+      "purl": "pkg:cargo/rand@0.10.1",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1603,16 +1603,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.0",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.1",
       "author": "The Rand Project Developers",
       "name": "rand_core",
-      "version": "0.10.0",
+      "version": "0.10.1",
       "description": "Core random number generation traits and tools for implementation.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0c8d0fd677905edcbeedbf2edb6494d676f0e98d54d5cf9bda0b061cb8fb8aba"
+          "content": "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
         }
       ],
       "licenses": [
@@ -1620,7 +1620,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/rand_core@0.10.0",
+      "purl": "pkg:cargo/rand_core@0.10.1",
       "externalReferences": [
         {
           "type": "documentation",
@@ -1703,15 +1703,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.11.0",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.12.0",
       "name": "rayon",
-      "version": "1.11.0",
+      "version": "1.12.0",
       "description": "Simple work-stealing parallelism for Rust",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "368f01d005bf8fd9b1206fb6fa653e6c4a81ceb1466406b81792d87c5677a58f"
+          "content": "fb39b166781f92d482534ef4b4b1b2568f42613b53e5b6c160e24cfbfa30926d"
         }
       ],
       "licenses": [
@@ -1719,7 +1719,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/rayon@1.11.0",
+      "purl": "pkg:cargo/rayon@1.12.0",
       "externalReferences": [
         {
           "type": "documentation",
@@ -2299,16 +2299,16 @@
     },
     {
       "type": "library",
-      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#typenum@1.19.0",
+      "bom-ref": "registry+https://github.com/rust-lang/crates.io-index#typenum@1.20.0",
       "author": "Paho Lurie-Gregg <paho@paholg.com>, Andre Bogus <bogusandre@gmail.com>",
       "name": "typenum",
-      "version": "1.19.0",
+      "version": "1.20.0",
       "description": "Typenum is a Rust library for type-level numbers evaluated at     compile time. It currently supports bits, unsigned integers, and signed     integers. It also provides a type-level array of type-level numbers, but its     implementation is incomplete.",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
+          "content": "40ce102ab67701b8526c123c1bab5cbe42d7040ccfd0f64af1a385808d2f43de"
         }
       ],
       "licenses": [
@@ -2316,7 +2316,7 @@
           "expression": "MIT OR Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/typenum@1.19.0",
+      "purl": "pkg:cargo/typenum@1.20.0",
       "externalReferences": [
         {
           "type": "documentation",
@@ -2420,14 +2420,14 @@
   ],
   "dependencies": [
     {
-      "ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.5",
+      "ref": "path+file:///home/daniel/repos/cc_abstemious#1.4.6",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#approx@0.5.1",
         "registry+https://github.com/rust-lang/crates.io-index#csv@1.4.0",
         "registry+https://github.com/rust-lang/crates.io-index#log@0.4.29",
         "registry+https://github.com/rust-lang/crates.io-index#nalgebra@0.34.2",
-        "registry+https://github.com/rust-lang/crates.io-index#rand@0.10.0",
-        "registry+https://github.com/rust-lang/crates.io-index#rayon@1.11.0",
+        "registry+https://github.com/rust-lang/crates.io-index#rand@0.10.1",
+        "registry+https://github.com/rust-lang/crates.io-index#rayon@1.12.0",
         "registry+https://github.com/rust-lang/crates.io-index#schemars@1.2.1",
         "registry+https://github.com/rust-lang/crates.io-index#serde@1.0.228",
         "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.149",
@@ -2457,7 +2457,7 @@
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.4",
         "registry+https://github.com/rust-lang/crates.io-index#cpufeatures@0.3.0",
-        "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.0"
+        "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.1"
       ]
     },
     {
@@ -2514,8 +2514,8 @@
       "ref": "registry+https://github.com/rust-lang/crates.io-index#getrandom@0.4.2",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.4",
-        "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.184",
-        "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.0"
+        "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.186",
+        "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.1"
       ]
     },
     {
@@ -2595,7 +2595,7 @@
       "dependsOn": []
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.184",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.186",
       "dependsOn": []
     },
     {
@@ -2649,7 +2649,7 @@
         "registry+https://github.com/rust-lang/crates.io-index#num-rational@0.4.2",
         "registry+https://github.com/rust-lang/crates.io-index#num-traits@0.2.19",
         "registry+https://github.com/rust-lang/crates.io-index#simba@0.9.1",
-        "registry+https://github.com/rust-lang/crates.io-index#typenum@1.19.0"
+        "registry+https://github.com/rust-lang/crates.io-index#typenum@1.20.0"
       ]
     },
     {
@@ -2714,15 +2714,15 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.10.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rand@0.10.1",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#chacha20@0.10.0",
         "registry+https://github.com/rust-lang/crates.io-index#getrandom@0.4.2",
-        "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.0"
+        "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.1"
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rand_core@0.10.1",
       "dependsOn": []
     },
     {
@@ -2737,7 +2737,7 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.11.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#rayon@1.12.0",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#either@1.15.0",
         "registry+https://github.com/rust-lang/crates.io-index#rayon-core@1.13.0"
@@ -2868,7 +2868,7 @@
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#deranged@0.5.8",
         "registry+https://github.com/rust-lang/crates.io-index#itoa@1.0.18",
-        "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.184",
+        "registry+https://github.com/rust-lang/crates.io-index#libc@0.2.186",
         "registry+https://github.com/rust-lang/crates.io-index#num-conv@0.2.1",
         "registry+https://github.com/rust-lang/crates.io-index#num_threads@0.1.7",
         "registry+https://github.com/rust-lang/crates.io-index#powerfmt@0.2.0",
@@ -2878,7 +2878,7 @@
       ]
     },
     {
-      "ref": "registry+https://github.com/rust-lang/crates.io-index#typenum@1.19.0",
+      "ref": "registry+https://github.com/rust-lang/crates.io-index#typenum@1.20.0",
       "dependsOn": []
     },
     {
